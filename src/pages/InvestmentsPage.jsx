@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useAccounts } from '../hooks/useAccounts'
 import { useInvestments } from '../hooks/useInvestments'
 import { STRATEGIES } from '../lib/optionStrategies'
+import { coverageFor } from '../lib/coverage'
 import Header from '../components/Header'
 import InvestmentRow from '../components/InvestmentRow'
 import AddInvestmentModal from '../components/AddInvestmentModal'
@@ -67,7 +68,13 @@ export default function InvestmentsPage() {
                   <h3 className="strategy-title">{group.label}</h3>
                   <ul className="investment-list">
                     {group.items.map((investment) => (
-                      <InvestmentRow key={investment.id} investment={investment} onClosePosition={setClosingId} onDelete={deleteInvestment} />
+                      <InvestmentRow
+                        key={investment.id}
+                        investment={investment}
+                        onClosePosition={setClosingId}
+                        onDelete={deleteInvestment}
+                        coverage={coverageFor(investment, stockInvestments)}
+                      />
                     ))}
                   </ul>
                 </div>

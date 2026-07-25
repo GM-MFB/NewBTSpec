@@ -41,7 +41,28 @@ function MetaItem({ field, label, value }) {
   )
 }
 
-export default function InvestmentRow({ investment, onClosePosition, onDelete }) {
+function coverageLevel(ratio) {
+  if (ratio >= 1) return 'covered'
+  if (ratio >= 0.5) return 'partial'
+  return 'naked'
+}
+
+function CoverageIndicator({ coverage }) {
+  if (!coverage) return null
+  const level = coverageLevel(coverage.ratio)
+  const fillPercent = Math.min(coverage.ratio, 1) * 100
+
+  return (
+    <div className={`coverage-indicator coverage-indicator--${level}`} data-testid="coverage-indicator">
+      <div className="coverage-bar">
+        <div className="coverage-fill" style={{ width: `${fillPercent}%` }} />
+      </div>
+      <span className="coverage-label mono">{coverage.owned}/{coverage.required} shares</span>
+    </div>
+  )
+}
+
+export default function InvestmentRow({ investment, onClosePosition, onDelete, coverage }) {
   const isOption = investment.assetType === 'Option'
   const strategyDef = strategyByValue(investment.strategy)
   const badge = isOption ? (strategyDef?.label ?? 'Option') : investment.assetType
@@ -64,6 +85,7 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete })
       <div className="investment-row-top">
         <span className="mono investment-symbol">{investment.symbol}</span>
         <span className="investment-badge">{badge}</span>
+        <CoverageIndicator coverage={coverage} />
       </div>
       <div className="investment-row-meta mono">
         {isOption ? (

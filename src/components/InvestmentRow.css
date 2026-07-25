@@ -90,3 +90,40 @@
   border-color: var(--red);
   color: var(--red);
 }
+
+.coverage-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.coverage-bar {
+  width: 56px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.coverage-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+.coverage-indicator--covered .coverage-fill {
+  background: var(--green);
+}
+
+.coverage-indicator--partial .coverage-fill {
+  background: #eab308;
+}
+
+.coverage-indicator--naked .coverage-fill {
+  background: var(--red);
+}
+
+.coverage-label {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+

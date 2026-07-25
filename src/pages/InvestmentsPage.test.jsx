@@ -109,6 +109,23 @@ describe('InvestmentsPage', () => {
     expect(closeInvestment).toHaveBeenCalledWith('i1', { sellPrice: '180', sellDate: '2026-02-01' })
   })
 
+  it('shows a coverage indicator for a covered call matched against owned stock', () => {
+    mockAccounts()
+    useInvestments.mockReturnValue({
+      investments: [
+        { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 100, avgCost: 150, strategy: '', strike: '', expiry: '' },
+        { id: 'i2', symbol: 'AAPL', assetType: 'Option', shares: 1, avgCost: 2, strategy: 'covered_call', strike: 200, expiry: '2026-03-01' },
+      ],
+      loading: false, error: null, reload: vi.fn(),
+      addInvestment: vi.fn(), closeInvestment: vi.fn(), updateInvestment: vi.fn(), deleteInvestment: vi.fn(),
+    })
+
+    render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
+
+    expect(screen.getByTestId('coverage-indicator')).toHaveClass('coverage-indicator--covered')
+    expect(screen.getByText('100/100 shares')).toBeInTheDocument()
+  })
+
   it('calls deleteInvestment when Delete is clicked', async () => {
     mockAccounts()
     const deleteInvestment = vi.fn()

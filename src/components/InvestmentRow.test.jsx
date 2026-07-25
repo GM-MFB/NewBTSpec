@@ -78,6 +78,33 @@ describe('InvestmentRow', () => {
     expect(screen.queryByText('P&L:')).not.toBeInTheDocument()
   })
 
+  it('shows a full coverage indicator when owned shares meet the requirement', () => {
+    const investment = { id: 'i9', symbol: 'AAPL', assetType: 'Option', shares: 1, avgCost: 2, strategy: 'covered_call', strike: 200, expiry: '2026-03-01' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} coverage={{ owned: 200, required: 100, ratio: 2 }} />)
+    expect(screen.getByText('200/100 shares')).toBeInTheDocument()
+    expect(screen.getByTestId('coverage-indicator')).toHaveClass('coverage-indicator--covered')
+  })
+
+  it('shows a partial coverage indicator when owned shares are half the requirement', () => {
+    const investment = { id: 'i10', symbol: 'AAPL', assetType: 'Option', shares: 2, avgCost: 2, strategy: 'covered_call', strike: 200, expiry: '2026-03-01' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} coverage={{ owned: 100, required: 200, ratio: 0.5 }} />)
+    expect(screen.getByText('100/200 shares')).toBeInTheDocument()
+    expect(screen.getByTestId('coverage-indicator')).toHaveClass('coverage-indicator--partial')
+  })
+
+  it('shows a naked coverage indicator when no shares are owned', () => {
+    const investment = { id: 'i11', symbol: 'AAPL', assetType: 'Option', shares: 1, avgCost: 2, strategy: 'covered_call', strike: 200, expiry: '2026-03-01' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} coverage={{ owned: 0, required: 100, ratio: 0 }} />)
+    expect(screen.getByText('0/100 shares')).toBeInTheDocument()
+    expect(screen.getByTestId('coverage-indicator')).toHaveClass('coverage-indicator--naked')
+  })
+
+  it('does not show a coverage indicator when coverage is not provided', () => {
+    const investment = { id: 'i2', symbol: 'SPY', assetType: 'Option', shares: 5, avgCost: 3.5, strategy: 'covered_call', strike: 450, expiry: '2026-03-01' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.queryByTestId('coverage-indicator')).not.toBeInTheDocument()
+  })
+
   it('calls onClosePosition with the investment id when Close is clicked', async () => {
     const onClosePosition = vi.fn()
     const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, strategy: '', strike: '', expiry: '' }
