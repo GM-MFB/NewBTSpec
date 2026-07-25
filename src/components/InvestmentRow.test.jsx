@@ -53,15 +53,15 @@ describe('InvestmentRow', () => {
     const investment = { id: 'i6', symbol: 'QQQ', assetType: 'Option', shares: 2, avgCost: 1.5, strategy: 'cash_secured_put', strike: 380, expiry: '2026-03-01' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
     expect(screen.getByText('Collateral:')).toBeInTheDocument()
-    expect(screen.getByText('$76,000.00')).toBeInTheDocument()
-    expect(screen.getByText('Potential P&L:')).toBeInTheDocument()
+    expect(screen.getByText('$76,000')).toBeInTheDocument()
+    expect(screen.getByText('P&L:')).toBeInTheDocument()
     expect(screen.getByText('$300.00')).toBeInTheDocument()
   })
 
   it('shows collateral using the strike width as a dollar amount for a credit spread', () => {
     const investment = { id: 'i5', symbol: 'SPY', assetType: 'Option', shares: 1, avgCost: 1.2, strategy: 'put_credit_spread', strike: 36, strike2: 35, expiry: '2026-03-01' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
-    expect(screen.getByText('$100.00')).toBeInTheDocument()
+    expect(screen.getByText('$100')).toBeInTheDocument()
     expect(screen.getByText('$120.00')).toBeInTheDocument()
   })
 
@@ -69,7 +69,7 @@ describe('InvestmentRow', () => {
     const investment = { id: 'i7', symbol: 'TSLA', assetType: 'Option', shares: 1, avgCost: 5, strategy: 'call', strike: 300, expiry: '2026-03-01' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
     expect(screen.queryByText('Collateral:')).not.toBeInTheDocument()
-    expect(screen.queryByText('Potential P&L:')).not.toBeInTheDocument()
+    expect(screen.queryByText('P&L:')).not.toBeInTheDocument()
   })
 
   it('calls onClosePosition with the investment id when Close is clicked', async () => {

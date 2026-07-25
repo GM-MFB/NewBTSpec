@@ -1,6 +1,6 @@
 import './InvestmentRow.css'
 import { strategyByValue } from '../lib/optionStrategies'
-import { formatCurrency } from '../lib/format'
+import { formatCurrency, formatCurrencyWhole } from '../lib/format'
 
 function daysLeftLabel(expiry) {
   if (!expiry) return ''
@@ -31,11 +31,12 @@ function potentialPnlFor(investment, strategyDef) {
   return contracts * price * 100
 }
 
-function MetaItem({ label, value }) {
+function MetaItem({ field, label, value }) {
   if (value === '' || value === undefined || value === null) return null
   return (
-    <span className="meta-item">
-      <span className="meta-label">{label}:</span> {value}
+    <span className={`meta-item meta-item--${field}`}>
+      <span className="meta-label">{label}:</span>
+      <span className="meta-value">{value}</span>
     </span>
   )
 }
@@ -47,7 +48,7 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete })
   const strikeDisplay = investment.strike2
     ? `${formatCurrency(investment.strike)}/${formatCurrency(investment.strike2)}`
     : formatCurrency(investment.strike)
-  const collateral = isOption ? formatCurrency(collateralFor(investment, strategyDef)) : ''
+  const collateral = isOption ? formatCurrencyWhole(collateralFor(investment, strategyDef)) : ''
   const potentialPnl = isOption ? formatCurrency(potentialPnlFor(investment, strategyDef)) : ''
 
   async function handleDelete() {
@@ -67,18 +68,18 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete })
       <div className="investment-row-meta mono">
         {isOption ? (
           <>
-            <MetaItem label="Contracts" value={investment.shares} />
-            <MetaItem label="Strike" value={strikeDisplay} />
-            <MetaItem label="Expires" value={investment.expiry} />
-            <MetaItem label="Days Left" value={daysLeftLabel(investment.expiry)} />
-            <MetaItem label="Avg Price" value={formatCurrency(investment.avgCost)} />
-            <MetaItem label="Collateral" value={collateral} />
-            <MetaItem label="Potential P&L" value={potentialPnl} />
+            <MetaItem field="contracts" label="Contracts" value={investment.shares} />
+            <MetaItem field="strike" label="Strike" value={strikeDisplay} />
+            <MetaItem field="expires" label="Expires" value={investment.expiry} />
+            <MetaItem field="days-left" label="Days Left" value={daysLeftLabel(investment.expiry)} />
+            <MetaItem field="avg-price" label="Avg Price" value={formatCurrency(investment.avgCost)} />
+            <MetaItem field="collateral" label="Collateral" value={collateral} />
+            <MetaItem field="pnl" label="P&L" value={potentialPnl} />
           </>
         ) : (
           <>
-            <MetaItem label="Shares" value={investment.shares} />
-            <MetaItem label="Avg Cost" value={formatCurrency(investment.avgCost)} />
+            <MetaItem field="shares" label="Shares" value={investment.shares} />
+            <MetaItem field="avg-cost" label="Avg Cost" value={formatCurrency(investment.avgCost)} />
           </>
         )}
       </div>
