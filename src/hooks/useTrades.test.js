@@ -64,4 +64,29 @@ describe('useTrades', () => {
     expect(insertArg.user_id).toBe('u1')
     expect(insertArg.symbol).toBe('NQ')
   })
+
+  it('closeTrade preserves existing fields not included in the close payload', async () => {
+    const rows = [{
+      id: 't1', account_id: 'a1', user_id: 'u1', created_at: '2026-01-01',
+      type: 'futures', symbol: 'ES', option_type: null, strike: null,
+      expiry: null, direction: 'long', quantity: 1, entry_price: 4500,
+      exit_price: null, entry_date: '2026-01-01', exit_date: null,
+      status: 'open', fees: 0, notes: null, chart_link: null,
+    }]
+    const update = vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) }))
+    supabase.from.mockReturnValue({ ...mockSelectChain(rows), update })
+
+    const { result } = renderHook(() => useTrades('a1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await act(async () => {
+      await result.current.closeTrade('t1', { exitPrice: '4600', exitDate: '2026-01-05' })
+    })
+
+    const updateArg = update.mock.calls[0][0]
+    expect(updateArg.symbol).toBe('ES')
+    expect(updateArg.quantity).toBe(1)
+    expect(updateArg.status).toBe('closed')
+    expect(updateArg.exit_price).toBe('4600')
+  })
 })

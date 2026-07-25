@@ -43,15 +43,17 @@ export function useInvestments(accountId) {
   }
 
   async function updateInvestment(id, patch) {
-    const { error: err } = await supabase.from('investments').update(toRow(patch)).eq('id', id)
+    const current = investments.find((i) => i.id === id)
+    const { error: err } = await supabase.from('investments').update(toRow({ ...current, ...patch })).eq('id', id)
     if (err) throw err
     await load()
   }
 
   async function closeInvestment(id, { sellPrice, sellDate }) {
+    const current = investments.find((i) => i.id === id)
     const { error: err } = await supabase
       .from('investments')
-      .update(toRow({ status: 'closed', sellPrice, sellDate }))
+      .update(toRow({ ...current, status: 'closed', sellPrice, sellDate }))
       .eq('id', id)
     if (err) throw err
     await load()
