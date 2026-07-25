@@ -3,6 +3,7 @@ import './InvestmentsPage.css'
 import { useAuth } from '../hooks/useAuth'
 import { useAccounts } from '../hooks/useAccounts'
 import { useInvestments } from '../hooks/useInvestments'
+import { STRATEGIES } from '../lib/optionStrategies'
 import Header from '../components/Header'
 import InvestmentRow from '../components/InvestmentRow'
 import AddInvestmentModal from '../components/AddInvestmentModal'
@@ -16,6 +17,11 @@ export default function InvestmentsPage() {
   const [selectedId, setSelectedId] = useState(null)
 
   const selected = investments.find((i) => i.id === selectedId) ?? null
+
+  const stockInvestments = investments.filter((i) => i.assetType === 'Stock')
+  const strategyGroups = STRATEGIES
+    .map((s) => ({ ...s, items: investments.filter((i) => i.assetType === 'Option' && i.strategy === s.value) }))
+    .filter((g) => g.items.length > 0)
 
   return (
     <div data-testid="investments-page">
@@ -38,11 +44,34 @@ export default function InvestmentsPage() {
       {investments.length === 0 ? (
         <p className="empty-state">No open investments — add one to get started</p>
       ) : (
-        <ul className="investment-list">
-          {investments.map((investment) => (
-            <InvestmentRow key={investment.id} investment={investment} onClick={setSelectedId} />
-          ))}
-        </ul>
+        <div className="investment-groups">
+          {stockInvestments.length > 0 && (
+            <section className="investment-group">
+              <h2 className="group-title">Stock</h2>
+              <ul className="investment-list">
+                {stockInvestments.map((investment) => (
+                  <InvestmentRow key={investment.id} investment={investment} onClick={setSelectedId} />
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {strategyGroups.length > 0 && (
+            <section className="investment-group">
+              <h2 className="group-title">Option</h2>
+              {strategyGroups.map((group) => (
+                <div key={group.value} className="strategy-group">
+                  <h3 className="strategy-title">{group.label}</h3>
+                  <ul className="investment-list">
+                    {group.items.map((investment) => (
+                      <InvestmentRow key={investment.id} investment={investment} onClick={setSelectedId} />
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </section>
+          )}
+        </div>
       )}
 
       {addOpen && (

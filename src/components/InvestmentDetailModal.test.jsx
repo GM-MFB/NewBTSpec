@@ -16,6 +16,27 @@ describe('InvestmentDetailModal', () => {
     expect(screen.getByDisplayValue('AAPL')).toBeInTheDocument()
   })
 
+  it('shows Date, Price, and Close Price fields for a stock', () => {
+    render(<InvestmentDetailModal investment={investment} onClose={vi.fn()} onUpdate={vi.fn()} onCloseInvestment={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByLabelText(/^date$/i)).toHaveValue('2026-01-01')
+    expect(screen.getByLabelText(/^price$/i)).toHaveValue('150')
+    expect(screen.getByLabelText(/close price/i)).toBeInTheDocument()
+  })
+
+  it('shows the Strike field and expiry as Date for an option', () => {
+    const option = { ...investment, assetType: 'Option', strategy: 'covered_call', strike: 450, expiry: '2026-03-01' }
+    render(<InvestmentDetailModal investment={option} onClose={vi.fn()} onUpdate={vi.fn()} onCloseInvestment={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByLabelText(/strike/i)).toHaveValue('450')
+    expect(screen.getByLabelText(/^date$/i)).toHaveValue('2026-03-01')
+  })
+
+  it('renders the Close Position button before the edit form', () => {
+    render(<InvestmentDetailModal investment={investment} onClose={vi.fn()} onUpdate={vi.fn()} onCloseInvestment={vi.fn()} onDelete={vi.fn()} />)
+    const closeBtn = screen.getByRole('button', { name: /close position/i })
+    const symbolInput = screen.getByLabelText(/symbol/i)
+    expect(closeBtn.compareDocumentPosition(symbolInput) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
   it('calls onCloseInvestment with sell price and date when closing', async () => {
     const onCloseInvestment = vi.fn()
     render(<InvestmentDetailModal investment={investment} onClose={vi.fn()} onUpdate={vi.fn()} onCloseInvestment={onCloseInvestment} onDelete={vi.fn()} />)

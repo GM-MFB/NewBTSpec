@@ -32,3 +32,44 @@
 .error-banner button:hover {
   background: rgba(239, 68, 68, 0.12);
 }
+
+.investment-groups {
+  padding: 12px 32px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.investment-groups .investment-list {
+  padding: 0;
+}
+
+.investment-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.group-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.strategy-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.strategy-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin: 0;
+}
