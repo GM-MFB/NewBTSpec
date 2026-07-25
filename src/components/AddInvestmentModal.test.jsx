@@ -21,11 +21,13 @@ describe('AddInvestmentModal', () => {
     expect(screen.queryByLabelText(/long leg strike/i)).not.toBeInTheDocument()
   })
 
-  it('shows the long leg strike field only for credit spread strategies', async () => {
+  it('relabels Strike as Short Strike / Long Strike for credit spread strategies', async () => {
     render(<AddInvestmentModal onClose={vi.fn()} onSubmit={vi.fn()} />)
     await userEvent.click(screen.getByRole('button', { name: /^option$/i }))
     await userEvent.selectOptions(screen.getByLabelText(/strategy/i), 'put_credit_spread')
-    expect(screen.getByLabelText(/long leg strike/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/short strike/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^long strike$/i)).toBeInTheDocument()
+    expect(screen.queryByLabelText(/^strike$/i)).not.toBeInTheDocument()
   })
 
   it('submits a stock investment with the expected fields', async () => {
@@ -52,8 +54,8 @@ describe('AddInvestmentModal', () => {
     await userEvent.type(screen.getByLabelText(/symbol/i), 'SPY')
     await userEvent.selectOptions(screen.getByLabelText(/strategy/i), 'put_credit_spread')
     await userEvent.type(screen.getByLabelText(/contracts/i), '2')
-    await userEvent.type(screen.getByLabelText(/^strike$/i), '400')
-    await userEvent.type(screen.getByLabelText(/long leg strike/i), '395')
+    await userEvent.type(screen.getByLabelText(/short strike/i), '400')
+    await userEvent.type(screen.getByLabelText(/^long strike$/i), '395')
     await userEvent.type(screen.getByLabelText(/expiry/i), '2026-02-01')
     await userEvent.type(screen.getByLabelText(/^price$/i), '1.25')
     await userEvent.type(screen.getByLabelText(/buy date/i), '2026-01-01')
