@@ -4,11 +4,11 @@ import userEvent from '@testing-library/user-event'
 import InvestmentRow from './InvestmentRow'
 
 describe('InvestmentRow', () => {
-  it('renders symbol, Stock badge, shares, and avg cost inline for a stock', () => {
+  it('renders symbol, shares, and avg cost inline for a stock, with no asset-type badge', () => {
     const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, strategy: '', strike: '', expiry: '' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
     expect(screen.getByText('AAPL')).toBeInTheDocument()
-    expect(screen.getByText('Stock')).toBeInTheDocument()
+    expect(screen.queryByText('Stock')).not.toBeInTheDocument()
     expect(screen.getByText('Shares:')).toBeInTheDocument()
     expect(screen.getByText('Avg Cost:')).toBeInTheDocument()
   })
@@ -122,22 +122,37 @@ describe('InvestmentRow', () => {
     expect(screen.queryByText('Unrealized P&L:')).not.toBeInTheDocument()
   })
 
+  it('colors stock Current Price and Unrealized P&L green when price is above avg cost', () => {
+    const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 100, currentPrice: 165, strategy: '', strike: '', expiry: '' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByText('$165.00')).toHaveClass('price-favorable')
+    const pnlItem = screen.getByText('Unrealized P&L:').closest('.meta-item')
+    expect(pnlItem.querySelector('.meta-value')).toHaveClass('price-favorable')
+  })
+
+  it('colors stock Current Price and Unrealized P&L red when price is below avg cost', () => {
+    const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, currentPrice: 140, strategy: '', strike: '', expiry: '' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByText('$140.00')).toHaveClass('price-unfavorable')
+    expect(screen.getByText('-$100.00')).toHaveClass('price-unfavorable')
+  })
+
   it('shows the underlying current price next to strike for an option', () => {
     const investment = { id: 'i9', symbol: 'AAPL', assetType: 'Option', shares: 1, avgCost: 2, strategy: 'call', strike: 30, currentPrice: 33.51, expiry: '2026-03-01' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
     expect(screen.getByText('$33.51')).toBeInTheDocument()
   })
 
-  it('colors the current price green for a call when price is below strike (favorable)', () => {
-    const investment = { id: 'i9', symbol: 'AAPL', assetType: 'Option', shares: 1, avgCost: 2, strategy: 'call', strike: 30, currentPrice: 28, expiry: '2026-03-01' }
-    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
-    expect(screen.getByText('$28.00')).toHaveClass('price-favorable')
-  })
-
-  it('colors the current price red for a call when price is above strike (unfavorable)', () => {
+  it('colors the current price green for a call when price is above strike (favorable)', () => {
     const investment = { id: 'i9', symbol: 'AAPL', assetType: 'Option', shares: 1, avgCost: 2, strategy: 'call', strike: 30, currentPrice: 33.51, expiry: '2026-03-01' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
-    expect(screen.getByText('$33.51')).toHaveClass('price-unfavorable')
+    expect(screen.getByText('$33.51')).toHaveClass('price-favorable')
+  })
+
+  it('colors the current price red for a call when price is below strike (unfavorable)', () => {
+    const investment = { id: 'i9', symbol: 'AAPL', assetType: 'Option', shares: 1, avgCost: 2, strategy: 'call', strike: 30, currentPrice: 28, expiry: '2026-03-01' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByText('$28.00')).toHaveClass('price-unfavorable')
   })
 
   it('colors the current price green for a put when price is above strike (favorable)', () => {

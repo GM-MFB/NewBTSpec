@@ -13,33 +13,35 @@ function daysLeftLabel(expiry) {
   return diff < 0 ? 'Expired' : `${diff}d`
 }
 
+function isBlank(value) {
+  return value === '' || value === undefined || value === null
+}
+
 function unrealizedPnlFor(investment) {
-  if (investment.currentPrice === '' || investment.currentPrice === undefined || investment.currentPrice === null) return ''
+  if (isBlank(investment.currentPrice)) return ''
   return (Number(investment.currentPrice) - Number(investment.avgCost)) * Number(investment.shares)
 }
 
-function priceFavorability(investment, strategyDef) {
-  if (investment.currentPrice === '' || investment.currentPrice === undefined || investment.currentPrice === null) return null
-  if (!strategyDef) return null
+function priceFavorability(investment) {
+  if (isBlank(investment.currentPrice)) return null
   const strike = Number(investment.strike)
   const currentPrice = Number(investment.currentPrice)
-  const favorable = strategyDef.optionType === 'put' ? currentPrice > strike : currentPrice < strike
-  return favorable ? 'price-favorable' : 'price-unfavorable'
+  return currentPrice > strike ? 'price-favorable' : 'price-unfavorable'
 }
 
-function MetaItem({ field, label, value }) {
-  if (value === '' || value === undefined || value === null) return null
+function MetaItem({ field, label, value, colorClass }) {
+  if (isBlank(value)) return null
   return (
     <span className={`meta-item meta-item--${field}`}>
       <span className="meta-label">{label}:</span>
-      <span className="meta-value">{value}</span>
+      <span className={`meta-value ${colorClass ?? ''}`}>{value}</span>
     </span>
   )
 }
 
-function StrikeMeta({ investment, strategyDef, strikeDisplay }) {
+function StrikeMeta({ investment, strikeDisplay }) {
   const currentPriceDisplay = formatCurrency(investment.currentPrice)
-  const favorability = priceFavorability(investment, strategyDef)
+  const favorability = priceFavorability(investment)
 
   return (
     <span className="meta-item meta-item--strike">
@@ -58,14 +60,18 @@ function StrikeMeta({ investment, strategyDef, strikeDisplay }) {
 export default function InvestmentRow({ investment, onClosePosition, onDelete, coveredShares }) {
   const isOption = investment.assetType === 'Option'
   const strategyDef = strategyByValue(investment.strategy)
-  const badge = isOption ? '' : investment.assetType
   const strikeDisplay = investment.strike2
     ? `${formatCurrencyAuto(investment.strike)}/${formatCurrencyAuto(investment.strike2)}`
     : formatCurrencyAuto(investment.strike)
   const collateral = isOption ? formatCurrencyWhole(collateralFor(investment, strategyDef)) : ''
   const potentialPnl = isOption ? formatCurrency(potentialPnlFor(investment, strategyDef)) : ''
   const sharesDisplay = coveredShares ? `${investment.shares}/${coveredShares}` : investment.shares
-  const unrealizedPnl = !isOption ? formatCurrency(unrealizedPnlFor(investment)) : ''
+
+  const currentPriceClass = !isBlank(investment.currentPrice)
+    ? (Number(investment.currentPrice) > Number(investment.avgCost) ? 'price-favorable' : 'price-unfavorable')
+    : ''
+  const unrealizedPnlRaw = unrealizedPnlFor(investment)
+  const unrealizedPnlClass = !isBlank(unrealizedPnlRaw) ? (unrealizedPnlRaw >= 0 ? 'price-favorable' : 'price-unfavorable') : ''
 
   async function handleDelete() {
     try {
@@ -79,13 +85,12 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, c
     <li className="investment-row" data-testid="investment-row">
       <div className="investment-row-top">
         <span className="mono investment-symbol">{investment.symbol}</span>
-        {badge && <span className="investment-badge">{badge}</span>}
       </div>
       <div className="investment-row-meta mono">
         {isOption ? (
           <>
             <MetaItem field="contracts" label="Contracts" value={investment.shares} />
-            <StrikeMeta investment={investment} strategyDef={strategyDef} strikeDisplay={strikeDisplay} />
+            <StrikeMeta investment={investment} strikeDisplay={strikeDisplay} />
             <MetaItem field="expires" label="Expires" value={investment.expiry} />
             <MetaItem field="days-left" label="Days Left" value={daysLeftLabel(investment.expiry)} />
             <MetaItem field="avg-price" label="Avg Price" value={formatCurrency(investment.avgCost)} />
@@ -96,8 +101,8 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, c
           <>
             <MetaItem field="shares" label="Shares" value={sharesDisplay} />
             <MetaItem field="avg-cost" label="Avg Cost" value={formatCurrency(investment.avgCost)} />
-            <MetaItem field="current-price" label="Current Price" value={formatCurrency(investment.currentPrice)} />
-            <MetaItem field="unrealized-pnl" label="Unrealized P&L" value={unrealizedPnl} />
+            <MetaItem field="current-price" label="Current Price" value={formatCurrency(investment.currentPrice)} colorClass={currentPriceClass} />
+            <MetaItem field="unrealized-pnl" label="Unrealized P&L" value={formatCurrency(unrealizedPnlRaw)} colorClass={unrealizedPnlClass} />
           </>
         )}
       </div>
