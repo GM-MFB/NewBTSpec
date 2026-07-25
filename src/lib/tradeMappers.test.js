@@ -35,4 +35,14 @@ describe('toRow', () => {
       status: 'open', fees: 2, notes: null, chart_link: null,
     })
   })
+
+  it('uppercases the symbol regardless of how it was typed', () => {
+    const trade = {
+      type: 'futures', symbol: 'es', optionType: '', strike: '',
+      expiry: '', direction: 'short', quantity: 2, entryPrice: 4500,
+      exitPrice: '', entryDate: '2026-01-01', exitDate: '',
+      status: 'open', fees: 2, notes: '', chartLink: '',
+    }
+    expect(toRow(trade).symbol).toBe('ES')
+  })
 })

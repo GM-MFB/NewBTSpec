@@ -30,6 +30,13 @@ describe('AddInvestmentModal', () => {
     expect(screen.queryByLabelText(/^strike$/i)).not.toBeInTheDocument()
   })
 
+  it('uppercases the symbol as it is typed', async () => {
+    render(<AddInvestmentModal onClose={vi.fn()} onSubmit={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: /^stock$/i }))
+    await userEvent.type(screen.getByLabelText(/symbol/i), 'aapl')
+    expect(screen.getByLabelText(/symbol/i)).toHaveValue('AAPL')
+  })
+
   it('submits a stock investment with the expected fields', async () => {
     const onSubmit = vi.fn()
     render(<AddInvestmentModal onClose={vi.fn()} onSubmit={onSubmit} />)

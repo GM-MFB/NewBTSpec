@@ -38,7 +38,7 @@ export function toRow(investment) {
   const strategyDef = strategyByValue(investment.strategy)
 
   return {
-    symbol: blankToNull(investment.symbol),
+    symbol: blankToNull(investment.symbol ? investment.symbol.toUpperCase() : investment.symbol),
     name: blankToNull(investment.name),
     asset_type: blankToNull(investment.assetType),
     sector: blankToNull(investment.sector),

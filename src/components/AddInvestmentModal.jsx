@@ -40,7 +40,7 @@ export default function AddInvestmentModal({ onClose, onSubmit }) {
           <form className="form-grid" onSubmit={handleSubmit}>
             <div className="field">
               <label htmlFor="symbol">Symbol</label>
-              <input id="symbol" value={fields.symbol} onChange={(e) => set('symbol', e.target.value)} required />
+              <input id="symbol" value={fields.symbol} onChange={(e) => set('symbol', e.target.value.toUpperCase())} required />
             </div>
 
             <div className="field">

@@ -13,6 +13,13 @@ describe('AddTradeModal', () => {
     expect(screen.getByLabelText(/expiry/i)).toBeInTheDocument()
   })
 
+  it('uppercases the symbol as it is typed', async () => {
+    render(<AddTradeModal onClose={vi.fn()} onSubmit={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: /^futures$/i }))
+    await userEvent.type(screen.getByLabelText(/symbol/i), 'es')
+    expect(screen.getByLabelText(/symbol/i)).toHaveValue('ES')
+  })
+
   it('submits a futures trade with only common fields', async () => {
     const onSubmit = vi.fn()
     render(<AddTradeModal onClose={vi.fn()} onSubmit={onSubmit} />)

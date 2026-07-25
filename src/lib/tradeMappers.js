@@ -29,7 +29,7 @@ function blankToNull(value) {
 export function toRow(trade) {
   return {
     type: blankToNull(trade.type),
-    symbol: blankToNull(trade.symbol),
+    symbol: blankToNull(trade.symbol ? trade.symbol.toUpperCase() : trade.symbol),
     option_type: blankToNull(trade.optionType),
     strike: blankToNull(trade.strike),
     expiry: blankToNull(trade.expiry),

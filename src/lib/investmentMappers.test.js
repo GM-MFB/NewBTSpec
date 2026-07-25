@@ -53,6 +53,16 @@ describe('toRow', () => {
     expect(row.strike_2).toBe('395')
   })
 
+  it('uppercases the symbol regardless of how it was typed', () => {
+    const investment = {
+      symbol: 'aapl', name: '', assetType: 'Stock', sector: '',
+      shares: '10', avgCost: '150', buyDate: '2026-01-01', stopLoss: '',
+      targetPrice: '', chartLink: '', notes: '', status: 'open',
+      strategy: '', strike: '', expiry: '', strike2: '',
+    }
+    expect(toRow(investment).symbol).toBe('AAPL')
+  })
+
   it('leaves option fields null for a stock investment', () => {
     const investment = {
       symbol: 'AAPL', name: 'Apple', assetType: 'Stock', sector: 'Tech',

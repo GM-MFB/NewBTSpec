@@ -36,7 +36,7 @@ export default function AddTradeModal({ onClose, onSubmit }) {
         {fields.type && (
           <form onSubmit={handleSubmit}>
             <label htmlFor="symbol">Symbol</label>
-            <input id="symbol" value={fields.symbol} onChange={(e) => set('symbol', e.target.value)} required />
+            <input id="symbol" value={fields.symbol} onChange={(e) => set('symbol', e.target.value.toUpperCase())} required />
 
             <label htmlFor="direction">Direction</label>
             <select id="direction" value={fields.direction} onChange={(e) => set('direction', e.target.value)}>
