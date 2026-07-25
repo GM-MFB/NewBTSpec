@@ -1,8 +1,11 @@
 import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, Link } from 'react-router-dom'
 import './Header.css'
 
-export default function Header({ accounts, activeAccount, switchAccount, createAccount, onAddTrade, addLabel = '+ Add Trade' }) {
+export default function Header({
+  accounts, activeAccount, switchAccount, createAccount, onAddTrade,
+  addLabel = '+ Add Trade', onRefresh, refreshing = false,
+}) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -43,9 +46,17 @@ export default function Header({ accounts, activeAccount, switchAccount, createA
         <NavLink to="/matt-cap" className={({ isActive }) => (isActive ? 'active' : undefined)}>Matt Cap</NavLink>
       </nav>
 
-      <button type="button" className="add-trade-btn" onClick={onAddTrade}>
-        {addLabel}
-      </button>
+      <div className="header-actions">
+        {onRefresh && (
+          <button type="button" className="refresh-btn" onClick={onRefresh} disabled={refreshing}>
+            {refreshing ? 'Refreshing…' : '↻ Refresh'}
+          </button>
+        )}
+        <button type="button" className="add-trade-btn" onClick={onAddTrade}>
+          {addLabel}
+        </button>
+        <Link to="/settings" className="settings-link" aria-label="Settings">⚙</Link>
+      </div>
     </header>
   )
 }

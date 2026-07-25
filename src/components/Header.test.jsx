@@ -51,4 +51,26 @@ describe('Header', () => {
     setup({ addLabel: '+ Add Investment' })
     expect(screen.getByRole('button', { name: /add investment/i })).toBeInTheDocument()
   })
+
+  it('always renders a link to Settings', () => {
+    setup()
+    expect(screen.getByRole('link', { name: /settings/i })).toHaveAttribute('href', '/settings')
+  })
+
+  it('does not render a Refresh button when onRefresh is not provided', () => {
+    setup()
+    expect(screen.queryByRole('button', { name: /refresh/i })).not.toBeInTheDocument()
+  })
+
+  it('renders and calls onRefresh when provided', async () => {
+    const onRefresh = vi.fn()
+    setup({ onRefresh })
+    await userEvent.click(screen.getByRole('button', { name: /^↻ refresh$/i }))
+    expect(onRefresh).toHaveBeenCalled()
+  })
+
+  it('disables the Refresh button and shows Refreshing… while refreshing', () => {
+    setup({ onRefresh: vi.fn(), refreshing: true })
+    expect(screen.getByRole('button', { name: /refreshing/i })).toBeDisabled()
+  })
 })
