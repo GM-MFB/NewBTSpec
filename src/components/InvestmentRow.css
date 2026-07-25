@@ -91,3 +91,16 @@
   color: var(--red);
 }
 
+.meta-separator {
+  color: var(--border);
+  margin: 0 2px;
+}
+
+.price-favorable {
+  color: var(--green);
+}
+
+.price-unfavorable {
+  color: var(--red);
+}
+

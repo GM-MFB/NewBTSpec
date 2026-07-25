@@ -122,6 +122,42 @@ describe('InvestmentRow', () => {
     expect(screen.queryByText('Unrealized P&L:')).not.toBeInTheDocument()
   })
 
+  it('shows the underlying current price next to strike for an option', () => {
+    const investment = { id: 'i9', symbol: 'AAPL', assetType: 'Option', shares: 1, avgCost: 2, strategy: 'call', strike: 30, currentPrice: 33.51, expiry: '2026-03-01' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByText('$33.51')).toBeInTheDocument()
+  })
+
+  it('colors the current price green for a call when price is below strike (favorable)', () => {
+    const investment = { id: 'i9', symbol: 'AAPL', assetType: 'Option', shares: 1, avgCost: 2, strategy: 'call', strike: 30, currentPrice: 28, expiry: '2026-03-01' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByText('$28.00')).toHaveClass('price-favorable')
+  })
+
+  it('colors the current price red for a call when price is above strike (unfavorable)', () => {
+    const investment = { id: 'i9', symbol: 'AAPL', assetType: 'Option', shares: 1, avgCost: 2, strategy: 'call', strike: 30, currentPrice: 33.51, expiry: '2026-03-01' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByText('$33.51')).toHaveClass('price-unfavorable')
+  })
+
+  it('colors the current price green for a put when price is above strike (favorable)', () => {
+    const investment = { id: 'i10', symbol: 'AAPL', assetType: 'Option', shares: 1, avgCost: 2, strategy: 'cash_secured_put', strike: 380, currentPrice: 400, expiry: '2026-03-01' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByText('$400.00')).toHaveClass('price-favorable')
+  })
+
+  it('colors the current price red for a put when price is below strike (unfavorable)', () => {
+    const investment = { id: 'i10', symbol: 'AAPL', assetType: 'Option', shares: 1, avgCost: 2, strategy: 'cash_secured_put', strike: 380, currentPrice: 360, expiry: '2026-03-01' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByText('$360.00')).toHaveClass('price-unfavorable')
+  })
+
+  it('does not show a current price next to strike when not set', () => {
+    const investment = { id: 'i2', symbol: 'SPY', assetType: 'Option', shares: 5, avgCost: 3.5, strategy: 'covered_call', strike: 450, expiry: '2026-03-01' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.queryByText('price-favorable')).not.toBeInTheDocument()
+  })
+
   it('calls onClosePosition with the investment id when Close is clicked', async () => {
     const onClosePosition = vi.fn()
     const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, strategy: '', strike: '', expiry: '' }

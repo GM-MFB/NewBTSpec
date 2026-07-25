@@ -120,6 +120,11 @@ export default function AddInvestmentModal({ onClose, onSubmit }) {
                   <label htmlFor="optionPrice">Price</label>
                   <input id="optionPrice" type="number" step="0.01" value={fields.avgCost} onChange={(e) => set('avgCost', e.target.value)} required />
                 </div>
+
+                <div className="field">
+                  <label htmlFor="underlyingPrice">Underlying Price</label>
+                  <input id="underlyingPrice" type="number" step="0.01" value={fields.currentPrice} onChange={(e) => set('currentPrice', e.target.value)} />
+                </div>
               </>
             )}
 

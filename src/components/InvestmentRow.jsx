@@ -18,12 +18,39 @@ function unrealizedPnlFor(investment) {
   return (Number(investment.currentPrice) - Number(investment.avgCost)) * Number(investment.shares)
 }
 
+function priceFavorability(investment, strategyDef) {
+  if (investment.currentPrice === '' || investment.currentPrice === undefined || investment.currentPrice === null) return null
+  if (!strategyDef) return null
+  const strike = Number(investment.strike)
+  const currentPrice = Number(investment.currentPrice)
+  const favorable = strategyDef.optionType === 'put' ? currentPrice > strike : currentPrice < strike
+  return favorable ? 'price-favorable' : 'price-unfavorable'
+}
+
 function MetaItem({ field, label, value }) {
   if (value === '' || value === undefined || value === null) return null
   return (
     <span className={`meta-item meta-item--${field}`}>
       <span className="meta-label">{label}:</span>
       <span className="meta-value">{value}</span>
+    </span>
+  )
+}
+
+function StrikeMeta({ investment, strategyDef, strikeDisplay }) {
+  const currentPriceDisplay = formatCurrency(investment.currentPrice)
+  const favorability = priceFavorability(investment, strategyDef)
+
+  return (
+    <span className="meta-item meta-item--strike">
+      <span className="meta-label">Strike:</span>
+      <span className="meta-value">{strikeDisplay}</span>
+      {currentPriceDisplay && (
+        <>
+          <span className="meta-separator">|</span>
+          <span className={`meta-value ${favorability}`}>{currentPriceDisplay}</span>
+        </>
+      )}
     </span>
   )
 }
@@ -58,7 +85,7 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, c
         {isOption ? (
           <>
             <MetaItem field="contracts" label="Contracts" value={investment.shares} />
-            <MetaItem field="strike" label="Strike" value={strikeDisplay} />
+            <StrikeMeta investment={investment} strategyDef={strategyDef} strikeDisplay={strikeDisplay} />
             <MetaItem field="expires" label="Expires" value={investment.expiry} />
             <MetaItem field="days-left" label="Days Left" value={daysLeftLabel(investment.expiry)} />
             <MetaItem field="avg-price" label="Avg Price" value={formatCurrency(investment.avgCost)} />
