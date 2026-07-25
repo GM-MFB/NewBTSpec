@@ -1,26 +1,28 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import InvestmentRow, { InvestmentRowHeader } from './InvestmentRow'
+import InvestmentRow from './InvestmentRow'
 
 describe('InvestmentRow', () => {
-  it('renders symbol, Stock badge, shares, and avg cost for a stock', () => {
+  it('renders symbol, Stock badge, shares, and avg cost inline for a stock', () => {
     const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, strategy: '', strike: '', expiry: '' }
     render(<InvestmentRow investment={investment} onClick={vi.fn()} />)
     expect(screen.getByText('AAPL')).toBeInTheDocument()
     expect(screen.getByText('Stock')).toBeInTheDocument()
-    expect(screen.getByText('10')).toBeInTheDocument()
-    expect(screen.getByText('150')).toBeInTheDocument()
+    expect(screen.getByText('Shares:')).toBeInTheDocument()
+    expect(screen.getByText('Avg Cost:')).toBeInTheDocument()
   })
 
-  it('renders the strategy label, strike, expiry, and avg price for an option', () => {
-    const investment = { id: 'i2', symbol: 'SPY', assetType: 'Option', shares: '', avgCost: 3.5, strategy: 'covered_call', strike: 450, expiry: '2026-03-01' }
+  it('renders contracts, strike, expiry, and avg price inline for an option', () => {
+    const investment = { id: 'i2', symbol: 'SPY', assetType: 'Option', shares: 5, avgCost: 3.5, strategy: 'covered_call', strike: 450, expiry: '2026-03-01' }
     render(<InvestmentRow investment={investment} onClick={vi.fn()} />)
     expect(screen.getByText('SPY')).toBeInTheDocument()
     expect(screen.getByText('Covered Call')).toBeInTheDocument()
-    expect(screen.getByText('450')).toBeInTheDocument()
-    expect(screen.getByText('2026-03-01')).toBeInTheDocument()
-    expect(screen.getByText('3.5')).toBeInTheDocument()
+    expect(screen.getByText('Contracts:')).toBeInTheDocument()
+    expect(screen.getByText('Strike:')).toBeInTheDocument()
+    expect(screen.getByText('Expires:')).toBeInTheDocument()
+    expect(screen.getByText('Days Left:')).toBeInTheDocument()
+    expect(screen.getByText('Avg Price:')).toBeInTheDocument()
   })
 
   it('shows "Expired" for a past expiry and a day count for a future one', () => {
@@ -41,23 +43,5 @@ describe('InvestmentRow', () => {
     render(<InvestmentRow investment={investment} onClick={onClick} />)
     await userEvent.click(screen.getByTestId('investment-row'))
     expect(onClick).toHaveBeenCalledWith('i1')
-  })
-})
-
-describe('InvestmentRowHeader', () => {
-  it('shows Shares/Avg Cost column labels for the stock variant', () => {
-    render(<ul><InvestmentRowHeader variant="stock" /></ul>)
-    expect(screen.getByText('Symbol')).toBeInTheDocument()
-    expect(screen.getByText('Shares')).toBeInTheDocument()
-    expect(screen.getByText('Avg Cost')).toBeInTheDocument()
-  })
-
-  it('shows Strike/Expires/Days Left/Avg Price column labels for the option variant', () => {
-    render(<ul><InvestmentRowHeader variant="option" /></ul>)
-    expect(screen.getByText('Strategy')).toBeInTheDocument()
-    expect(screen.getByText('Strike')).toBeInTheDocument()
-    expect(screen.getByText('Expires')).toBeInTheDocument()
-    expect(screen.getByText('Days Left')).toBeInTheDocument()
-    expect(screen.getByText('Avg Price')).toBeInTheDocument()
   })
 })

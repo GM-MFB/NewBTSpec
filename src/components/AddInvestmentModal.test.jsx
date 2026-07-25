@@ -51,15 +51,17 @@ describe('AddInvestmentModal', () => {
     await userEvent.click(screen.getByRole('button', { name: /^option$/i }))
     await userEvent.type(screen.getByLabelText(/symbol/i), 'SPY')
     await userEvent.selectOptions(screen.getByLabelText(/strategy/i), 'put_credit_spread')
+    await userEvent.type(screen.getByLabelText(/contracts/i), '2')
     await userEvent.type(screen.getByLabelText(/^strike$/i), '400')
     await userEvent.type(screen.getByLabelText(/long leg strike/i), '395')
     await userEvent.type(screen.getByLabelText(/expiry/i), '2026-02-01')
+    await userEvent.type(screen.getByLabelText(/^price$/i), '1.25')
     await userEvent.type(screen.getByLabelText(/buy date/i), '2026-01-01')
     await userEvent.click(screen.getByRole('button', { name: /save/i }))
 
     expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
       assetType: 'Option', symbol: 'SPY', strategy: 'put_credit_spread',
-      strike: '400', strike2: '395', expiry: '2026-02-01',
+      shares: '2', strike: '400', strike2: '395', expiry: '2026-02-01', avgCost: '1.25',
     }))
   })
 

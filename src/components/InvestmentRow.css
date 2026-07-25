@@ -8,9 +8,9 @@
 }
 
 .investment-row {
-  display: grid;
-  align-items: center;
-  gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -19,51 +19,28 @@
   transition: border-color 0.12s ease, transform 0.12s ease;
 }
 
-.investment-row--stock {
-  grid-template-columns: 90px 90px 1fr 1fr;
-}
-
-.investment-row--option {
-  grid-template-columns: 70px 150px 70px 100px 70px 1fr;
-}
-
 .investment-row:hover {
   border-color: var(--green);
   transform: translateY(-1px);
 }
 
-.investment-row-header {
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--border);
-  border-radius: 0;
-  padding: 0 18px 8px;
-  cursor: default;
+.investment-row-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.investment-row-header:hover {
-  border-color: var(--border);
-  transform: none;
+.investment-row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  font-size: 12.5px;
+  color: var(--text);
 }
 
-.investment-row-header span {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.meta-label {
   color: var(--text-dim);
-}
-
-@media (max-width: 640px) {
-  .investment-row--stock,
-  .investment-row--option {
-    grid-template-columns: 1fr 1fr;
-    row-gap: 8px;
-  }
-
-  .investment-row-header {
-    display: none;
-  }
+  margin-right: 3px;
 }
 
 .investment-symbol {
@@ -84,11 +61,4 @@
   padding: 3px 8px;
   text-align: center;
   width: fit-content;
-}
-
-.investment-row .mono:not(.investment-symbol) {
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  color: var(--text);
-  font-size: 14px;
 }

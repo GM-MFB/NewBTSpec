@@ -23,9 +23,10 @@ describe('InvestmentDetailModal', () => {
     expect(screen.getByLabelText(/close price/i)).toBeInTheDocument()
   })
 
-  it('shows the Strike field and expiry as Date for an option', () => {
-    const option = { ...investment, assetType: 'Option', strategy: 'covered_call', strike: 450, expiry: '2026-03-01' }
+  it('shows Contracts, Strike, and expiry as Date for an option', () => {
+    const option = { ...investment, assetType: 'Option', strategy: 'covered_call', shares: 3, strike: 450, expiry: '2026-03-01' }
     render(<InvestmentDetailModal investment={option} onClose={vi.fn()} onUpdate={vi.fn()} onCloseInvestment={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByLabelText(/contracts/i)).toHaveValue('3')
     expect(screen.getByLabelText(/strike/i)).toHaveValue('450')
     expect(screen.getByLabelText(/^date$/i)).toHaveValue('2026-03-01')
   })

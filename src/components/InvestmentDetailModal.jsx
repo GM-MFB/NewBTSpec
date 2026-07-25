@@ -69,6 +69,9 @@ export default function InvestmentDetailModal({ investment, onClose, onUpdate, o
 
           {isOption ? (
             <>
+              <label htmlFor="detail-contracts">Contracts</label>
+              <input id="detail-contracts" value={fields.shares} onChange={(e) => set('shares', e.target.value)} />
+
               <label htmlFor="detail-strike">Strike</label>
               <input id="detail-strike" value={fields.strike} onChange={(e) => set('strike', e.target.value)} />
 

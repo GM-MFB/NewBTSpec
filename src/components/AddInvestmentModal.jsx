@@ -73,6 +73,9 @@ export default function AddInvestmentModal({ onClose, onSubmit }) {
                   ))}
                 </select>
 
+                <label htmlFor="contracts">Contracts</label>
+                <input id="contracts" type="number" value={fields.shares} onChange={(e) => set('shares', e.target.value)} required />
+
                 <label htmlFor="strike">Strike</label>
                 <input id="strike" type="number" value={fields.strike} onChange={(e) => set('strike', e.target.value)} required />
 
@@ -85,6 +88,9 @@ export default function AddInvestmentModal({ onClose, onSubmit }) {
 
                 <label htmlFor="expiry">Expiry</label>
                 <input id="expiry" type="date" value={fields.expiry} onChange={(e) => set('expiry', e.target.value)} required />
+
+                <label htmlFor="optionPrice">Price</label>
+                <input id="optionPrice" type="number" step="0.01" value={fields.avgCost} onChange={(e) => set('avgCost', e.target.value)} required />
               </>
             )}
 
