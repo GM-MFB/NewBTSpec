@@ -4,11 +4,11 @@ import { MemoryRouter } from 'react-router-dom'
 import App from './App'
 import { useAuth } from './hooks/useAuth'
 import { useAccounts } from './hooks/useAccounts'
-import { useTrades } from './hooks/useTrades'
+import { useInvestments } from './hooks/useInvestments'
 
 vi.mock('./hooks/useAuth')
 vi.mock('./hooks/useAccounts')
-vi.mock('./hooks/useTrades')
+vi.mock('./hooks/useInvestments')
 
 describe('App', () => {
   it('redirects to login when signed out', async () => {
@@ -17,7 +17,7 @@ describe('App', () => {
     await waitFor(() => expect(screen.getByTestId('login-page')).toBeInTheDocument())
   })
 
-  it('redirects away from login to home when already signed in', async () => {
+  it('redirects away from login to home (Investments) when already signed in', async () => {
     useAuth.mockReturnValue({ user: { id: 'u1' }, session: {}, loading: false, signOut: vi.fn() })
     useAccounts.mockReturnValue({
       accounts: [{ id: 'a1', name: 'Main Account' }],
@@ -27,9 +27,9 @@ describe('App', () => {
       createAccount: vi.fn(),
       loading: false,
     })
-    useTrades.mockReturnValue({ trades: [], loading: false, error: null, reload: vi.fn(), addTrade: vi.fn(), closeTrade: vi.fn(), updateTrade: vi.fn(), deleteTrade: vi.fn() })
+    useInvestments.mockReturnValue({ investments: [], loading: false, error: null, reload: vi.fn(), addInvestment: vi.fn(), closeInvestment: vi.fn(), updateInvestment: vi.fn(), deleteInvestment: vi.fn() })
 
     render(<MemoryRouter initialEntries={['/login']}><App /></MemoryRouter>)
-    await waitFor(() => expect(screen.getByTestId('home-page')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByTestId('investments-page')).toBeInTheDocument())
   })
 })

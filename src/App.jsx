@@ -1,7 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import LoginPage from './pages/LoginPage'
-import HomePage from './pages/HomePage'
+import InvestmentsPage from './pages/InvestmentsPage'
+import TradesPage from './pages/TradesPage'
 import PlaceholderPage from './pages/PlaceholderPage'
 
 function RequireAuth({ user, children }) {
@@ -17,7 +18,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
-      <Route path="/" element={<RequireAuth user={user}><HomePage /></RequireAuth>} />
+      <Route path="/" element={<RequireAuth user={user}><InvestmentsPage /></RequireAuth>} />
+      <Route path="/trades" element={<RequireAuth user={user}><TradesPage /></RequireAuth>} />
       <Route path="/stats" element={<RequireAuth user={user}><PlaceholderPage title="Stats" /></RequireAuth>} />
       <Route path="/analyze" element={<RequireAuth user={user}><PlaceholderPage title="Analyze" /></RequireAuth>} />
       <Route path="/matt-cap" element={<RequireAuth user={user}><PlaceholderPage title="Matt Cap" /></RequireAuth>} />
