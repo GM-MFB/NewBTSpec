@@ -31,18 +31,24 @@ describe('Header', () => {
     expect(switchAccount).toHaveBeenCalledWith('a2')
   })
 
-  it('renders Stats, Analyze, Matt Cap nav links and an Add Trade button', () => {
+  it('renders Trades, Stats, Analyze, Matt Cap nav links and an Add button', () => {
     setup()
+    expect(screen.getByRole('link', { name: /trades/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /stats/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /analyze/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /matt cap/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /add trade/i })).toBeInTheDocument()
   })
 
-  it('calls onAddTrade when the Add Trade button is clicked', async () => {
+  it('calls onAddTrade when the Add button is clicked', async () => {
     const onAddTrade = vi.fn()
     setup({ onAddTrade })
     await userEvent.click(screen.getByRole('button', { name: /add trade/i }))
     expect(onAddTrade).toHaveBeenCalled()
+  })
+
+  it('uses a custom addLabel when provided', () => {
+    setup({ addLabel: '+ Add Investment' })
+    expect(screen.getByRole('button', { name: /add investment/i })).toBeInTheDocument()
   })
 })
