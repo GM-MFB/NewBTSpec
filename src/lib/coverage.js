@@ -1,10 +1,7 @@
-export function coverageFor(investment, stockInvestments) {
-  if (investment.strategy !== 'covered_call') return null
+export function coveredSharesFor(stockInvestment, allInvestments) {
+  const total = allInvestments
+    .filter((i) => i.assetType === 'Option' && i.strategy === 'covered_call' && i.symbol === stockInvestment.symbol)
+    .reduce((sum, i) => sum + Number(i.shares || 0) * 100, 0)
 
-  const required = Number(investment.shares) * 100
-  const owned = stockInvestments
-    .filter((s) => s.symbol === investment.symbol)
-    .reduce((sum, s) => sum + Number(s.shares || 0), 0)
-
-  return { owned, required, ratio: required ? owned / required : 0 }
+  return total || ''
 }

@@ -109,7 +109,7 @@ describe('InvestmentsPage', () => {
     expect(closeInvestment).toHaveBeenCalledWith('i1', { sellPrice: '180', sellDate: '2026-02-01' })
   })
 
-  it('shows a coverage indicator for a covered call matched against owned stock', () => {
+  it('shows Covered Shares on the stock row for a matching covered call', () => {
     mockAccounts()
     useInvestments.mockReturnValue({
       investments: [
@@ -122,8 +122,8 @@ describe('InvestmentsPage', () => {
 
     render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
 
-    expect(screen.getByTestId('coverage-indicator')).toHaveClass('coverage-indicator--covered')
-    expect(screen.getByText('100/100 shares')).toBeInTheDocument()
+    const coveredSharesItem = screen.getByText('Covered Shares:').closest('.meta-item')
+    expect(coveredSharesItem).toHaveTextContent('100')
   })
 
   it('calls deleteInvestment when Delete is clicked', async () => {

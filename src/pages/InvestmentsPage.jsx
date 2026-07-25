@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useAccounts } from '../hooks/useAccounts'
 import { useInvestments } from '../hooks/useInvestments'
 import { STRATEGIES } from '../lib/optionStrategies'
-import { coverageFor } from '../lib/coverage'
+import { coveredSharesFor } from '../lib/coverage'
 import Header from '../components/Header'
 import InvestmentRow from '../components/InvestmentRow'
 import AddInvestmentModal from '../components/AddInvestmentModal'
@@ -54,7 +54,13 @@ export default function InvestmentsPage() {
               <h2 className="group-title">Stock</h2>
               <ul className="investment-list">
                 {stockInvestments.map((investment) => (
-                  <InvestmentRow key={investment.id} investment={investment} onClosePosition={setClosingId} onDelete={deleteInvestment} />
+                  <InvestmentRow
+                    key={investment.id}
+                    investment={investment}
+                    onClosePosition={setClosingId}
+                    onDelete={deleteInvestment}
+                    coveredShares={coveredSharesFor(investment, investments)}
+                  />
                 ))}
               </ul>
             </section>
@@ -73,7 +79,6 @@ export default function InvestmentsPage() {
                         investment={investment}
                         onClosePosition={setClosingId}
                         onDelete={deleteInvestment}
-                        coverage={coverageFor(investment, stockInvestments)}
                       />
                     ))}
                   </ul>
