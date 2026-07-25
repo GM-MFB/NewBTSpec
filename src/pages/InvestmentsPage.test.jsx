@@ -1,15 +1,19 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import InvestmentsPage from './InvestmentsPage'
 import { useAuth } from '../hooks/useAuth'
 import { useAccounts } from '../hooks/useAccounts'
 import { useInvestments } from '../hooks/useInvestments'
+import { useUserSettings } from '../hooks/useUserSettings'
+import { fetchQuote } from '../lib/finnhub'
 
 vi.mock('../hooks/useAuth')
 vi.mock('../hooks/useAccounts')
 vi.mock('../hooks/useInvestments')
+vi.mock('../hooks/useUserSettings')
+vi.mock('../lib/finnhub')
 
 function mockAccounts() {
   useAuth.mockReturnValue({ user: { id: 'u1' } })
@@ -21,6 +25,7 @@ function mockAccounts() {
     createAccount: vi.fn(),
     loading: false,
   })
+  useUserSettings.mockReturnValue({ finnhubKey: 'key123', loading: false, saveFinnhubKey: vi.fn() })
 }
 
 describe('InvestmentsPage', () => {
@@ -170,5 +175,66 @@ describe('InvestmentsPage', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /^delete$/i }))
     expect(deleteInvestment).toHaveBeenCalledWith('i1')
+  })
+
+  it('shows a missing-key message and does not fetch when Refresh is clicked with no key', async () => {
+    mockAccounts()
+    useUserSettings.mockReturnValue({ finnhubKey: '', loading: false, saveFinnhubKey: vi.fn() })
+    useInvestments.mockReturnValue({
+      investments: [{ id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, strategy: '', strike: '', expiry: '' }],
+      loading: false, error: null, reload: vi.fn(),
+      addInvestment: vi.fn(), closeInvestment: vi.fn(), updateInvestment: vi.fn(), deleteInvestment: vi.fn(),
+    })
+
+    render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
+
+    await userEvent.click(screen.getByRole('button', { name: /^↻ refresh$/i }))
+
+    expect(screen.getByText(/add your finnhub api key/i)).toBeInTheDocument()
+    expect(fetchQuote).not.toHaveBeenCalled()
+  })
+
+  it('fetches a quote per unique symbol and updates every matching investment', async () => {
+    mockAccounts()
+    const updateInvestment = vi.fn().mockResolvedValue(undefined)
+    useInvestments.mockReturnValue({
+      investments: [
+        { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, strategy: '', strike: '', expiry: '' },
+        { id: 'i2', symbol: 'AAPL', assetType: 'Option', shares: 1, avgCost: 2, strategy: 'covered_call', strike: 200, expiry: '2026-03-01' },
+      ],
+      loading: false, error: null, reload: vi.fn(),
+      addInvestment: vi.fn(), closeInvestment: vi.fn(), updateInvestment, deleteInvestment: vi.fn(),
+    })
+    fetchQuote.mockResolvedValue(165.2)
+
+    render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
+
+    await userEvent.click(screen.getByRole('button', { name: /^↻ refresh$/i }))
+
+    await waitFor(() => expect(updateInvestment).toHaveBeenCalledTimes(2))
+    expect(fetchQuote).toHaveBeenCalledWith('AAPL', 'key123')
+    expect(updateInvestment).toHaveBeenCalledWith('i1', { currentPrice: 165.2 })
+    expect(updateInvestment).toHaveBeenCalledWith('i2', { currentPrice: 165.2 })
+  })
+
+  it('shows which symbols failed to refresh without blocking the others', async () => {
+    mockAccounts()
+    const updateInvestment = vi.fn().mockResolvedValue(undefined)
+    useInvestments.mockReturnValue({
+      investments: [
+        { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, strategy: '', strike: '', expiry: '' },
+        { id: 'i2', symbol: 'MSFT', assetType: 'Stock', shares: 5, avgCost: 300, strategy: '', strike: '', expiry: '' },
+      ],
+      loading: false, error: null, reload: vi.fn(),
+      addInvestment: vi.fn(), closeInvestment: vi.fn(), updateInvestment, deleteInvestment: vi.fn(),
+    })
+    fetchQuote.mockImplementation((symbol) => (symbol === 'AAPL' ? Promise.resolve(165.2) : Promise.reject(new Error('fail'))))
+
+    render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
+
+    await userEvent.click(screen.getByRole('button', { name: /^↻ refresh$/i }))
+
+    await waitFor(() => expect(screen.getByText(/couldn.t refresh msft/i)).toBeInTheDocument())
+    expect(updateInvestment).toHaveBeenCalledWith('i1', { currentPrice: 165.2 })
   })
 })

@@ -1,12 +1,15 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import './InvestmentsPage.css'
 import { useAuth } from '../hooks/useAuth'
 import { useAccounts } from '../hooks/useAccounts'
 import { useInvestments } from '../hooks/useInvestments'
+import { useUserSettings } from '../hooks/useUserSettings'
 import { STRATEGIES } from '../lib/optionStrategies'
 import { coveredSharesFor } from '../lib/coverage'
 import { computeSummary } from '../lib/portfolioSummary'
 import { formatCurrency } from '../lib/format'
+import { fetchQuote } from '../lib/finnhub'
 import Header from '../components/Header'
 import InvestmentRow from '../components/InvestmentRow'
 import AddInvestmentModal from '../components/AddInvestmentModal'
@@ -15,9 +18,13 @@ import ClosePositionModal from '../components/ClosePositionModal'
 export default function InvestmentsPage() {
   const { user } = useAuth()
   const { accounts, activeAccount, activeAccountId, switchAccount, createAccount } = useAccounts(user?.id)
-  const { investments, error, reload, addInvestment, closeInvestment, deleteInvestment } = useInvestments(activeAccountId)
+  const { investments, error, reload, addInvestment, closeInvestment, updateInvestment, deleteInvestment } = useInvestments(activeAccountId)
+  const { finnhubKey } = useUserSettings(user?.id)
   const [addOpen, setAddOpen] = useState(false)
   const [closingId, setClosingId] = useState(null)
+  const [refreshing, setRefreshing] = useState(false)
+  const [missingKey, setMissingKey] = useState(false)
+  const [refreshFailedSymbols, setRefreshFailedSymbols] = useState([])
 
   const stockInvestments = investments.filter((i) => i.assetType === 'Stock')
   const strategyGroups = STRATEGIES
@@ -30,6 +37,33 @@ export default function InvestmentsPage() {
   const otherInvestments = investments.filter((i) => !categorizedIds.has(i.id))
   const summary = computeSummary(investments)
 
+  async function handleRefresh() {
+    if (!finnhubKey) {
+      setMissingKey(true)
+      return
+    }
+    setMissingKey(false)
+    setRefreshFailedSymbols([])
+    setRefreshing(true)
+
+    const symbols = [...new Set(investments.map((i) => i.symbol).filter(Boolean))]
+    const failed = []
+    for (const symbol of symbols) {
+      try {
+        const price = await fetchQuote(symbol, finnhubKey)
+        const matches = investments.filter((i) => i.symbol === symbol)
+        for (const match of matches) {
+          await updateInvestment(match.id, { currentPrice: price })
+        }
+      } catch {
+        failed.push(symbol)
+      }
+    }
+
+    setRefreshFailedSymbols(failed)
+    setRefreshing(false)
+  }
+
   return (
     <div data-testid="investments-page">
       <Header
@@ -39,12 +73,27 @@ export default function InvestmentsPage() {
         createAccount={createAccount}
         onAddTrade={() => setAddOpen(true)}
         addLabel="+ Add Investment"
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
       />
 
       {error && (
         <div className="error-banner">
           <span>Couldn't load investments.</span>
           <button type="button" onClick={reload}>Retry</button>
+        </div>
+      )}
+
+      {missingKey && (
+        <div className="error-banner">
+          <span>Add your Finnhub API key in Settings to enable price refresh.</span>
+          <Link to="/settings">Go to Settings</Link>
+        </div>
+      )}
+
+      {refreshFailedSymbols.length > 0 && (
+        <div className="error-banner">
+          <span>Couldn't refresh {refreshFailedSymbols.join(', ')}</span>
         </div>
       )}
 
