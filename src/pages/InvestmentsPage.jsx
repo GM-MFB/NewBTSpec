@@ -5,7 +5,7 @@ import { useAccounts } from '../hooks/useAccounts'
 import { useInvestments } from '../hooks/useInvestments'
 import { STRATEGIES } from '../lib/optionStrategies'
 import Header from '../components/Header'
-import InvestmentRow from '../components/InvestmentRow'
+import InvestmentRow, { InvestmentRowHeader } from '../components/InvestmentRow'
 import AddInvestmentModal from '../components/AddInvestmentModal'
 import InvestmentDetailModal from '../components/InvestmentDetailModal'
 
@@ -54,6 +54,7 @@ export default function InvestmentsPage() {
             <section className="investment-group">
               <h2 className="group-title">Stock</h2>
               <ul className="investment-list">
+                <InvestmentRowHeader variant="stock" />
                 {stockInvestments.map((investment) => (
                   <InvestmentRow key={investment.id} investment={investment} onClick={setSelectedId} />
                 ))}
@@ -68,6 +69,7 @@ export default function InvestmentsPage() {
                 <div key={group.value} className="strategy-group">
                   <h3 className="strategy-title">{group.label}</h3>
                   <ul className="investment-list">
+                    <InvestmentRowHeader variant="option" />
                     {group.items.map((investment) => (
                       <InvestmentRow key={investment.id} investment={investment} onClick={setSelectedId} />
                     ))}
