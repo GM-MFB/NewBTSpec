@@ -11,6 +11,25 @@ function daysLeftLabel(expiry) {
   return diff < 0 ? 'Expired' : `${diff}d`
 }
 
+function collateralFor(investment, strategyDef) {
+  const contracts = Number(investment.shares)
+  const strike = Number(investment.strike)
+  if (!strategyDef || strategyDef.optionDirection !== 'short' || !contracts || !strike) return ''
+  if (strategyDef.isSpread) {
+    const strike2 = Number(investment.strike2)
+    if (!strike2) return ''
+    return Math.abs(strike - strike2) * 100 * contracts
+  }
+  return strike * 100 * contracts
+}
+
+function potentialPnlFor(investment, strategyDef) {
+  const contracts = Number(investment.shares)
+  const price = Number(investment.avgCost)
+  if (!strategyDef || strategyDef.optionDirection !== 'short' || !contracts || !price) return ''
+  return contracts * price * 100
+}
+
 function MetaItem({ label, value }) {
   if (value === '' || value === undefined || value === null) return null
   return (
@@ -22,16 +41,17 @@ function MetaItem({ label, value }) {
 
 export default function InvestmentRow({ investment, onClosePosition, onDelete }) {
   const isOption = investment.assetType === 'Option'
-  const badge = isOption ? (strategyByValue(investment.strategy)?.label ?? 'Option') : investment.assetType
+  const strategyDef = strategyByValue(investment.strategy)
+  const badge = isOption ? (strategyDef?.label ?? 'Option') : investment.assetType
   const strikeDisplay = investment.strike2 ? `${investment.strike}/${investment.strike2}` : investment.strike
+  const collateral = isOption ? collateralFor(investment, strategyDef) : ''
+  const potentialPnl = isOption ? potentialPnlFor(investment, strategyDef) : ''
 
   async function handleDelete() {
-    if (window.confirm(`Delete ${investment.symbol}?`)) {
-      try {
-        await onDelete(investment.id)
-      } catch (err) {
-        window.alert(err.message)
-      }
+    try {
+      await onDelete(investment.id)
+    } catch (err) {
+      window.alert(err.message)
     }
   }
 
@@ -49,6 +69,8 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete })
             <MetaItem label="Expires" value={investment.expiry} />
             <MetaItem label="Days Left" value={daysLeftLabel(investment.expiry)} />
             <MetaItem label="Avg Price" value={investment.avgCost} />
+            <MetaItem label="Collateral" value={collateral} />
+            <MetaItem label="Potential P&L" value={potentialPnl} />
           </>
         ) : (
           <>

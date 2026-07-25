@@ -49,6 +49,29 @@ describe('InvestmentRow', () => {
     expect(screen.getByText(/^\d+d$/)).toBeInTheDocument()
   })
 
+  it('shows collateral and potential P&L for a cash secured put', () => {
+    const investment = { id: 'i6', symbol: 'QQQ', assetType: 'Option', shares: 2, avgCost: 1.5, strategy: 'cash_secured_put', strike: 380, expiry: '2026-03-01' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByText('Collateral:')).toBeInTheDocument()
+    expect(screen.getByText('76000')).toBeInTheDocument()
+    expect(screen.getByText('Potential P&L:')).toBeInTheDocument()
+    expect(screen.getByText('300')).toBeInTheDocument()
+  })
+
+  it('shows collateral using the strike width for a credit spread', () => {
+    const investment = { id: 'i5', symbol: 'SPY', assetType: 'Option', shares: 1, avgCost: 1.2, strategy: 'put_credit_spread', strike: 36, strike2: 35, expiry: '2026-03-01' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByText('100')).toBeInTheDocument()
+    expect(screen.getByText('120')).toBeInTheDocument()
+  })
+
+  it('does not show collateral or P&L for a long call/put', () => {
+    const investment = { id: 'i7', symbol: 'TSLA', assetType: 'Option', shares: 1, avgCost: 5, strategy: 'call', strike: 300, expiry: '2026-03-01' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.queryByText('Collateral:')).not.toBeInTheDocument()
+    expect(screen.queryByText('Potential P&L:')).not.toBeInTheDocument()
+  })
+
   it('calls onClosePosition with the investment id when Close is clicked', async () => {
     const onClosePosition = vi.fn()
     const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, strategy: '', strike: '', expiry: '' }
@@ -57,23 +80,14 @@ describe('InvestmentRow', () => {
     expect(onClosePosition).toHaveBeenCalledWith('i1')
   })
 
-  it('calls onDelete with the investment id when Delete is clicked and confirmed', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
+  it('calls onDelete with the investment id when Delete is clicked, with no confirmation dialog', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm')
     const onDelete = vi.fn()
     const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, strategy: '', strike: '', expiry: '' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={onDelete} />)
     await userEvent.click(screen.getByRole('button', { name: /^delete$/i }))
     expect(onDelete).toHaveBeenCalledWith('i1')
-    window.confirm.mockRestore()
-  })
-
-  it('does not call onDelete when the confirm dialog is declined', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(false)
-    const onDelete = vi.fn()
-    const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, strategy: '', strike: '', expiry: '' }
-    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={onDelete} />)
-    await userEvent.click(screen.getByRole('button', { name: /^delete$/i }))
-    expect(onDelete).not.toHaveBeenCalled()
-    window.confirm.mockRestore()
+    expect(confirmSpy).not.toHaveBeenCalled()
+    confirmSpy.mockRestore()
   })
 })

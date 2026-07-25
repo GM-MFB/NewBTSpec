@@ -109,9 +109,8 @@ describe('InvestmentsPage', () => {
     expect(closeInvestment).toHaveBeenCalledWith('i1', { sellPrice: '180', sellDate: '2026-02-01' })
   })
 
-  it('calls deleteInvestment when Delete is clicked and confirmed', async () => {
+  it('calls deleteInvestment when Delete is clicked', async () => {
     mockAccounts()
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
     const deleteInvestment = vi.fn()
     useInvestments.mockReturnValue({
       investments: [
@@ -125,6 +124,5 @@ describe('InvestmentsPage', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /^delete$/i }))
     expect(deleteInvestment).toHaveBeenCalledWith('i1')
-    window.confirm.mockRestore()
   })
 })
