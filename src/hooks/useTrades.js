@@ -1,0 +1,67 @@
+import { useEffect, useState, useCallback } from 'react'
+import { supabase } from '../utils/supabase'
+import { fromRow, toRow } from '../lib/tradeMappers'
+
+export function useTrades(accountId) {
+  const [trades, setTrades] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  const load = useCallback(async () => {
+    if (!accountId) return
+    setLoading(true)
+    setError(null)
+    const { data, error: err } = await supabase
+      .from('trades')
+      .select('*')
+      .eq('account_id', accountId)
+      .eq('status', 'open')
+      .order('created_at', { ascending: false })
+
+    if (err) {
+      setError(err)
+      setLoading(false)
+      return
+    }
+    setTrades(data.map(fromRow))
+    setLoading(false)
+  }, [accountId])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  async function addTrade(trade, userId) {
+    const { data, error: err } = await supabase
+      .from('trades')
+      .insert({ account_id: accountId, user_id: userId, ...toRow({ ...trade, status: 'open' }) })
+      .select()
+      .single()
+    if (err) throw err
+    await load()
+    return fromRow(data)
+  }
+
+  async function updateTrade(id, patch) {
+    const { error: err } = await supabase.from('trades').update(toRow(patch)).eq('id', id)
+    if (err) throw err
+    await load()
+  }
+
+  async function closeTrade(id, { exitPrice, exitDate }) {
+    const { error: err } = await supabase
+      .from('trades')
+      .update(toRow({ status: 'closed', exitPrice, exitDate }))
+      .eq('id', id)
+    if (err) throw err
+    await load()
+  }
+
+  async function deleteTrade(id) {
+    const { error: err } = await supabase.from('trades').delete().eq('id', id)
+    if (err) throw err
+    await load()
+  }
+
+  return { trades, loading, error, reload: load, addTrade, updateTrade, closeTrade, deleteTrade }
+}
