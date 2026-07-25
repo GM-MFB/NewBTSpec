@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import './HomePage.css'
+import './TradesPage.css'
 import { useAuth } from '../hooks/useAuth'
 import { useAccounts } from '../hooks/useAccounts'
 import { useTrades } from '../hooks/useTrades'
@@ -8,7 +8,7 @@ import TradeRow from '../components/TradeRow'
 import AddTradeModal from '../components/AddTradeModal'
 import TradeDetailModal from '../components/TradeDetailModal'
 
-export default function HomePage() {
+export default function TradesPage() {
   const { user } = useAuth()
   const { accounts, activeAccount, activeAccountId, switchAccount, createAccount } = useAccounts(user?.id)
   const { trades, error, reload, addTrade, updateTrade, closeTrade, deleteTrade } = useTrades(activeAccountId)
@@ -18,7 +18,7 @@ export default function HomePage() {
   const selectedTrade = trades.find((t) => t.id === selectedTradeId) ?? null
 
   return (
-    <div data-testid="home-page">
+    <div data-testid="trades-page">
       <Header
         accounts={accounts}
         activeAccount={activeAccount}

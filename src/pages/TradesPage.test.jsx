@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import HomePage from './HomePage'
+import TradesPage from './TradesPage'
 import { useAuth } from '../hooks/useAuth'
 import { useAccounts } from '../hooks/useAccounts'
 import { useTrades } from '../hooks/useTrades'
@@ -10,7 +10,7 @@ vi.mock('../hooks/useAuth')
 vi.mock('../hooks/useAccounts')
 vi.mock('../hooks/useTrades')
 
-describe('HomePage', () => {
+describe('TradesPage', () => {
   it('shows the empty state when there are no open trades', () => {
     useAuth.mockReturnValue({ user: { id: 'u1' } })
     useAccounts.mockReturnValue({
@@ -23,7 +23,7 @@ describe('HomePage', () => {
     })
     useTrades.mockReturnValue({ trades: [], loading: false, error: null, reload: vi.fn(), addTrade: vi.fn(), closeTrade: vi.fn(), updateTrade: vi.fn(), deleteTrade: vi.fn() })
 
-    render(<MemoryRouter><HomePage /></MemoryRouter>)
+    render(<MemoryRouter><TradesPage /></MemoryRouter>)
 
     expect(screen.getByText(/no open trades/i)).toBeInTheDocument()
   })
@@ -42,7 +42,7 @@ describe('HomePage', () => {
     useTrades.mockReturnValue({ trades: [], loading: false, error: { message: 'Network error' }, reload, addTrade: vi.fn(), closeTrade: vi.fn(), updateTrade: vi.fn(), deleteTrade: vi.fn() })
 
     const { default: userEvent } = await import('@testing-library/user-event')
-    render(<MemoryRouter><HomePage /></MemoryRouter>)
+    render(<MemoryRouter><TradesPage /></MemoryRouter>)
 
     expect(screen.getByText(/couldn.t load trades/i)).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /retry/i }))
@@ -69,7 +69,7 @@ describe('HomePage', () => {
       addTrade: vi.fn(), closeTrade: vi.fn(), updateTrade: vi.fn(), deleteTrade: vi.fn(),
     })
 
-    render(<MemoryRouter><HomePage /></MemoryRouter>)
+    render(<MemoryRouter><TradesPage /></MemoryRouter>)
 
     expect(screen.getByText('AAPL')).toBeInTheDocument()
     expect(screen.getByText('ES')).toBeInTheDocument()
