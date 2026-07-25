@@ -5,6 +5,8 @@ import { useAccounts } from '../hooks/useAccounts'
 import { useInvestments } from '../hooks/useInvestments'
 import { STRATEGIES } from '../lib/optionStrategies'
 import { coveredSharesFor } from '../lib/coverage'
+import { computeSummary } from '../lib/portfolioSummary'
+import { formatCurrency } from '../lib/format'
 import Header from '../components/Header'
 import InvestmentRow from '../components/InvestmentRow'
 import AddInvestmentModal from '../components/AddInvestmentModal'
@@ -26,6 +28,7 @@ export default function InvestmentsPage() {
     ...strategyGroups.flatMap((g) => g.items.map((i) => i.id)),
   ])
   const otherInvestments = investments.filter((i) => !categorizedIds.has(i.id))
+  const summary = computeSummary(investments)
 
   return (
     <div data-testid="investments-page">
@@ -42,6 +45,25 @@ export default function InvestmentsPage() {
         <div className="error-banner">
           <span>Couldn't load investments.</span>
           <button type="button" onClick={reload}>Retry</button>
+        </div>
+      )}
+
+      {investments.length > 0 && (
+        <div className="portfolio-summary">
+          <div className="summary-stat">
+            <span className="summary-label">Total Collateral Deployed</span>
+            <span className="summary-value mono">{formatCurrency(summary.totalCollateral)}</span>
+          </div>
+          <div className="summary-stat">
+            <span className="summary-label">Potential Options Premium</span>
+            <span className="summary-value mono">{formatCurrency(summary.potentialPremium)}</span>
+          </div>
+          <div className="summary-stat">
+            <span className="summary-label">Unrealized Stock P&L</span>
+            <span className={`summary-value mono ${summary.unrealizedStockPnl < 0 ? 'summary-value--negative' : 'summary-value--positive'}`}>
+              {formatCurrency(summary.unrealizedStockPnl)}
+            </span>
+          </div>
         </div>
       )}
 

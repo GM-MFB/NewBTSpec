@@ -4,7 +4,7 @@ import { STRATEGIES, strategyByValue } from '../lib/optionStrategies'
 
 const initial = {
   assetType: '', symbol: '', name: '', sector: '', buyDate: '', notes: '', chartLink: '',
-  shares: '', avgCost: '', stopLoss: '', targetPrice: '',
+  shares: '', avgCost: '', currentPrice: '', stopLoss: '', targetPrice: '',
   strategy: '', strike: '', expiry: '', strike2: '',
 }
 
@@ -63,6 +63,11 @@ export default function AddInvestmentModal({ onClose, onSubmit }) {
                 <div className="field">
                   <label htmlFor="avgCost">Avg Cost</label>
                   <input id="avgCost" type="number" step="0.01" value={fields.avgCost} onChange={(e) => set('avgCost', e.target.value)} required />
+                </div>
+
+                <div className="field">
+                  <label htmlFor="currentPrice">Current Price</label>
+                  <input id="currentPrice" type="number" step="0.01" value={fields.currentPrice} onChange={(e) => set('currentPrice', e.target.value)} />
                 </div>
 
                 <div className="field">

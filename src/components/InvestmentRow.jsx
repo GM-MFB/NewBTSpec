@@ -1,6 +1,7 @@
 import './InvestmentRow.css'
 import { strategyByValue } from '../lib/optionStrategies'
 import { formatCurrency, formatCurrencyWhole, formatCurrencyAuto } from '../lib/format'
+import { collateralFor, potentialPnlFor } from '../lib/optionMath'
 
 function daysLeftLabel(expiry) {
   if (!expiry) return ''
@@ -10,25 +11,6 @@ function daysLeftLabel(expiry) {
   if (Number.isNaN(exp.getTime())) return ''
   const diff = Math.round((exp - today) / 86400000)
   return diff < 0 ? 'Expired' : `${diff}d`
-}
-
-function collateralFor(investment, strategyDef) {
-  const contracts = Number(investment.shares)
-  const strike = Number(investment.strike)
-  if (!strategyDef || strategyDef.optionDirection !== 'short' || !contracts || !strike) return ''
-  if (strategyDef.isSpread) {
-    const strike2 = Number(investment.strike2)
-    if (!strike2) return ''
-    return Math.abs(strike - strike2) * 100 * contracts
-  }
-  return strike * 100 * contracts
-}
-
-function potentialPnlFor(investment, strategyDef) {
-  const contracts = Number(investment.shares)
-  const price = Number(investment.avgCost)
-  if (!strategyDef || strategyDef.optionDirection !== 'short' || !contracts || !price) return ''
-  return contracts * price * 100
 }
 
 function MetaItem({ field, label, value }) {
@@ -80,6 +62,7 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, c
           <>
             <MetaItem field="shares" label="Shares" value={investment.shares} />
             <MetaItem field="avg-cost" label="Avg Cost" value={formatCurrency(investment.avgCost)} />
+            <MetaItem field="current-price" label="Current Price" value={formatCurrency(investment.currentPrice)} />
             <MetaItem field="covered-shares" label="Covered Shares" value={coveredShares} />
           </>
         )}

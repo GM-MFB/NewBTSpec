@@ -126,6 +126,36 @@ describe('InvestmentsPage', () => {
     expect(coveredSharesItem).toHaveTextContent('100')
   })
 
+  it('shows portfolio summary stats when there are open investments', () => {
+    mockAccounts()
+    useInvestments.mockReturnValue({
+      investments: [
+        { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, currentPrice: 160, strategy: '', strike: '', expiry: '' },
+        { id: 'i2', symbol: 'QQQ', assetType: 'Option', shares: 2, avgCost: 1.5, strategy: 'cash_secured_put', strike: 380, expiry: '2026-03-01' },
+      ],
+      loading: false, error: null, reload: vi.fn(),
+      addInvestment: vi.fn(), closeInvestment: vi.fn(), updateInvestment: vi.fn(), deleteInvestment: vi.fn(),
+    })
+
+    render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
+
+    const summaryBar = screen.getByText('Total Collateral Deployed').closest('.portfolio-summary')
+    expect(summaryBar).toHaveTextContent('$76,000.00')
+    expect(summaryBar).toHaveTextContent('Potential Options Premium')
+    expect(summaryBar).toHaveTextContent('$300.00')
+    expect(summaryBar).toHaveTextContent('Unrealized Stock P&L')
+    expect(summaryBar).toHaveTextContent('$100.00')
+  })
+
+  it('hides the portfolio summary when there are no open investments', () => {
+    mockAccounts()
+    useInvestments.mockReturnValue({ investments: [], loading: false, error: null, reload: vi.fn(), addInvestment: vi.fn(), closeInvestment: vi.fn(), updateInvestment: vi.fn(), deleteInvestment: vi.fn() })
+
+    render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
+
+    expect(screen.queryByText('Total Collateral Deployed')).not.toBeInTheDocument()
+  })
+
   it('calls deleteInvestment when Delete is clicked', async () => {
     mockAccounts()
     const deleteInvestment = vi.fn()

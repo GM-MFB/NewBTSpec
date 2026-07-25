@@ -13,6 +13,19 @@ describe('InvestmentRow', () => {
     expect(screen.getByText('Avg Cost:')).toBeInTheDocument()
   })
 
+  it('shows Current Price on a stock row when set', () => {
+    const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, currentPrice: 165, strategy: '', strike: '', expiry: '' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByText('Current Price:')).toBeInTheDocument()
+    expect(screen.getByText('$165.00')).toBeInTheDocument()
+  })
+
+  it('does not show Current Price on a stock row when blank', () => {
+    const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, currentPrice: '', strategy: '', strike: '', expiry: '' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.queryByText('Current Price:')).not.toBeInTheDocument()
+  })
+
   it('renders contracts, strike, expiry, and avg price inline for an option', () => {
     const investment = { id: 'i2', symbol: 'SPY', assetType: 'Option', shares: 5, avgCost: 3.5, strategy: 'covered_call', strike: 450, expiry: '2026-03-01' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
