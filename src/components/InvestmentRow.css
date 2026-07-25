@@ -39,28 +39,9 @@
   flex: 1;
 }
 
-.meta-item {
-  display: flex;
-  justify-content: flex-end;
-  gap: 4px;
-}
-
-.meta-item--contracts,
-.meta-item--shares { min-width: 70px; }
-.meta-item--strike { min-width: 130px; }
-.meta-item--expires { min-width: 100px; }
-.meta-item--days-left { min-width: 70px; }
-.meta-item--avg-price,
-.meta-item--avg-cost { min-width: 90px; }
-.meta-item--collateral { min-width: 100px; }
-.meta-item--pnl { min-width: 90px; }
-
 .meta-label {
   color: var(--text-dim);
-}
-
-.meta-value {
-  text-align: right;
+  margin-right: 3px;
 }
 
 .investment-symbol {

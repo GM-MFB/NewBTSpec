@@ -1,6 +1,6 @@
 import './InvestmentRow.css'
 import { strategyByValue } from '../lib/optionStrategies'
-import { formatCurrency, formatCurrencyWhole } from '../lib/format'
+import { formatCurrency, formatCurrencyWhole, formatCurrencyAuto } from '../lib/format'
 
 function daysLeftLabel(expiry) {
   if (!expiry) return ''
@@ -46,8 +46,8 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete })
   const strategyDef = strategyByValue(investment.strategy)
   const badge = isOption ? (strategyDef?.label ?? 'Option') : investment.assetType
   const strikeDisplay = investment.strike2
-    ? `${formatCurrency(investment.strike)}/${formatCurrency(investment.strike2)}`
-    : formatCurrency(investment.strike)
+    ? `${formatCurrencyAuto(investment.strike)}/${formatCurrencyAuto(investment.strike2)}`
+    : formatCurrencyAuto(investment.strike)
   const collateral = isOption ? formatCurrencyWhole(collateralFor(investment, strategyDef)) : ''
   const potentialPnl = isOption ? formatCurrency(potentialPnlFor(investment, strategyDef)) : ''
 

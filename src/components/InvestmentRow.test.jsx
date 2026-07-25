@@ -25,16 +25,22 @@ describe('InvestmentRow', () => {
     expect(screen.getByText('Avg Price:')).toBeInTheDocument()
   })
 
-  it('formats the strike as short/long dollar amounts for a credit spread', () => {
+  it('formats the strike as short/long dollar amounts for a credit spread, no forced decimals', () => {
     const investment = { id: 'i5', symbol: 'SPY', assetType: 'Option', shares: 1, avgCost: 1.2, strategy: 'put_credit_spread', strike: 36, strike2: 35, expiry: '2026-03-01' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
-    expect(screen.getByText('$36.00/$35.00')).toBeInTheDocument()
+    expect(screen.getByText('$36/$35')).toBeInTheDocument()
   })
 
-  it('shows a single strike as a dollar amount for a non-spread strategy', () => {
+  it('shows a single whole-dollar strike with no decimals for a non-spread strategy', () => {
     const investment = { id: 'i2', symbol: 'SPY', assetType: 'Option', shares: 5, avgCost: 3.5, strategy: 'covered_call', strike: 450, expiry: '2026-03-01' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
-    expect(screen.getByText('$450.00')).toBeInTheDocument()
+    expect(screen.getByText('$450')).toBeInTheDocument()
+  })
+
+  it('shows decimals in the strike when the entered value has them', () => {
+    const investment = { id: 'i8', symbol: 'SPY', assetType: 'Option', shares: 1, avgCost: 1, strategy: 'call', strike: 450.5, expiry: '2026-03-01' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByText('$450.5')).toBeInTheDocument()
   })
 
   it('shows "Expired" for a past expiry and a day count for a future one', () => {

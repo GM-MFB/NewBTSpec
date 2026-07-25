@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatCurrency, formatCurrencyWhole } from './format'
+import { formatCurrency, formatCurrencyWhole, formatCurrencyAuto } from './format'
 
 describe('formatCurrency', () => {
   it('formats a whole number as USD with two decimals', () => {
@@ -30,5 +30,20 @@ describe('formatCurrencyWhole', () => {
   it('returns an empty string for blank/undefined/null/NaN input', () => {
     expect(formatCurrencyWhole('')).toBe('')
     expect(formatCurrencyWhole(undefined)).toBe('')
+  })
+})
+
+describe('formatCurrencyAuto', () => {
+  it('omits decimals for a whole number', () => {
+    expect(formatCurrencyAuto(36)).toBe('$36')
+  })
+
+  it('keeps decimals when the value has them', () => {
+    expect(formatCurrencyAuto(36.5)).toBe('$36.5')
+  })
+
+  it('returns an empty string for blank/undefined/null/NaN input', () => {
+    expect(formatCurrencyAuto('')).toBe('')
+    expect(formatCurrencyAuto(undefined)).toBe('')
   })
 })
