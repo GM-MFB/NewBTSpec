@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import './HomePage.css'
 import { useAuth } from '../hooks/useAuth'
 import { useAccounts } from '../hooks/useAccounts'
 import { useTrades } from '../hooks/useTrades'

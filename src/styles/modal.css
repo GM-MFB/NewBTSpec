@@ -1,0 +1,145 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 50;
+}
+
+.modal {
+  width: 100%;
+  max-width: 420px;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 28px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+}
+
+.modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal form + button,
+.modal form + form {
+  margin-top: 20px;
+}
+
+.modal label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: -8px;
+}
+
+.modal input,
+.modal select,
+.modal textarea {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 14px;
+  padding: 9px 10px;
+  font-family: inherit;
+}
+
+.modal textarea {
+  min-height: 64px;
+  resize: vertical;
+}
+
+.modal input:focus,
+.modal select:focus,
+.modal textarea:focus {
+  outline: none;
+  border-color: var(--green);
+}
+
+.modal input:focus-visible,
+.modal select:focus-visible,
+.modal textarea:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+.modal [role="alert"] {
+  color: var(--red);
+  font-size: 13px;
+  margin: 0;
+}
+
+.type-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.modal button[type="button"] {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.modal button[type="button"]:hover {
+  border-color: var(--text-dim);
+  color: var(--text);
+}
+
+.modal button[type="submit"] {
+  background: var(--green);
+  border: 1px solid var(--green);
+  color: #062611;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.modal button[type="submit"]:hover {
+  filter: brightness(1.08);
+}
+
+.type-toggle button[type="button"] {
+  flex: 1;
+}
+
+.type-toggle button[aria-pressed="true"] {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.modal > button[type="button"] {
+  width: 100%;
+}
+
+.modal form:last-of-type button[type="submit"] {
+  width: 100%;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.modal button:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}

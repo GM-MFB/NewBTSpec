@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import '../styles/modal.css'
 
 const initial = {
   type: '', symbol: '', direction: 'long', quantity: '', entryPrice: '',

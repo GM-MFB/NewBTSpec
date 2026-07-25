@@ -1,0 +1,118 @@
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.account-switcher {
+  position: relative;
+}
+
+.account-name {
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  padding: 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.account-name::after {
+  content: '▾';
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.account-name:hover {
+  color: var(--green);
+}
+
+.account-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 200px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px;
+  list-style: none;
+  margin: 0;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+  z-index: 20;
+}
+
+.account-dropdown li + li {
+  margin-top: 2px;
+}
+
+.account-dropdown button {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.account-dropdown button:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.app-nav {
+  display: flex;
+  gap: 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.app-nav a {
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 6px;
+}
+
+.app-nav a:hover {
+  color: var(--text);
+}
+
+.app-nav a.active {
+  background: var(--bg);
+  color: var(--green);
+}
+
+.add-trade-btn {
+  background: var(--green);
+  color: #062611;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.add-trade-btn:hover {
+  filter: brightness(1.08);
+}
+
+.add-trade-btn:focus-visible,
+.account-name:focus-visible,
+.app-nav a:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}

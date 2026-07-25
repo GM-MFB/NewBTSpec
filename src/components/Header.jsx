@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
+import './Header.css'
 
 export default function Header({ accounts, activeAccount, switchAccount, createAccount, onAddTrade }) {
   const [open, setOpen] = useState(false)
@@ -36,9 +37,9 @@ export default function Header({ accounts, activeAccount, switchAccount, createA
       </div>
 
       <nav className="app-nav">
-        <NavLink to="/stats">Stats</NavLink>
-        <NavLink to="/analyze">Analyze</NavLink>
-        <NavLink to="/matt-cap">Matt Cap</NavLink>
+        <NavLink to="/stats" className={({ isActive }) => (isActive ? 'active' : undefined)}>Stats</NavLink>
+        <NavLink to="/analyze" className={({ isActive }) => (isActive ? 'active' : undefined)}>Analyze</NavLink>
+        <NavLink to="/matt-cap" className={({ isActive }) => (isActive ? 'active' : undefined)}>Matt Cap</NavLink>
       </nav>
 
       <button type="button" className="add-trade-btn" onClick={onAddTrade}>

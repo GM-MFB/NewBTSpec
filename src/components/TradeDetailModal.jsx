@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import '../styles/modal.css'
 
 export default function TradeDetailModal({ trade, onClose, onUpdate, onCloseTrade, onDelete }) {
   const [fields, setFields] = useState(trade)

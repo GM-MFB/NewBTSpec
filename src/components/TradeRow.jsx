@@ -1,3 +1,5 @@
+import './TradeRow.css'
+
 export default function TradeRow({ trade, onClick }) {
   const badge = trade.type === 'option' ? trade.optionType : trade.type
 
