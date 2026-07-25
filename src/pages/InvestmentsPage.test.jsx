@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import InvestmentsPage from './InvestmentsPage'
 import { useAuth } from '../hooks/useAuth'
@@ -83,5 +84,47 @@ describe('InvestmentsPage', () => {
     render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
 
     expect(screen.getByText('NVDA')).toBeInTheDocument()
+  })
+
+  it('opens the close position modal and calls closeInvestment on confirm', async () => {
+    mockAccounts()
+    const closeInvestment = vi.fn()
+    useInvestments.mockReturnValue({
+      investments: [
+        { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, strategy: '', strike: '', expiry: '' },
+      ],
+      loading: false, error: null, reload: vi.fn(),
+      addInvestment: vi.fn(), closeInvestment, updateInvestment: vi.fn(), deleteInvestment: vi.fn(),
+    })
+
+    render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
+
+    await userEvent.click(screen.getByRole('button', { name: /^close$/i }))
+    expect(screen.getByLabelText(/closing price/i)).toBeInTheDocument()
+
+    await userEvent.type(screen.getByLabelText(/closing price/i), '180')
+    await userEvent.type(screen.getByLabelText(/^date$/i), '2026-02-01')
+    await userEvent.click(screen.getByRole('button', { name: /confirm/i }))
+
+    expect(closeInvestment).toHaveBeenCalledWith('i1', { sellPrice: '180', sellDate: '2026-02-01' })
+  })
+
+  it('calls deleteInvestment when Delete is clicked and confirmed', async () => {
+    mockAccounts()
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const deleteInvestment = vi.fn()
+    useInvestments.mockReturnValue({
+      investments: [
+        { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, strategy: '', strike: '', expiry: '' },
+      ],
+      loading: false, error: null, reload: vi.fn(),
+      addInvestment: vi.fn(), closeInvestment: vi.fn(), updateInvestment: vi.fn(), deleteInvestment,
+    })
+
+    render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
+
+    await userEvent.click(screen.getByRole('button', { name: /^delete$/i }))
+    expect(deleteInvestment).toHaveBeenCalledWith('i1')
+    window.confirm.mockRestore()
   })
 })

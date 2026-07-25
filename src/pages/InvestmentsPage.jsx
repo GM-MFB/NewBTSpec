@@ -7,16 +7,14 @@ import { STRATEGIES } from '../lib/optionStrategies'
 import Header from '../components/Header'
 import InvestmentRow from '../components/InvestmentRow'
 import AddInvestmentModal from '../components/AddInvestmentModal'
-import InvestmentDetailModal from '../components/InvestmentDetailModal'
+import ClosePositionModal from '../components/ClosePositionModal'
 
 export default function InvestmentsPage() {
   const { user } = useAuth()
   const { accounts, activeAccount, activeAccountId, switchAccount, createAccount } = useAccounts(user?.id)
-  const { investments, error, reload, addInvestment, updateInvestment, closeInvestment, deleteInvestment } = useInvestments(activeAccountId)
+  const { investments, error, reload, addInvestment, closeInvestment, deleteInvestment } = useInvestments(activeAccountId)
   const [addOpen, setAddOpen] = useState(false)
-  const [selectedId, setSelectedId] = useState(null)
-
-  const selected = investments.find((i) => i.id === selectedId) ?? null
+  const [closingId, setClosingId] = useState(null)
 
   const stockInvestments = investments.filter((i) => i.assetType === 'Stock')
   const strategyGroups = STRATEGIES
@@ -55,7 +53,7 @@ export default function InvestmentsPage() {
               <h2 className="group-title">Stock</h2>
               <ul className="investment-list">
                 {stockInvestments.map((investment) => (
-                  <InvestmentRow key={investment.id} investment={investment} onClick={setSelectedId} />
+                  <InvestmentRow key={investment.id} investment={investment} onClosePosition={setClosingId} onDelete={deleteInvestment} />
                 ))}
               </ul>
             </section>
@@ -69,7 +67,7 @@ export default function InvestmentsPage() {
                   <h3 className="strategy-title">{group.label}</h3>
                   <ul className="investment-list">
                     {group.items.map((investment) => (
-                      <InvestmentRow key={investment.id} investment={investment} onClick={setSelectedId} />
+                      <InvestmentRow key={investment.id} investment={investment} onClosePosition={setClosingId} onDelete={deleteInvestment} />
                     ))}
                   </ul>
                 </div>
@@ -82,7 +80,7 @@ export default function InvestmentsPage() {
               <h2 className="group-title">Other</h2>
               <ul className="investment-list">
                 {otherInvestments.map((investment) => (
-                  <InvestmentRow key={investment.id} investment={investment} onClick={setSelectedId} />
+                  <InvestmentRow key={investment.id} investment={investment} onClosePosition={setClosingId} onDelete={deleteInvestment} />
                 ))}
               </ul>
             </section>
@@ -100,21 +98,12 @@ export default function InvestmentsPage() {
         />
       )}
 
-      {selected && (
-        <InvestmentDetailModal
-          investment={selected}
-          onClose={() => setSelectedId(null)}
-          onUpdate={async (patch) => {
-            await updateInvestment(selected.id, patch)
-            setSelectedId(null)
-          }}
-          onCloseInvestment={async (closeFields) => {
-            await closeInvestment(selected.id, closeFields)
-            setSelectedId(null)
-          }}
-          onDelete={async () => {
-            await deleteInvestment(selected.id)
-            setSelectedId(null)
+      {closingId && (
+        <ClosePositionModal
+          onClose={() => setClosingId(null)}
+          onConfirm={async (closeFields) => {
+            await closeInvestment(closingId, closeFields)
+            setClosingId(null)
           }}
         />
       )}

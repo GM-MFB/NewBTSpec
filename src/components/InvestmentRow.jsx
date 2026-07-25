@@ -20,12 +20,22 @@ function MetaItem({ label, value }) {
   )
 }
 
-export default function InvestmentRow({ investment, onClick }) {
+export default function InvestmentRow({ investment, onClosePosition, onDelete }) {
   const isOption = investment.assetType === 'Option'
   const badge = isOption ? (strategyByValue(investment.strategy)?.label ?? 'Option') : investment.assetType
 
+  async function handleDelete() {
+    if (window.confirm(`Delete ${investment.symbol}?`)) {
+      try {
+        await onDelete(investment.id)
+      } catch (err) {
+        window.alert(err.message)
+      }
+    }
+  }
+
   return (
-    <li className="investment-row" data-testid="investment-row" onClick={() => onClick(investment.id)}>
+    <li className="investment-row" data-testid="investment-row">
       <div className="investment-row-top">
         <span className="mono investment-symbol">{investment.symbol}</span>
         <span className="investment-badge">{badge}</span>
@@ -45,6 +55,10 @@ export default function InvestmentRow({ investment, onClick }) {
             <MetaItem label="Avg Cost" value={investment.avgCost} />
           </>
         )}
+      </div>
+      <div className="investment-row-actions">
+        <button type="button" onClick={() => onClosePosition(investment.id)}>Close</button>
+        <button type="button" className="danger" onClick={handleDelete}>Delete</button>
       </div>
     </li>
   )
