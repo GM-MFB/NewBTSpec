@@ -23,6 +23,7 @@ function MetaItem({ label, value }) {
 export default function InvestmentRow({ investment, onClosePosition, onDelete }) {
   const isOption = investment.assetType === 'Option'
   const badge = isOption ? (strategyByValue(investment.strategy)?.label ?? 'Option') : investment.assetType
+  const strikeDisplay = investment.strike2 ? `${investment.strike}/${investment.strike2}` : investment.strike
 
   async function handleDelete() {
     if (window.confirm(`Delete ${investment.symbol}?`)) {
@@ -44,7 +45,7 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete })
         {isOption ? (
           <>
             <MetaItem label="Contracts" value={investment.shares} />
-            <MetaItem label="Strike" value={investment.strike} />
+            <MetaItem label="Strike" value={strikeDisplay} />
             <MetaItem label="Expires" value={investment.expiry} />
             <MetaItem label="Days Left" value={daysLeftLabel(investment.expiry)} />
             <MetaItem label="Avg Price" value={investment.avgCost} />

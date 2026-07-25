@@ -25,6 +25,18 @@ describe('InvestmentRow', () => {
     expect(screen.getByText('Avg Price:')).toBeInTheDocument()
   })
 
+  it('formats the strike as short/long for a credit spread', () => {
+    const investment = { id: 'i5', symbol: 'SPY', assetType: 'Option', shares: 1, avgCost: 1.2, strategy: 'put_credit_spread', strike: 36, strike2: 35, expiry: '2026-03-01' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByText('36/35')).toBeInTheDocument()
+  })
+
+  it('shows a single strike for a non-spread strategy', () => {
+    const investment = { id: 'i2', symbol: 'SPY', assetType: 'Option', shares: 5, avgCost: 3.5, strategy: 'covered_call', strike: 450, expiry: '2026-03-01' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByText('450')).toBeInTheDocument()
+  })
+
   it('shows "Expired" for a past expiry and a day count for a future one', () => {
     const pastYear = new Date().getFullYear() - 1
     const futureYear = new Date().getFullYear() + 5
