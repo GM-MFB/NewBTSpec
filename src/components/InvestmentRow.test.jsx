@@ -26,11 +26,11 @@ describe('InvestmentRow', () => {
     expect(screen.queryByText('Current Price:')).not.toBeInTheDocument()
   })
 
-  it('renders contracts, strike, expiry, and avg price inline for an option', () => {
+  it('renders contracts, strike, expiry, and avg price inline for an option, with no strategy badge', () => {
     const investment = { id: 'i2', symbol: 'SPY', assetType: 'Option', shares: 5, avgCost: 3.5, strategy: 'covered_call', strike: 450, expiry: '2026-03-01' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
     expect(screen.getByText('SPY')).toBeInTheDocument()
-    expect(screen.getByText('Covered Call')).toBeInTheDocument()
+    expect(screen.queryByText('Covered Call')).not.toBeInTheDocument()
     expect(screen.getByText('Contracts:')).toBeInTheDocument()
     expect(screen.getByText('Strike:')).toBeInTheDocument()
     expect(screen.getByText('Expires:')).toBeInTheDocument()
@@ -91,17 +91,35 @@ describe('InvestmentRow', () => {
     expect(screen.queryByText('P&L:')).not.toBeInTheDocument()
   })
 
-  it('shows Covered Shares on a stock row when provided', () => {
-    const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 200, avgCost: 150, strategy: '', strike: '', expiry: '' }
-    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} coveredShares={100} />)
-    expect(screen.getByText('Covered Shares:')).toBeInTheDocument()
-    expect(screen.getByText('100')).toBeInTheDocument()
+  it('shows Shares as owned/required when coveredShares is provided', () => {
+    const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 255, avgCost: 150, strategy: '', strike: '', expiry: '' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} coveredShares={200} />)
+    expect(screen.getByText('255/200')).toBeInTheDocument()
   })
 
-  it('does not show Covered Shares on a stock row when not provided', () => {
+  it('shows Shares as fully matched owned/required for one covered call', () => {
+    const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 100, avgCost: 150, strategy: '', strike: '', expiry: '' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} coveredShares={100} />)
+    expect(screen.getByText('100/100')).toBeInTheDocument()
+  })
+
+  it('shows plain Shares value when coveredShares is not provided', () => {
     const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 200, avgCost: 150, strategy: '', strike: '', expiry: '' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
-    expect(screen.queryByText('Covered Shares:')).not.toBeInTheDocument()
+    expect(screen.getByText('200')).toBeInTheDocument()
+  })
+
+  it('shows Unrealized P&L on a stock row when current price is set', () => {
+    const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 100, currentPrice: 165, strategy: '', strike: '', expiry: '' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    const item = screen.getByText('Unrealized P&L:').closest('.meta-item')
+    expect(item).toHaveTextContent('$650.00')
+  })
+
+  it('does not show Unrealized P&L on a stock row when current price is blank', () => {
+    const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, currentPrice: '', strategy: '', strike: '', expiry: '' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.queryByText('Unrealized P&L:')).not.toBeInTheDocument()
   })
 
   it('calls onClosePosition with the investment id when Close is clicked', async () => {

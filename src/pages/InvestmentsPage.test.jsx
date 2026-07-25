@@ -109,7 +109,7 @@ describe('InvestmentsPage', () => {
     expect(closeInvestment).toHaveBeenCalledWith('i1', { sellPrice: '180', sellDate: '2026-02-01' })
   })
 
-  it('shows Covered Shares on the stock row for a matching covered call', () => {
+  it('shows Shares as owned/required on the stock row for a matching covered call', () => {
     mockAccounts()
     useInvestments.mockReturnValue({
       investments: [
@@ -122,8 +122,7 @@ describe('InvestmentsPage', () => {
 
     render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
 
-    const coveredSharesItem = screen.getByText('Covered Shares:').closest('.meta-item')
-    expect(coveredSharesItem).toHaveTextContent('100')
+    expect(screen.getByText('100/100')).toBeInTheDocument()
   })
 
   it('shows portfolio summary stats when there are open investments', () => {

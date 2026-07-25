@@ -13,6 +13,11 @@ function daysLeftLabel(expiry) {
   return diff < 0 ? 'Expired' : `${diff}d`
 }
 
+function unrealizedPnlFor(investment) {
+  if (investment.currentPrice === '' || investment.currentPrice === undefined || investment.currentPrice === null) return ''
+  return (Number(investment.currentPrice) - Number(investment.avgCost)) * Number(investment.shares)
+}
+
 function MetaItem({ field, label, value }) {
   if (value === '' || value === undefined || value === null) return null
   return (
@@ -26,12 +31,14 @@ function MetaItem({ field, label, value }) {
 export default function InvestmentRow({ investment, onClosePosition, onDelete, coveredShares }) {
   const isOption = investment.assetType === 'Option'
   const strategyDef = strategyByValue(investment.strategy)
-  const badge = isOption ? (strategyDef?.label ?? 'Option') : investment.assetType
+  const badge = isOption ? '' : investment.assetType
   const strikeDisplay = investment.strike2
     ? `${formatCurrencyAuto(investment.strike)}/${formatCurrencyAuto(investment.strike2)}`
     : formatCurrencyAuto(investment.strike)
   const collateral = isOption ? formatCurrencyWhole(collateralFor(investment, strategyDef)) : ''
   const potentialPnl = isOption ? formatCurrency(potentialPnlFor(investment, strategyDef)) : ''
+  const sharesDisplay = coveredShares ? `${investment.shares}/${coveredShares}` : investment.shares
+  const unrealizedPnl = !isOption ? formatCurrency(unrealizedPnlFor(investment)) : ''
 
   async function handleDelete() {
     try {
@@ -45,7 +52,7 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, c
     <li className="investment-row" data-testid="investment-row">
       <div className="investment-row-top">
         <span className="mono investment-symbol">{investment.symbol}</span>
-        <span className="investment-badge">{badge}</span>
+        {badge && <span className="investment-badge">{badge}</span>}
       </div>
       <div className="investment-row-meta mono">
         {isOption ? (
@@ -60,10 +67,10 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, c
           </>
         ) : (
           <>
-            <MetaItem field="shares" label="Shares" value={investment.shares} />
+            <MetaItem field="shares" label="Shares" value={sharesDisplay} />
             <MetaItem field="avg-cost" label="Avg Cost" value={formatCurrency(investment.avgCost)} />
             <MetaItem field="current-price" label="Current Price" value={formatCurrency(investment.currentPrice)} />
-            <MetaItem field="covered-shares" label="Covered Shares" value={coveredShares} />
+            <MetaItem field="unrealized-pnl" label="Unrealized P&L" value={unrealizedPnl} />
           </>
         )}
       </div>
