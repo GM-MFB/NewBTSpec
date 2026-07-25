@@ -69,4 +69,19 @@ describe('InvestmentsPage', () => {
     expect(screen.getByRole('heading', { name: /cash secured put/i })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: /^put$/i })).not.toBeInTheDocument()
   })
+
+  it('does not drop Option investments that have no strategy set', () => {
+    mockAccounts()
+    useInvestments.mockReturnValue({
+      investments: [
+        { id: 'i1', symbol: 'NVDA', assetType: 'Option', shares: '', avgCost: '', strategy: '', strike: 900, expiry: '2026-04-01' },
+      ],
+      loading: false, error: null, reload: vi.fn(),
+      addInvestment: vi.fn(), closeInvestment: vi.fn(), updateInvestment: vi.fn(), deleteInvestment: vi.fn(),
+    })
+
+    render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
+
+    expect(screen.getByText('NVDA')).toBeInTheDocument()
+  })
 })

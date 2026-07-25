@@ -22,6 +22,11 @@ export default function InvestmentsPage() {
   const strategyGroups = STRATEGIES
     .map((s) => ({ ...s, items: investments.filter((i) => i.assetType === 'Option' && i.strategy === s.value) }))
     .filter((g) => g.items.length > 0)
+  const categorizedIds = new Set([
+    ...stockInvestments.map((i) => i.id),
+    ...strategyGroups.flatMap((g) => g.items.map((i) => i.id)),
+  ])
+  const otherInvestments = investments.filter((i) => !categorizedIds.has(i.id))
 
   return (
     <div data-testid="investments-page">
@@ -69,6 +74,17 @@ export default function InvestmentsPage() {
                   </ul>
                 </div>
               ))}
+            </section>
+          )}
+
+          {otherInvestments.length > 0 && (
+            <section className="investment-group">
+              <h2 className="group-title">Other</h2>
+              <ul className="investment-list">
+                {otherInvestments.map((investment) => (
+                  <InvestmentRow key={investment.id} investment={investment} onClick={setSelectedId} />
+                ))}
+              </ul>
             </section>
           )}
         </div>
