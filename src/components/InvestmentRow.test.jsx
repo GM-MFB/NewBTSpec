@@ -25,16 +25,16 @@ describe('InvestmentRow', () => {
     expect(screen.getByText('Avg Price:')).toBeInTheDocument()
   })
 
-  it('formats the strike as short/long for a credit spread', () => {
+  it('formats the strike as short/long dollar amounts for a credit spread', () => {
     const investment = { id: 'i5', symbol: 'SPY', assetType: 'Option', shares: 1, avgCost: 1.2, strategy: 'put_credit_spread', strike: 36, strike2: 35, expiry: '2026-03-01' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
-    expect(screen.getByText('36/35')).toBeInTheDocument()
+    expect(screen.getByText('$36.00/$35.00')).toBeInTheDocument()
   })
 
-  it('shows a single strike for a non-spread strategy', () => {
+  it('shows a single strike as a dollar amount for a non-spread strategy', () => {
     const investment = { id: 'i2', symbol: 'SPY', assetType: 'Option', shares: 5, avgCost: 3.5, strategy: 'covered_call', strike: 450, expiry: '2026-03-01' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
-    expect(screen.getByText('450')).toBeInTheDocument()
+    expect(screen.getByText('$450.00')).toBeInTheDocument()
   })
 
   it('shows "Expired" for a past expiry and a day count for a future one', () => {
@@ -49,20 +49,20 @@ describe('InvestmentRow', () => {
     expect(screen.getByText(/^\d+d$/)).toBeInTheDocument()
   })
 
-  it('shows collateral and potential P&L for a cash secured put', () => {
+  it('shows collateral and potential P&L as dollar amounts for a cash secured put', () => {
     const investment = { id: 'i6', symbol: 'QQQ', assetType: 'Option', shares: 2, avgCost: 1.5, strategy: 'cash_secured_put', strike: 380, expiry: '2026-03-01' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
     expect(screen.getByText('Collateral:')).toBeInTheDocument()
-    expect(screen.getByText('76000')).toBeInTheDocument()
+    expect(screen.getByText('$76,000.00')).toBeInTheDocument()
     expect(screen.getByText('Potential P&L:')).toBeInTheDocument()
-    expect(screen.getByText('300')).toBeInTheDocument()
+    expect(screen.getByText('$300.00')).toBeInTheDocument()
   })
 
-  it('shows collateral using the strike width for a credit spread', () => {
+  it('shows collateral using the strike width as a dollar amount for a credit spread', () => {
     const investment = { id: 'i5', symbol: 'SPY', assetType: 'Option', shares: 1, avgCost: 1.2, strategy: 'put_credit_spread', strike: 36, strike2: 35, expiry: '2026-03-01' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
-    expect(screen.getByText('100')).toBeInTheDocument()
-    expect(screen.getByText('120')).toBeInTheDocument()
+    expect(screen.getByText('$100.00')).toBeInTheDocument()
+    expect(screen.getByText('$120.00')).toBeInTheDocument()
   })
 
   it('does not show collateral or P&L for a long call/put', () => {

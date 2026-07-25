@@ -1,5 +1,6 @@
 import './InvestmentRow.css'
 import { strategyByValue } from '../lib/optionStrategies'
+import { formatCurrency } from '../lib/format'
 
 function daysLeftLabel(expiry) {
   if (!expiry) return ''
@@ -43,9 +44,11 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete })
   const isOption = investment.assetType === 'Option'
   const strategyDef = strategyByValue(investment.strategy)
   const badge = isOption ? (strategyDef?.label ?? 'Option') : investment.assetType
-  const strikeDisplay = investment.strike2 ? `${investment.strike}/${investment.strike2}` : investment.strike
-  const collateral = isOption ? collateralFor(investment, strategyDef) : ''
-  const potentialPnl = isOption ? potentialPnlFor(investment, strategyDef) : ''
+  const strikeDisplay = investment.strike2
+    ? `${formatCurrency(investment.strike)}/${formatCurrency(investment.strike2)}`
+    : formatCurrency(investment.strike)
+  const collateral = isOption ? formatCurrency(collateralFor(investment, strategyDef)) : ''
+  const potentialPnl = isOption ? formatCurrency(potentialPnlFor(investment, strategyDef)) : ''
 
   async function handleDelete() {
     try {
@@ -68,14 +71,14 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete })
             <MetaItem label="Strike" value={strikeDisplay} />
             <MetaItem label="Expires" value={investment.expiry} />
             <MetaItem label="Days Left" value={daysLeftLabel(investment.expiry)} />
-            <MetaItem label="Avg Price" value={investment.avgCost} />
+            <MetaItem label="Avg Price" value={formatCurrency(investment.avgCost)} />
             <MetaItem label="Collateral" value={collateral} />
             <MetaItem label="Potential P&L" value={potentialPnl} />
           </>
         ) : (
           <>
             <MetaItem label="Shares" value={investment.shares} />
-            <MetaItem label="Avg Cost" value={investment.avgCost} />
+            <MetaItem label="Avg Cost" value={formatCurrency(investment.avgCost)} />
           </>
         )}
       </div>
