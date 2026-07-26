@@ -8,6 +8,9 @@ import { KNOWN_ETFS } from '../../lib/knownEtfs'
 import SymbolPanels from './SymbolPanels'
 import CompareView from './CompareView'
 import SectorBrowser from './SectorBrowser'
+import PortfolioContext from './PortfolioContext'
+import { fetchCorrelations } from '../../lib/fetchCorrelations'
+import { setRealCorrelations, setComputedParams } from '../../lib/efficientFrontier'
 
 export default function ResearchTab({ investments }) {
   const { user } = useAuth()
@@ -22,6 +25,7 @@ export default function ResearchTab({ investments }) {
   const [showSectorBrowser, setShowSectorBrowser] = useState(false)
 
   const stockSymbols = [...new Set(investments.filter((i) => i.assetType === 'Stock').map((i) => i.symbol))]
+  const researchedSymbols = Object.keys(data)
 
   async function fetchSymbol(symbol) {
     if (data[symbol] || KNOWN_ETFS.has(symbol)) return
@@ -72,6 +76,16 @@ export default function ResearchTab({ investments }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finnhubKey, stockSymbols.length])
+
+  useEffect(() => {
+    const combined = [...new Set([...stockSymbols, ...researchedSymbols])]
+    if (combined.length === 0) return
+    fetchCorrelations(combined).then(({ corrMap, paramsMap }) => {
+      setRealCorrelations(corrMap)
+      setComputedParams(paramsMap)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stockSymbols.join(','), researchedSymbols.join(',')])
 
   if (!settingsLoading && !finnhubKey) {
     return (
@@ -157,6 +171,14 @@ export default function ResearchTab({ investments }) {
 
       {view === 'compare' && compareSymbols.length > 0 && (
         <CompareView symbols={compareSymbols} data={data} onRemove={handleRemoveFromCompare} />
+      )}
+
+      {view === 'single' && researchedSymbols.length > 0 && stockSymbols.length > 0 && (
+        <PortfolioContext
+          portfolioSymbols={stockSymbols}
+          researchedSymbols={researchedSymbols}
+          priceMap={Object.fromEntries(researchedSymbols.map((s) => [s, data[s]?.quote?.c]).filter(([, price]) => price))}
+        />
       )}
     </div>
   )

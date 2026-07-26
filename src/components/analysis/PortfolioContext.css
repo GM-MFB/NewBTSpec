@@ -1,0 +1,27 @@
+.portfolio-context {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 20px;
+}
+
+.portfolio-context-toggle {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.portfolio-context-toggle button {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.portfolio-context-toggle button[aria-pressed="true"] {
+  border-color: var(--green);
+  color: var(--green);
+}

@@ -6,10 +6,12 @@ import ResearchTab from './ResearchTab'
 import { useAuth } from '../../hooks/useAuth'
 import { useUserSettings } from '../../hooks/useUserSettings'
 import { fetchFundamentals, fetchPeers } from '../../lib/fetchFundamentals'
+import { fetchCorrelations } from '../../lib/fetchCorrelations'
 
 vi.mock('../../hooks/useAuth')
 vi.mock('../../hooks/useUserSettings')
 vi.mock('../../lib/fetchFundamentals')
+vi.mock('../../lib/fetchCorrelations')
 
 const investments = [
   { id: 'i1', assetType: 'Stock', symbol: 'AAPL', shares: 10, avgCost: 150, currentPrice: 165 },
@@ -27,6 +29,7 @@ describe('ResearchTab', () => {
     vi.clearAllMocks()
     useAuth.mockReturnValue({ user: { id: 'u1' } })
     fetchPeers.mockResolvedValue([])
+    fetchCorrelations.mockResolvedValue({ corrMap: {}, paramsMap: {} })
     localStorage.clear()
   })
 
@@ -140,5 +143,15 @@ describe('ResearchTab', () => {
     await userEvent.click(screen.getByRole('button', { name: /add to compare/i }))
 
     await waitFor(() => expect(screen.getByTestId('compare-view')).toBeInTheDocument())
+  })
+
+  it('fetches correlations for the combined portfolio+researched symbol list and renders Portfolio Context', async () => {
+    useUserSettings.mockReturnValue({ finnhubKey: 'key123', avKey: '', loading: false })
+    fetchFundamentals.mockResolvedValue(mockResult('Apple Inc'))
+
+    render(<MemoryRouter><ResearchTab investments={investments} /></MemoryRouter>)
+    await waitFor(() => expect(screen.getByText('Apple Inc')).toBeInTheDocument())
+
+    await waitFor(() => expect(fetchCorrelations).toHaveBeenCalledWith(['AAPL']))
   })
 })
