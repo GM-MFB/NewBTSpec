@@ -249,3 +249,28 @@ export function getRiskContribution(positions) {
     return { symbol: p.symbol, weightPct, riskPct, flag }
   })
 }
+
+const STRESS_SCENARIOS = [
+  { name: 'Bull Run', move: 0.20 },
+  { name: 'Mild Pullback', move: -0.05 },
+  { name: 'Correction', move: -0.10 },
+  { name: 'Bear Market', move: -0.20 },
+  { name: 'Crash', move: -0.30 },
+  { name: '2008-Level', move: -0.50 },
+]
+
+export function getStressTests(positions) {
+  return STRESS_SCENARIOS.map((scenario) => {
+    const perPosition = positions.map((p) => {
+      const params = getAssetParams(p.symbol)
+      const beta = (params.s * getCorrelation(p.symbol, 'SPY')) / SPY_VOL
+      const move = beta * scenario.move
+      const impact = move * p.marketValue
+      return { symbol: p.symbol, beta, move, impact }
+    })
+    const totalMV = positions.reduce((sum, p) => sum + p.marketValue, 0)
+    const weightedBeta = positions.reduce((sum, p, i) => sum + (p.marketValue / totalMV) * perPosition[i].beta, 0)
+    const portfolioMove = weightedBeta * scenario.move
+    return { name: scenario.name, marketMove: scenario.move, portfolioMove, perPosition: perPosition.sort((a, b) => a.impact - b.impact) }
+  })
+}

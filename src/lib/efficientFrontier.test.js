@@ -4,6 +4,7 @@ import {
   portfolioStats, randomWeights, generateEfficientFrontierData, extractFrontier,
   generateCombinedFrontierData, runBackwardElimination, findOptimalSubset, findOptimalSubsetForSymbols,
   getCorrelationMatrix, getCorrelationMatrixForSymbols, getPortfolioRiskMetrics, getRiskContribution,
+  getStressTests,
 } from './efficientFrontier'
 
 describe('getAssetParams', () => {
@@ -252,5 +253,27 @@ describe('getRiskContribution', () => {
     const lowVol = contributions.find((c) => c.symbol === 'LOW_VOL')
     expect(lowVol.riskPct).toBeLessThan(lowVol.weightPct - 5)
     expect(lowVol.flag).toBe('efficient')
+  })
+})
+
+describe('getStressTests', () => {
+  it('returns all 6 fixed scenarios with a portfolio-level move', () => {
+    const positions = [
+      { symbol: 'SPY', weight: 1, marketValue: 10000 },
+    ]
+    const results = getStressTests(positions)
+    expect(results.map((r) => r.name)).toEqual(['Bull Run', 'Mild Pullback', 'Correction', 'Bear Market', 'Crash', '2008-Level'])
+    expect(results[0].marketMove).toBe(0.20)
+  })
+
+  it('sorts per-position impacts most-negative first', () => {
+    const positions = [
+      { symbol: 'LOW_BETA', weight: 0.5, marketValue: 5000 },
+      { symbol: 'HIGH_BETA', weight: 0.5, marketValue: 5000 },
+    ]
+    setComputedParams({ LOW_BETA: { r: 0.08, s: 0.05 }, HIGH_BETA: { r: 0.20, s: 0.50 } })
+    const results = getStressTests(positions)
+    const bearMarket = results.find((r) => r.name === 'Bear Market')
+    expect(bearMarket.perPosition[0].impact).toBeLessThanOrEqual(bearMarket.perPosition[1].impact)
   })
 })
