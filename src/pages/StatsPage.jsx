@@ -1,12 +1,15 @@
 import { useState } from 'react'
+import '../pages/InvestmentsPage.css'
 import './StatsPage.css'
 import { useAuth } from '../hooks/useAuth'
 import { useAccounts } from '../hooks/useAccounts'
 import { useInvestmentsHistory } from '../hooks/useInvestmentsHistory'
 import { computeInvestmentStats } from '../lib/investmentStats'
 import { formatCurrency } from '../lib/format'
+import { STRATEGIES } from '../lib/optionStrategies'
 import Header from '../components/Header'
 import StatsCharts from '../components/StatsCharts'
+import InvestmentRow from '../components/InvestmentRow'
 
 function StatTile({ label, value, tone }) {
   return (
@@ -24,6 +27,17 @@ export default function StatsPage() {
   const [view, setView] = useState('numbers')
 
   const stats = computeInvestmentStats(investments)
+
+  const closedInvestments = investments.filter((i) => i.status === 'closed')
+  const closedStocks = closedInvestments.filter((i) => i.assetType === 'Stock')
+  const closedStrategyGroups = STRATEGIES
+    .map((s) => ({ ...s, items: closedInvestments.filter((i) => i.assetType === 'Option' && i.strategy === s.value) }))
+    .filter((g) => g.items.length > 0)
+  const closedCategorizedIds = new Set([
+    ...closedStocks.map((i) => i.id),
+    ...closedStrategyGroups.flatMap((g) => g.items.map((i) => i.id)),
+  ])
+  const closedOtherInvestments = closedInvestments.filter((i) => !closedCategorizedIds.has(i.id))
 
   return (
     <div data-testid="stats-page">
@@ -122,6 +136,50 @@ export default function StatsPage() {
               </tbody>
             </table>
           </section>
+        </div>
+      )}
+
+      {!loading && closedInvestments.length > 0 && (
+        <div className="investment-groups">
+          <h2 className="stats-section-title">Closed Investments</h2>
+
+          {closedStocks.length > 0 && (
+            <section className="investment-group">
+              <h2 className="group-title">Stock</h2>
+              <ul className="investment-list">
+                {closedStocks.map((investment) => (
+                  <InvestmentRow key={investment.id} investment={investment} />
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {closedStrategyGroups.length > 0 && (
+            <section className="investment-group">
+              <h2 className="group-title">Option</h2>
+              {closedStrategyGroups.map((group) => (
+                <div key={group.value} className="strategy-group">
+                  <h3 className="strategy-title">{group.label}</h3>
+                  <ul className="investment-list">
+                    {group.items.map((investment) => (
+                      <InvestmentRow key={investment.id} investment={investment} />
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </section>
+          )}
+
+          {closedOtherInvestments.length > 0 && (
+            <section className="investment-group">
+              <h2 className="group-title">Other</h2>
+              <ul className="investment-list">
+                {closedOtherInvestments.map((investment) => (
+                  <InvestmentRow key={investment.id} investment={investment} />
+                ))}
+              </ul>
+            </section>
+          )}
         </div>
       )}
     </div>

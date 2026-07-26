@@ -2,6 +2,7 @@ import './InvestmentRow.css'
 import { strategyByValue } from '../lib/optionStrategies'
 import { formatCurrency, formatCurrencyWhole, formatCurrencyAuto } from '../lib/format'
 import { collateralFor, potentialPnlFor } from '../lib/optionMath'
+import { realizedPnlFor } from '../lib/investmentStats'
 
 function daysLeftLabel(expiry) {
   if (!expiry) return ''
@@ -61,6 +62,7 @@ function StrikeMeta({ investment, strategyDef, strikeDisplay }) {
 
 export default function InvestmentRow({ investment, onClosePosition, onDelete, coveredShares }) {
   const isOption = investment.assetType === 'Option'
+  const isClosed = investment.status === 'closed'
   const strategyDef = strategyByValue(investment.strategy)
   const strikeDisplay = investment.strike2
     ? `${formatCurrencyAuto(investment.strike)}/${formatCurrencyAuto(investment.strike2)}`
@@ -74,6 +76,9 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, c
     : ''
   const unrealizedPnlRaw = unrealizedPnlFor(investment)
   const unrealizedPnlClass = !isBlank(unrealizedPnlRaw) ? (unrealizedPnlRaw >= 0 ? 'price-favorable' : 'price-unfavorable') : ''
+
+  const realizedPnlRaw = isClosed ? realizedPnlFor(investment) : null
+  const realizedPnlClass = realizedPnlRaw !== null ? (realizedPnlRaw >= 0 ? 'price-favorable' : 'price-unfavorable') : ''
 
   async function handleDelete() {
     try {
@@ -94,24 +99,44 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, c
             <MetaItem field="contracts" label="Contracts" value={investment.shares} />
             <StrikeMeta investment={investment} strategyDef={strategyDef} strikeDisplay={strikeDisplay} />
             <MetaItem field="expires" label="Expires" value={investment.expiry} />
-            <MetaItem field="days-left" label="Days Left" value={daysLeftLabel(investment.expiry)} />
+            {!isClosed && <MetaItem field="days-left" label="Days Left" value={daysLeftLabel(investment.expiry)} />}
             <MetaItem field="avg-price" label="Avg Price" value={formatCurrency(investment.avgCost)} />
-            <MetaItem field="collateral" label="Collateral" value={collateral} />
-            <MetaItem field="pnl" label="P&L" value={potentialPnl} />
+            {isClosed ? (
+              <>
+                <MetaItem field="sell-price" label="Sell Price" value={formatCurrency(investment.sellPrice)} />
+                <MetaItem field="realized-pnl" label="Realized P&L" value={formatCurrency(realizedPnlRaw)} colorClass={realizedPnlClass} />
+              </>
+            ) : (
+              <>
+                <MetaItem field="collateral" label="Collateral" value={collateral} />
+                <MetaItem field="pnl" label="P&L" value={potentialPnl} />
+              </>
+            )}
           </>
         ) : (
           <>
             <MetaItem field="shares" label="Shares" value={sharesDisplay} />
             <MetaItem field="avg-cost" label="Avg Cost" value={formatCurrency(investment.avgCost)} />
-            <MetaItem field="current-price" label="Current Price" value={formatCurrency(investment.currentPrice)} colorClass={currentPriceClass} />
-            <MetaItem field="unrealized-pnl" label="Unrealized P&L" value={formatCurrency(unrealizedPnlRaw)} colorClass={unrealizedPnlClass} />
+            {isClosed ? (
+              <>
+                <MetaItem field="sell-price" label="Sell Price" value={formatCurrency(investment.sellPrice)} />
+                <MetaItem field="realized-pnl" label="Realized P&L" value={formatCurrency(realizedPnlRaw)} colorClass={realizedPnlClass} />
+              </>
+            ) : (
+              <>
+                <MetaItem field="current-price" label="Current Price" value={formatCurrency(investment.currentPrice)} colorClass={currentPriceClass} />
+                <MetaItem field="unrealized-pnl" label="Unrealized P&L" value={formatCurrency(unrealizedPnlRaw)} colorClass={unrealizedPnlClass} />
+              </>
+            )}
           </>
         )}
       </div>
-      <div className="investment-row-actions">
-        <button type="button" onClick={() => onClosePosition(investment.id)}>Close</button>
-        <button type="button" className="danger" onClick={handleDelete}>Delete</button>
-      </div>
+      {(onClosePosition || onDelete) && (
+        <div className="investment-row-actions">
+          {onClosePosition && <button type="button" onClick={() => onClosePosition(investment.id)}>Close</button>}
+          {onDelete && <button type="button" className="danger" onClick={handleDelete}>Delete</button>}
+        </div>
+      )}
     </li>
   )
 }

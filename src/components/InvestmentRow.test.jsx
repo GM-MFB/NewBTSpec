@@ -203,4 +203,52 @@ describe('InvestmentRow', () => {
     expect(confirmSpy).not.toHaveBeenCalled()
     confirmSpy.mockRestore()
   })
+
+  it('hides Close and Delete actions when no handlers are provided (read-only)', () => {
+    const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, strategy: '', strike: '', expiry: '' }
+    render(<InvestmentRow investment={investment} />)
+    expect(screen.queryByRole('button', { name: /^close$/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^delete$/i })).not.toBeInTheDocument()
+  })
+
+  it('shows Sell Price and Realized P&L instead of Current Price/Unrealized P&L for a closed stock', () => {
+    const investment = {
+      id: 'i1', symbol: 'AAPL', assetType: 'Stock', status: 'closed',
+      shares: 10, avgCost: 100, sellPrice: 150, sellDate: '2026-01-10',
+      currentPrice: 999, strategy: '', strike: '', expiry: '',
+    }
+    render(<InvestmentRow investment={investment} />)
+    expect(screen.queryByText('Current Price:')).not.toBeInTheDocument()
+    expect(screen.queryByText('Unrealized P&L:')).not.toBeInTheDocument()
+    expect(screen.getByText('Sell Price:')).toBeInTheDocument()
+    expect(screen.getByText('$150.00')).toBeInTheDocument()
+    const pnlItem = screen.getByText('Realized P&L:').closest('.meta-item')
+    expect(pnlItem).toHaveTextContent('$500.00')
+    expect(pnlItem.querySelector('.meta-value')).toHaveClass('price-favorable')
+  })
+
+  it('shows a red Realized P&L for a closed losing stock', () => {
+    const investment = {
+      id: 'i1', symbol: 'AAPL', assetType: 'Stock', status: 'closed',
+      shares: 10, avgCost: 150, sellPrice: 140, sellDate: '2026-01-10',
+      strategy: '', strike: '', expiry: '',
+    }
+    render(<InvestmentRow investment={investment} />)
+    const pnlItem = screen.getByText('Realized P&L:').closest('.meta-item')
+    expect(pnlItem.querySelector('.meta-value')).toHaveClass('price-unfavorable')
+  })
+
+  it('shows Sell Price and Realized P&L instead of potential P&L for a closed short option', () => {
+    const investment = {
+      id: 'i6', symbol: 'QQQ', assetType: 'Option', status: 'closed',
+      shares: 2, avgCost: 1.5, sellPrice: 0.5, sellDate: '2026-01-10',
+      strategy: 'cash_secured_put', strike: 380, expiry: '2026-03-01',
+    }
+    render(<InvestmentRow investment={investment} />)
+    expect(screen.queryByText('P&L:')).not.toBeInTheDocument()
+    expect(screen.getByText('Sell Price:')).toBeInTheDocument()
+    expect(screen.getByText('Realized P&L:')).toBeInTheDocument()
+    const pnlItem = screen.getByText('Realized P&L:').closest('.meta-item')
+    expect(pnlItem).toHaveTextContent('$200.00')
+  })
 })

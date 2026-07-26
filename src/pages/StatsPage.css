@@ -108,3 +108,7 @@
   border-bottom: 1px solid var(--border);
   color: var(--text);
 }
+
+.investment-groups > .stats-section-title {
+  margin: 0 32px 16px;
+}

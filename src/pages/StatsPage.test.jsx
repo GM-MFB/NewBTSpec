@@ -24,8 +24,9 @@ function mockAccounts() {
 }
 
 const investments = [
-  { id: 'i1', status: 'closed', assetType: 'Stock', symbol: 'AAPL', shares: 10, avgCost: 100, sellPrice: 150, sellDate: '2026-01-10' },
-  { id: 'i2', status: 'open', assetType: 'Stock', symbol: 'MSFT', shares: 3, avgCost: 400, sellPrice: '', sellDate: '' },
+  { id: 'i1', status: 'closed', assetType: 'Stock', symbol: 'AAPL', shares: 10, avgCost: 100, sellPrice: 150, sellDate: '2026-01-10', strategy: '', strike: '', expiry: '' },
+  { id: 'i2', status: 'open', assetType: 'Stock', symbol: 'MSFT', shares: 3, avgCost: 400, sellPrice: '', sellDate: '', strategy: '', strike: '', expiry: '' },
+  { id: 'i3', status: 'closed', assetType: 'Option', symbol: 'QQQ', shares: 2, avgCost: 1.5, sellPrice: 0.5, sellDate: '2026-01-12', strategy: 'cash_secured_put', strike: 380, expiry: '2026-01-17' },
 ]
 
 describe('StatsPage', () => {
@@ -52,6 +53,24 @@ describe('StatsPage', () => {
 
     expect(screen.queryByText('Total Realized P&L')).not.toBeInTheDocument()
     expect(screen.getByTestId('stats-charts')).toBeInTheDocument()
+  })
+
+  it('shows all closed investments below the stats, grouped like the main page, in both views', async () => {
+    mockAccounts()
+    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn() })
+
+    render(<MemoryRouter><StatsPage /></MemoryRouter>)
+
+    expect(screen.getByText('Closed Investments')).toBeInTheDocument()
+    expect(screen.getAllByText('AAPL').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('QQQ').length).toBeGreaterThan(0)
+    expect(screen.queryByText('MSFT')).not.toBeInTheDocument()
+    expect(screen.getAllByText('Sell Price:').length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: /^close$/i })).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: /^charts$/i }))
+    expect(screen.getByText('Closed Investments')).toBeInTheDocument()
+    expect(screen.getAllByText('AAPL').length).toBeGreaterThan(0)
   })
 
   it('shows an error banner with retry when loading fails', async () => {
