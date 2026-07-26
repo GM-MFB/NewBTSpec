@@ -9,7 +9,7 @@
 
 .trade-row {
   display: grid;
-  grid-template-columns: 90px 70px 60px 1fr 1fr;
+  grid-template-columns: 90px 70px 60px 1fr 1fr auto;
   align-items: center;
   gap: 16px;
   background: var(--bg-elevated);
@@ -30,6 +30,21 @@
     grid-template-columns: 1fr 1fr;
     row-gap: 8px;
   }
+}
+
+.trade-row button.danger {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.trade-row button.danger:hover {
+  border-color: var(--red);
+  color: var(--red);
 }
 
 .trade-symbol {

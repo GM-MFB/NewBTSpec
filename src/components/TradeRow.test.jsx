@@ -23,4 +23,18 @@ describe('TradeRow', () => {
     await userEvent.click(screen.getByTestId('trade-row'))
     expect(onClick).toHaveBeenCalledWith('t1')
   })
+
+  it('does not show a Delete button when onDelete is not provided', () => {
+    render(<TradeRow trade={trade} onClick={vi.fn()} />)
+    expect(screen.queryByRole('button', { name: /^delete$/i })).not.toBeInTheDocument()
+  })
+
+  it('calls onDelete with the trade id when Delete is clicked, without triggering onClick', async () => {
+    const onClick = vi.fn()
+    const onDelete = vi.fn()
+    render(<TradeRow trade={trade} onClick={onClick} onDelete={onDelete} />)
+    await userEvent.click(screen.getByRole('button', { name: /^delete$/i }))
+    expect(onDelete).toHaveBeenCalledWith('t1')
+    expect(onClick).not.toHaveBeenCalled()
+  })
 })

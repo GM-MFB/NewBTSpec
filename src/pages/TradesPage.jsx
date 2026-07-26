@@ -39,7 +39,7 @@ export default function TradesPage() {
       ) : (
         <ul className="trade-list">
           {trades.map((trade) => (
-            <TradeRow key={trade.id} trade={trade} onClick={setSelectedTradeId} />
+            <TradeRow key={trade.id} trade={trade} onClick={setSelectedTradeId} onDelete={deleteTrade} />
           ))}
         </ul>
       )}
