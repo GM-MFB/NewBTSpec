@@ -53,6 +53,25 @@ describe('FundamentalsTab', () => {
     expect(screen.getByText('Apple Inc')).toBeInTheDocument()
   })
 
+  it('rounds raw metric values to exactly 2 decimal places', async () => {
+    useUserSettings.mockReturnValue({ finnhubKey: 'key123', avKey: '', loading: false })
+    fetchFundamentals.mockResolvedValue({
+      profile: { name: 'Apple Inc' },
+      quote: { c: 165, pc: 160 },
+      metrics: { peBasicExclExtraTTM: 28.456789, roeTTM: 15 },
+      recs: null,
+      targets: null,
+      news: [],
+      earnings: null,
+    })
+
+    render(<MemoryRouter><FundamentalsTab investments={investments} /></MemoryRouter>)
+    await userEvent.click(screen.getByRole('button', { name: 'AAPL' }))
+
+    expect(await screen.findByText('28.46')).toBeInTheDocument()
+    expect(screen.getByText('15.00')).toBeInTheDocument()
+  })
+
   it('shows Your Position for a symbol that matches an open investment', async () => {
     useUserSettings.mockReturnValue({ finnhubKey: 'key123', avKey: '', loading: false })
     fetchFundamentals.mockResolvedValue({

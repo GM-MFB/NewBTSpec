@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatCurrency, formatCurrencyWhole, formatCurrencyAuto, formatLarge } from './format'
+import { formatCurrency, formatCurrencyWhole, formatCurrencyAuto, formatLarge, formatDecimal } from './format'
 
 describe('formatCurrency', () => {
   it('formats a whole number as USD with two decimals', () => {
@@ -67,5 +67,26 @@ describe('formatLarge', () => {
 
   it('returns blank for blank input', () => {
     expect(formatLarge('')).toBe('')
+  })
+})
+
+describe('formatDecimal', () => {
+  it('rounds to exactly 2 decimal places', () => {
+    expect(formatDecimal(28.456789)).toBe('28.46')
+  })
+
+  it('pads a whole number with two zero decimals', () => {
+    expect(formatDecimal(28)).toBe('28.00')
+  })
+
+  it('rounds a value that already has fewer than 2 decimals', () => {
+    expect(formatDecimal(1.2)).toBe('1.20')
+  })
+
+  it('returns blank for blank/undefined/null/NaN input', () => {
+    expect(formatDecimal('')).toBe('')
+    expect(formatDecimal(undefined)).toBe('')
+    expect(formatDecimal(null)).toBe('')
+    expect(formatDecimal('abc')).toBe('')
   })
 })

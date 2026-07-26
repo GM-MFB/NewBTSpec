@@ -26,6 +26,11 @@ export function formatCurrencyAuto(value) {
   return autoCurrencyFormatter.format(Number(value))
 }
 
+export function formatDecimal(value) {
+  if (value === '' || value === undefined || value === null || Number.isNaN(Number(value))) return ''
+  return Number(value).toFixed(2)
+}
+
 export function formatLarge(value) {
   if (value === '' || value === undefined || value === null || Number.isNaN(Number(value))) return ''
   const n = Number(value)

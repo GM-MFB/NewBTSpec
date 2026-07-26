@@ -6,7 +6,7 @@ import { useUserSettings } from '../../hooks/useUserSettings'
 import { fetchFundamentals, fetchPeers } from '../../lib/fetchFundamentals'
 import { KNOWN_ETFS } from '../../lib/knownEtfs'
 import { unrealizedPnlFor } from '../../lib/investmentStats'
-import { formatCurrency, formatCurrencyAuto, formatLarge } from '../../lib/format'
+import { formatCurrency, formatCurrencyAuto, formatLarge, formatDecimal } from '../../lib/format'
 
 function toneFor(value, { greenAbove, redAbove, greenBelow, redBelow } = {}) {
   if (value === undefined || value === null) return ''
@@ -149,35 +149,35 @@ export default function FundamentalsTab({ investments }) {
             <h2>Valuation</h2>
             <div className="fund-stat-grid">
               <StatTile label="Market Cap" value={result.metrics?.marketCapitalization ? formatLarge(result.metrics.marketCapitalization * 1e6) : null} />
-              <StatTile label="P/E" value={result.metrics?.peBasicExclExtraTTM} tone={toneFor(result.metrics?.peBasicExclExtraTTM, { redAbove: 30, greenBelow: 15 })} />
-              <StatTile label="Forward P/E" value={result.metrics?.peTTM} />
-              <StatTile label="P/S" value={result.metrics?.psTTM} />
-              <StatTile label="P/B" value={result.metrics?.pbQuarterly} />
-              <StatTile label="EV/EBITDA" value={result.metrics?.evEbitdaTTM} />
-              <StatTile label="EPS TTM" value={result.metrics?.epsTTM} />
-              <StatTile label="Div Yield" value={result.metrics?.dividendYieldIndicatedAnnual} />
+              <StatTile label="P/E" value={formatDecimal(result.metrics?.peBasicExclExtraTTM)} tone={toneFor(result.metrics?.peBasicExclExtraTTM, { redAbove: 30, greenBelow: 15 })} />
+              <StatTile label="Forward P/E" value={formatDecimal(result.metrics?.peTTM)} />
+              <StatTile label="P/S" value={formatDecimal(result.metrics?.psTTM)} />
+              <StatTile label="P/B" value={formatDecimal(result.metrics?.pbQuarterly)} />
+              <StatTile label="EV/EBITDA" value={formatDecimal(result.metrics?.evEbitdaTTM)} />
+              <StatTile label="EPS TTM" value={formatDecimal(result.metrics?.epsTTM)} />
+              <StatTile label="Div Yield" value={formatDecimal(result.metrics?.dividendYieldIndicatedAnnual)} />
             </div>
           </section>
 
           <section className="fund-section">
             <h2>Growth & Profitability</h2>
             <div className="fund-stat-grid">
-              <StatTile label="Rev/Share" value={result.metrics?.revenuePerShareTTM} />
-              <StatTile label="ROE" value={result.metrics?.roeTTM} tone={toneFor(result.metrics?.roeTTM, { greenAbove: 15, redBelow: 0 })} />
-              <StatTile label="ROA" value={result.metrics?.roaTTM} tone={toneFor(result.metrics?.roaTTM, { greenAbove: 5 })} />
-              <StatTile label="Net Margin" value={result.metrics?.netProfitMarginTTM} />
-              <StatTile label="Gross Margin" value={result.metrics?.grossMarginTTM} />
-              <StatTile label="Rev Growth YoY" value={result.metrics?.revenueGrowthTTMYoy} />
-              <StatTile label="EPS Growth YoY" value={result.metrics?.epsGrowthTTMYoy} />
+              <StatTile label="Rev/Share" value={formatDecimal(result.metrics?.revenuePerShareTTM)} />
+              <StatTile label="ROE" value={formatDecimal(result.metrics?.roeTTM)} tone={toneFor(result.metrics?.roeTTM, { greenAbove: 15, redBelow: 0 })} />
+              <StatTile label="ROA" value={formatDecimal(result.metrics?.roaTTM)} tone={toneFor(result.metrics?.roaTTM, { greenAbove: 5 })} />
+              <StatTile label="Net Margin" value={formatDecimal(result.metrics?.netProfitMarginTTM)} />
+              <StatTile label="Gross Margin" value={formatDecimal(result.metrics?.grossMarginTTM)} />
+              <StatTile label="Rev Growth YoY" value={formatDecimal(result.metrics?.revenueGrowthTTMYoy)} />
+              <StatTile label="EPS Growth YoY" value={formatDecimal(result.metrics?.epsGrowthTTMYoy)} />
             </div>
           </section>
 
           <section className="fund-section">
             <h2>Risk & Price Range</h2>
             <div className="fund-stat-grid">
-              <StatTile label="Beta" value={result.metrics?.beta} tone={toneFor(result.metrics?.beta, { redAbove: 1.5, greenBelow: 0.8 })} />
-              <StatTile label="Debt/Equity" value={result.metrics?.['totalDebt/totalEquityQuarterly']} tone={toneFor(result.metrics?.['totalDebt/totalEquityQuarterly'], { redAbove: 2 })} />
-              <StatTile label="Current Ratio" value={result.metrics?.currentRatioQuarterly} tone={toneFor(result.metrics?.currentRatioQuarterly, { greenAbove: 1.5, redBelow: 1 })} />
+              <StatTile label="Beta" value={formatDecimal(result.metrics?.beta)} tone={toneFor(result.metrics?.beta, { redAbove: 1.5, greenBelow: 0.8 })} />
+              <StatTile label="Debt/Equity" value={formatDecimal(result.metrics?.['totalDebt/totalEquityQuarterly'])} tone={toneFor(result.metrics?.['totalDebt/totalEquityQuarterly'], { redAbove: 2 })} />
+              <StatTile label="Current Ratio" value={formatDecimal(result.metrics?.currentRatioQuarterly)} tone={toneFor(result.metrics?.currentRatioQuarterly, { greenAbove: 1.5, redBelow: 1 })} />
               <StatTile label="52W High" value={formatCurrencyAuto(result.metrics?.['52WeekHigh'])} />
               <StatTile label="52W Low" value={formatCurrencyAuto(result.metrics?.['52WeekLow'])} />
               <StatTile label="Shares Outstanding" value={result.metrics?.marketCapitalization && result.quote?.c ? Math.round((result.metrics.marketCapitalization * 1e6) / result.quote.c).toLocaleString() : null} />
@@ -195,8 +195,8 @@ export default function FundamentalsTab({ investments }) {
                   {[...result.earnings.earnings].slice(0, 8).reverse().map((e, idx) => (
                     <tr key={idx}>
                       <td>{e.period}</td>
-                      <td className="mono">{e.actual}</td>
-                      <td className="mono">{e.estimate}</td>
+                      <td className="mono">{formatDecimal(e.actual)}</td>
+                      <td className="mono">{formatDecimal(e.estimate)}</td>
                     </tr>
                   ))}
                 </tbody>
