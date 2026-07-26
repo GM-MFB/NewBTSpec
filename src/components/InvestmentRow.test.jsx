@@ -48,6 +48,36 @@ describe('InvestmentRow', () => {
     expect(screen.getByText('Covered Call')).toBeInTheDocument()
   })
 
+  it('falls back to option_type/option_direction for the Strategy label when strategy is blank', () => {
+    const investment = {
+      id: 'i2', symbol: 'SPY', assetType: 'Option', status: 'closed',
+      shares: 5, avgCost: 3.5, sellPrice: 1, sellDate: '2026-01-10',
+      strategy: '', optionType: 'put', optionDirection: 'short', strike: 450, expiry: '2026-03-01',
+    }
+    render(<InvestmentRow investment={investment} />)
+    expect(screen.getByText('Strategy:')).toBeInTheDocument()
+    expect(screen.getByText('Short Put')).toBeInTheDocument()
+  })
+
+  it('does not show a Strategy meta item when both strategy and option_type/option_direction are blank', () => {
+    const investment = {
+      id: 'i2', symbol: 'SPY', assetType: 'Option', status: 'closed',
+      shares: 5, avgCost: 3.5, sellPrice: 1, sellDate: '2026-01-10',
+      strategy: '', optionType: '', optionDirection: '', strike: 450, expiry: '2026-03-01',
+    }
+    render(<InvestmentRow investment={investment} />)
+    expect(screen.queryByText('Strategy:')).not.toBeInTheDocument()
+  })
+
+  it('uses the option_type/option_direction fallback for strike-price favorability when strategy is blank', () => {
+    const investment = {
+      id: 'i9', symbol: 'AAPL', assetType: 'Option', shares: 1, avgCost: 2,
+      strategy: '', optionType: 'call', optionDirection: 'long', strike: 30, currentPrice: 33.51, expiry: '2026-03-01',
+    }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByText('$33.51')).toHaveClass('price-favorable')
+  })
+
   it('does not show a Strategy meta item for a stock row', () => {
     const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, strategy: '', strike: '', expiry: '' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)

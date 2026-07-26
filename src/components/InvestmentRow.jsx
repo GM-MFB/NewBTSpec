@@ -18,6 +18,24 @@ function isBlank(value) {
   return value === '' || value === undefined || value === null
 }
 
+function capitalize(value) {
+  return value ? value.charAt(0).toUpperCase() + value.slice(1) : ''
+}
+
+function effectiveStrategyDef(investment) {
+  const strategyDef = strategyByValue(investment.strategy)
+  if (strategyDef) return strategyDef
+  const { optionType, optionDirection } = investment
+  if (isBlank(optionType) || isBlank(optionDirection)) return null
+  return {
+    value: null,
+    label: `${capitalize(optionDirection)} ${capitalize(optionType)}`,
+    optionType,
+    optionDirection,
+    isSpread: false,
+  }
+}
+
 function unrealizedPnlFor(investment) {
   if (isBlank(investment.currentPrice)) return ''
   return (Number(investment.currentPrice) - Number(investment.avgCost)) * Number(investment.shares)
@@ -63,7 +81,7 @@ function StrikeMeta({ investment, strategyDef, strikeDisplay }) {
 export default function InvestmentRow({ investment, onClosePosition, onDelete, coveredShares }) {
   const isOption = investment.assetType === 'Option'
   const isClosed = investment.status === 'closed'
-  const strategyDef = strategyByValue(investment.strategy)
+  const strategyDef = effectiveStrategyDef(investment)
   const strikeDisplay = investment.strike2
     ? `${formatCurrencyAuto(investment.strike)}/${formatCurrencyAuto(investment.strike2)}`
     : formatCurrencyAuto(investment.strike)
