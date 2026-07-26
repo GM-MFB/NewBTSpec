@@ -42,6 +42,22 @@ describe('FinancialsTab', () => {
     expect(screen.getByText(/key required/i)).toBeInTheDocument()
   })
 
+  it('auto-researches the first stock symbol on mount so content appears without a click', async () => {
+    useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
+    fetchFinancials.mockResolvedValue(sampleData)
+
+    render(<MemoryRouter><FinancialsTab investments={investments} /></MemoryRouter>)
+
+    await waitFor(() => expect(screen.getByText('Income Statement')).toBeInTheDocument())
+    expect(screen.getByRole('button', { name: 'AAPL' })).toHaveClass('fin-chip--active')
+  })
+
+  it('does not auto-fetch when there is no Alpha Vantage key', () => {
+    useUserSettings.mockReturnValue({ avKey: '', finnhubKey: '', loading: false })
+    render(<MemoryRouter><FinancialsTab investments={investments} /></MemoryRouter>)
+    expect(fetchFinancials).not.toHaveBeenCalled()
+  })
+
   it('shows a symbol chip for each open stock investment', () => {
     useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
     render(<MemoryRouter><FinancialsTab investments={investments} /></MemoryRouter>)

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import './FinancialsTab.css'
 import { useAuth } from '../../hooks/useAuth'
@@ -121,6 +121,13 @@ export default function FinancialsTab({ investments }) {
     setEpsData((prev) => ({ ...prev, [activeSymbol]: result }))
     setEpsLoading(false)
   }
+
+  useEffect(() => {
+    if (avKey && !activeSymbol && stockSymbols.length > 0) {
+      research(stockSymbols[0])
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [avKey, stockSymbols.length])
 
   if (!settingsLoading && !avKey) {
     return (

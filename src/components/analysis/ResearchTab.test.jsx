@@ -35,6 +35,22 @@ describe('ResearchTab', () => {
     expect(screen.getByText(/key required/i)).toBeInTheDocument()
   })
 
+  it('auto-researches the first stock symbol on mount so content appears without a click', async () => {
+    useUserSettings.mockReturnValue({ finnhubKey: 'key123', avKey: '', loading: false })
+    fetchFundamentals.mockResolvedValue(mockResult('Apple Inc'))
+
+    render(<MemoryRouter><ResearchTab investments={investments} /></MemoryRouter>)
+
+    await waitFor(() => expect(screen.getByText('Apple Inc')).toBeInTheDocument())
+    expect(screen.getByRole('button', { name: 'AAPL' })).toHaveClass('fund-chip--active')
+  })
+
+  it('does not auto-research anything when there are no stock investments', () => {
+    useUserSettings.mockReturnValue({ finnhubKey: 'key123', avKey: '', loading: false })
+    render(<MemoryRouter><ResearchTab investments={[]} /></MemoryRouter>)
+    expect(fetchFundamentals).not.toHaveBeenCalled()
+  })
+
   it('defaults to Single view and renders SymbolPanels for a researched symbol', async () => {
     useUserSettings.mockReturnValue({ finnhubKey: 'key123', avKey: '', loading: false })
     fetchFundamentals.mockResolvedValue(mockResult('Apple Inc'))

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import './ResearchTab.css'
 import { useAuth } from '../../hooks/useAuth'
@@ -60,6 +60,13 @@ export default function ResearchTab({ investments }) {
   function handleClearAll() {
     setCompareSymbols([])
   }
+
+  useEffect(() => {
+    if (finnhubKey && !activeSymbol && stockSymbols.length > 0) {
+      research(stockSymbols[0])
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finnhubKey, stockSymbols.length])
 
   if (!settingsLoading && !finnhubKey) {
     return (
