@@ -3,7 +3,7 @@ import {
   getAssetParams, getCorrelation, setRealCorrelations, setComputedParams, getCorrVersion,
   portfolioStats, randomWeights, generateEfficientFrontierData, extractFrontier,
   generateCombinedFrontierData, runBackwardElimination, findOptimalSubset, findOptimalSubsetForSymbols,
-  getCorrelationMatrix, getCorrelationMatrixForSymbols,
+  getCorrelationMatrix, getCorrelationMatrixForSymbols, getPortfolioRiskMetrics,
 } from './efficientFrontier'
 
 describe('getAssetParams', () => {
@@ -191,5 +191,30 @@ describe('getCorrelationMatrix', () => {
 
   it('getCorrelationMatrixForSymbols is equivalent to getCorrelationMatrix', () => {
     expect(getCorrelationMatrixForSymbols(['AAPL', 'SPY'])).toEqual(getCorrelationMatrix(['AAPL', 'SPY']))
+  })
+})
+
+describe('getPortfolioRiskMetrics', () => {
+  const positions = [
+    { symbol: 'AAPL', weight: 0.6, marketValue: 6000, currentPrice: 200, stopLoss: 180, shares: 30 },
+    { symbol: 'SPY', weight: 0.4, marketValue: 4000, currentPrice: 500, stopLoss: null, shares: 8 },
+  ]
+
+  it('computes HHI and diversification score', () => {
+    const metrics = getPortfolioRiskMetrics(positions)
+    const hhi = 0.6 ** 2 + 0.4 ** 2
+    expect(metrics.hhi).toBeCloseTo(hhi, 6)
+    expect(metrics.diversificationScore).toBe(Math.round((1 - hhi) * 100))
+  })
+
+  it('computes stop coverage and dollar at risk only counting positions with a stop below price', () => {
+    const metrics = getPortfolioRiskMetrics(positions)
+    expect(metrics.stopCoveragePct).toBe(50)
+    expect(metrics.dollarAtRisk).toBeCloseTo((200 - 180) * 30, 6)
+  })
+
+  it('computes totalMV as the sum of market values', () => {
+    const metrics = getPortfolioRiskMetrics(positions)
+    expect(metrics.totalMV).toBe(10000)
   })
 })

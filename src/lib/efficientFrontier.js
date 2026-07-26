@@ -200,3 +200,31 @@ export function getCorrelationMatrix(symbols) {
 export function getCorrelationMatrixForSymbols(symbols) {
   return getCorrelationMatrix(symbols)
 }
+
+export function getPortfolioRiskMetrics(positions) {
+  const hhi = positions.reduce((sum, p) => sum + p.weight ** 2, 0)
+  const diversificationScore = Math.round((1 - hhi) * 100)
+
+  const withStop = positions.filter((p) => p.stopLoss)
+  const stopCoveragePct = positions.length > 0 ? (withStop.length / positions.length) * 100 : 0
+  const dollarAtRisk = positions.reduce((sum, p) => {
+    if (!p.stopLoss || p.stopLoss >= p.currentPrice) return sum
+    return sum + Math.max(0, p.currentPrice - p.stopLoss) * p.shares
+  }, 0)
+
+  const totalMV = positions.reduce((sum, p) => sum + p.marketValue, 0)
+  const symbols = positions.map((p) => p.symbol)
+  const weights = positions.map((p) => p.weight)
+  const { ret, vol } = portfolioStats(symbols, weights)
+
+  const beta = positions.reduce((sum, p) => {
+    const params = getAssetParams(p.symbol)
+    const symBeta = (params.s * getCorrelation(p.symbol, 'SPY')) / SPY_VOL
+    return sum + p.weight * symBeta
+  }, 0)
+
+  const dailyVol = vol / Math.sqrt(252)
+  const var95 = totalMV * dailyVol * 1.645
+
+  return { hhi, diversificationScore, stopCoveragePct, dollarAtRisk, totalMV, expectedReturn: ret, volatility: vol, beta, var95 }
+}
