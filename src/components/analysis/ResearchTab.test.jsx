@@ -62,6 +62,27 @@ describe('ResearchTab', () => {
     expect(screen.getByRole('columnheader', { name: /AAPL/ })).toBeInTheDocument()
   })
 
+  it('clears all compare symbols when Clear All is clicked', async () => {
+    useUserSettings.mockReturnValue({ finnhubKey: 'key123', avKey: '', loading: false })
+    fetchFundamentals.mockImplementation((symbol) => Promise.resolve(mockResult(symbol)))
+
+    render(<MemoryRouter><ResearchTab investments={investments} /></MemoryRouter>)
+    await userEvent.click(screen.getByRole('button', { name: /^compare$/i }))
+
+    await userEvent.click(screen.getByRole('button', { name: 'AAPL' }))
+    await waitFor(() => expect(screen.getByTestId('compare-view')).toBeInTheDocument())
+
+    await userEvent.click(screen.getByRole('button', { name: /^clear all$/i }))
+
+    expect(screen.queryByTestId('compare-view')).not.toBeInTheDocument()
+  })
+
+  it('does not show Clear All when compare is empty', () => {
+    useUserSettings.mockReturnValue({ finnhubKey: 'key123', avKey: '', loading: false })
+    render(<MemoryRouter><ResearchTab investments={investments} /></MemoryRouter>)
+    expect(screen.queryByRole('button', { name: /^clear all$/i })).not.toBeInTheDocument()
+  })
+
   it('highlights the symbol chip when added to compare in Compare view', async () => {
     useUserSettings.mockReturnValue({ finnhubKey: 'key123', avKey: '', loading: false })
     fetchFundamentals.mockImplementation((symbol) => Promise.resolve(mockResult(symbol)))

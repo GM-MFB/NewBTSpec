@@ -37,6 +37,11 @@
   color: var(--green);
 }
 
+.research-compare-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .research-sector-toggle {
   width: fit-content;
   background: transparent;
@@ -51,4 +56,20 @@
 .research-sector-toggle:hover {
   border-color: var(--green);
   color: var(--green);
+}
+
+.research-clear-all {
+  width: fit-content;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.research-clear-all:hover {
+  border-color: var(--red);
+  color: var(--red);
 }

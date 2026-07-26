@@ -57,6 +57,10 @@ export default function ResearchTab({ investments }) {
     setCompareSymbols((prev) => prev.filter((s) => s !== symbol))
   }
 
+  function handleClearAll() {
+    setCompareSymbols([])
+  }
+
   if (!settingsLoading && !finnhubKey) {
     return (
       <div className="fund-key-required">
@@ -106,9 +110,14 @@ export default function ResearchTab({ investments }) {
       </div>
 
       {view === 'compare' && (
-        <button type="button" className="research-sector-toggle" onClick={() => setShowSectorBrowser((v) => !v)}>
-          {showSectorBrowser ? 'Hide' : 'Browse by Sector'}
-        </button>
+        <div className="research-compare-actions">
+          <button type="button" className="research-sector-toggle" onClick={() => setShowSectorBrowser((v) => !v)}>
+            {showSectorBrowser ? 'Hide' : 'Browse by Sector'}
+          </button>
+          {compareSymbols.length > 0 && (
+            <button type="button" className="research-clear-all" onClick={handleClearAll}>Clear All</button>
+          )}
+        </div>
       )}
 
       {view === 'compare' && showSectorBrowser && <SectorBrowser onAddToCompare={handleAddToCompare} />}
