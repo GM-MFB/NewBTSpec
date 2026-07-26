@@ -1,0 +1,57 @@
+.risk-tab {
+  padding: 20px 32px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.risk-hero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.risk-tile {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+}
+
+.risk-tile-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+}
+
+.risk-tile-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.risk-tile.risk-green .risk-tile-value { color: var(--green); }
+.risk-tile.risk-red .risk-tile-value { color: var(--red); }
+.risk-tile.risk-yellow .risk-tile-value { color: #eab308; }
+
+.risk-concentration h2, .risk-stoploss h2 {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.risk-warning {
+  color: var(--red);
+  font-size: 13px;
+}
