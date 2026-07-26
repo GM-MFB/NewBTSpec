@@ -167,7 +167,7 @@ describe('InvestmentsPage', () => {
     const weekInput = screen.getByLabelText(/premium for week/i)
     fireEvent.change(weekInput, { target: { value: '2026-W05' } })
 
-    const bar = weekInput.closest('.week-premium-bar')
+    const bar = weekInput.closest('.summary-stat')
     expect(bar).toHaveTextContent('$300.00')
   })
 

@@ -101,15 +101,14 @@ export default function InvestmentsPage() {
       )}
 
       {investments.length > 0 && (
-        <div className="week-premium-bar">
-          <label htmlFor="weekSelect">Premium for week</label>
-          <input id="weekSelect" type="week" value={weekValue} onChange={(e) => setWeekValue(e.target.value)} />
-          <span className="week-premium-value mono">{formatCurrency(premiumForWeek(investments, weekValue))}</span>
-        </div>
-      )}
-
-      {investments.length > 0 && (
         <div className="portfolio-summary">
+          <div className="summary-stat">
+            <label htmlFor="weekSelect" className="summary-label">Premium for week</label>
+            <div className="week-premium-inline">
+              <input id="weekSelect" type="week" value={weekValue} onChange={(e) => setWeekValue(e.target.value)} />
+              <span className="summary-value mono">{formatCurrency(premiumForWeek(investments, weekValue))}</span>
+            </div>
+          </div>
           <div className="summary-stat">
             <span className="summary-label">Total Collateral Deployed</span>
             <span className="summary-value mono">{formatCurrency(summary.totalCollateral)}</span>
