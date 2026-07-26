@@ -31,7 +31,7 @@ function mockAccounts() {
 
 const investments = [
   { id: 'i1', status: 'closed', assetType: 'Stock', symbol: 'AAPL', shares: 10, avgCost: 100, sellPrice: 150, sellDate: '2026-01-10', strategy: '', strike: '', expiry: '' },
-  { id: 'i2', status: 'open', assetType: 'Stock', symbol: 'MSFT', shares: 3, avgCost: 400, sellPrice: '', sellDate: '', strategy: '', strike: '', expiry: '' },
+  { id: 'i2', status: 'open', assetType: 'Stock', symbol: 'MSFT', shares: 3, avgCost: 400, sellPrice: '', sellDate: '', buyDate: '2026-01-05', strategy: '', strike: '', expiry: '' },
   { id: 'i3', status: 'closed', assetType: 'Option', symbol: 'QQQ', shares: 2, avgCost: 1.5, sellPrice: 0.5, sellDate: '2026-01-12', strategy: 'cash_secured_put', strike: 380, expiry: '2026-01-17' },
 ]
 
@@ -130,6 +130,17 @@ describe('StatsPage', () => {
 
     expect(screen.getAllByText('AAPL').length).toBeGreaterThan(0)
     expect(screen.queryByText('QQQ')).not.toBeInTheDocument()
+  })
+
+  it('filters open positions by buy date too, so the Open Positions count reflects the filter', () => {
+    mockAccounts()
+    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment: vi.fn() })
+
+    render(<MemoryRouter><StatsPage /></MemoryRouter>)
+
+    fireEvent.change(screen.getByLabelText(/from/i), { target: { value: '2026-01-11' } })
+
+    expect(screen.getByText('Open Positions').closest('.stat-tile').querySelector('.stat-tile-value')).toHaveTextContent('0')
   })
 
   it('clears the date range filter when Clear is clicked', () => {

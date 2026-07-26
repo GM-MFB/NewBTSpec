@@ -33,14 +33,16 @@ export default function StatsPage() {
   const [endDate, setEndDate] = useState('')
   const chartsRef = useRef(null)
 
-  const filteredInvestments = investments.filter(
-    (i) => i.status !== 'closed' || isWithinDateRange(i.sellDate, startDate, endDate)
+  const filteredInvestments = investments.filter((i) =>
+    i.status === 'closed'
+      ? isWithinDateRange(i.sellDate, startDate, endDate)
+      : isWithinDateRange(i.buyDate, startDate, endDate)
   )
 
   const stats = computeInvestmentStats(filteredInvestments)
 
   const closedInvestments = filteredInvestments.filter((i) => i.status === 'closed')
-  const openInvestments = investments.filter((i) => i.status === 'open')
+  const openInvestments = filteredInvestments.filter((i) => i.status === 'open')
   const closedStocks = closedInvestments.filter((i) => i.assetType === 'Stock')
   const closedOptions = closedInvestments.filter((i) => i.assetType === 'Option')
 

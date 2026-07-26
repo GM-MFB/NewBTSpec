@@ -71,23 +71,32 @@ describe('generatePdfReport', () => {
     expect(saveMock).toHaveBeenCalled()
   })
 
-  it('gives each individual chart card its own page', async () => {
-    const card1 = {}
-    const card2 = {}
-    const fakeElement = { querySelectorAll: () => [card1, card2] }
-
+  it('captures all charts as a single combined image on its own page', async () => {
+    const fakeElement = {}
     await generatePdfReport(exportData, fakeElement)
 
-    expect(html2canvas).toHaveBeenCalledWith(card1)
-    expect(html2canvas).toHaveBeenCalledWith(card2)
-    expect(addImageMock).toHaveBeenCalledTimes(2)
+    expect(html2canvas).toHaveBeenCalledWith(fakeElement)
+    expect(addImageMock).toHaveBeenCalledTimes(1)
     expect(addPageMock).toHaveBeenCalled()
   })
 
-  it('starts the data tables on a fresh page after the charts', async () => {
-    const fakeElement = { querySelectorAll: () => [{}] }
+  it('scales the chart image down to fit within the page bounds', async () => {
+    html2canvas.mockResolvedValueOnce({ toDataURL: () => 'data:image/png;base64,fake', width: 2000, height: 3000 })
+    const fakeElement = {}
+
     await generatePdfReport(exportData, fakeElement)
-    // one addPage per chart card, plus one more before the tables resume
+
+    const [, , , imgWidth, imgHeight] = addImageMock.mock.calls[0]
+    const pageWidth = jsPdfInstance.internal.pageSize.getWidth()
+    const pageHeight = jsPdfInstance.internal.pageSize.getHeight()
+    expect(imgWidth).toBeLessThanOrEqual(pageWidth)
+    expect(imgHeight).toBeLessThanOrEqual(pageHeight)
+  })
+
+  it('starts the data tables on a fresh page after the charts', async () => {
+    const fakeElement = {}
+    await generatePdfReport(exportData, fakeElement)
+    // one addPage for the charts page, plus one more before the tables resume
     expect(addPageMock.mock.calls.length).toBeGreaterThanOrEqual(2)
   })
 

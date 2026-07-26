@@ -38,15 +38,14 @@ function addKeyValueTable(doc, title, rows, startY) {
   return doc.lastAutoTable.finalY + 10
 }
 
-async function addChartCardPage(doc, target) {
+async function addChartsPage(doc, chartsElement) {
   let canvas
   try {
-    canvas = await html2canvas(target)
+    canvas = await html2canvas(chartsElement)
   } catch {
     return
   }
   doc.addPage()
-  const imgData = canvas.toDataURL('image/png')
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
   const margin = 14
@@ -58,16 +57,9 @@ async function addChartCardPage(doc, target) {
     imgHeight = maxHeight
     imgWidth = (canvas.width / canvas.height) * imgHeight
   }
-  doc.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight)
-}
-
-async function addChartsSection(doc, chartsElement) {
-  if (!chartsElement) return
-  let cards = chartsElement.querySelectorAll ? Array.from(chartsElement.querySelectorAll('.chart-card')) : []
-  if (cards.length === 0) cards = [chartsElement]
-  for (const card of cards) {
-    await addChartCardPage(doc, card)
-  }
+  const imgData = canvas.toDataURL('image/png')
+  const x = margin + (maxWidth - imgWidth) / 2
+  doc.addImage(imgData, 'PNG', x, margin, imgWidth, imgHeight)
 }
 
 function addRowsTable(doc, title, head, body, startY) {
@@ -128,7 +120,7 @@ export async function generatePdfReport(exportData, chartsElement) {
   ], y)
 
   if (chartsElement) {
-    await addChartsSection(doc, chartsElement)
+    await addChartsPage(doc, chartsElement)
     doc.addPage()
     y = 20
   }
