@@ -147,3 +147,49 @@ export function generateCombinedFrontierData(portfolioSymbols, portfolioWeights,
   const current = portfolioStats(allSymbols, currentWeights)
   return { ...simData, current: { ...current, weights: currentWeights } }
 }
+
+export function getMaxSharpeForSubset(symbols, nSim, options = {}) {
+  const { maxSharpe } = generateEfficientFrontierData(symbols, { ...options, nSim })
+  return maxSharpe
+}
+
+export function runBackwardElimination(symbols, nSim, options = {}) {
+  let current = [...symbols]
+  let currentBest = getMaxSharpeForSubset(current, nSim, options)
+  const steps = [{ symbols: [...current], sharpe: currentBest.sharpe, ret: currentBest.ret, vol: currentBest.vol, weights: currentBest.weights }]
+  const dropped = []
+
+  while (current.length > 2) {
+    let bestAfterRemoval = null
+    let bestRemovedSymbol = null
+    for (const symbol of current) {
+      const subset = current.filter((s) => s !== symbol)
+      const candidate = getMaxSharpeForSubset(subset, Math.round(nSim * 0.6), options)
+      if (!bestAfterRemoval || candidate.sharpe > bestAfterRemoval.sharpe) {
+        bestAfterRemoval = candidate
+        bestRemovedSymbol = symbol
+      }
+    }
+    if (!bestAfterRemoval || bestAfterRemoval.sharpe <= currentBest.sharpe) break
+    current = current.filter((s) => s !== bestRemovedSymbol)
+    dropped.push(bestRemovedSymbol)
+    currentBest = getMaxSharpeForSubset(current, nSim, options)
+    steps.push({ symbols: [...current], sharpe: currentBest.sharpe, ret: currentBest.ret, vol: currentBest.vol, weights: currentBest.weights })
+  }
+
+  const full = steps[0]
+  const optimal = steps[steps.length - 1]
+  return {
+    steps, fullSharpe: full.sharpe, fullSymbols: full.symbols,
+    optimalSymbols: optimal.symbols, optimalSharpe: optimal.sharpe, optimalRet: optimal.ret,
+    optimalVol: optimal.vol, optimalWeights: optimal.weights,
+    improved: optimal.sharpe > full.sharpe, dropped,
+  }
+}
+
+export function findOptimalSubset(portfolioSymbols, nSim, options = {}) {
+  return runBackwardElimination(portfolioSymbols, nSim, options)
+}
+export function findOptimalSubsetForSymbols(symbols, nSim, options = {}) {
+  return runBackwardElimination(symbols, nSim, options)
+}

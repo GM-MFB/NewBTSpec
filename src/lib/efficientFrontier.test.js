@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   getAssetParams, getCorrelation, setRealCorrelations, setComputedParams, getCorrVersion,
   portfolioStats, randomWeights, generateEfficientFrontierData, extractFrontier,
-  generateCombinedFrontierData,
+  generateCombinedFrontierData, runBackwardElimination, findOptimalSubset, findOptimalSubsetForSymbols,
 } from './efficientFrontier'
 
 describe('getAssetParams', () => {
@@ -134,5 +134,47 @@ describe('generateCombinedFrontierData', () => {
   it('excludes an extra symbol already held from the new-symbols union', () => {
     const result = generateCombinedFrontierData(['AAPL', 'SPY'], [0.5, 0.5], ['AAPL'], { nSim: 200 })
     expect(result.symbols).toEqual(['AAPL', 'SPY'])
+  })
+})
+
+describe('runBackwardElimination', () => {
+  it('drops a clearly-bad symbol and stops at the floor of 2 when no further improvement is possible', () => {
+    setComputedParams({
+      GOOD_A: { r: 0.15, s: 0.15 },
+      GOOD_B: { r: 0.14, s: 0.16 },
+      BAD: { r: 0.02, s: 0.40 },
+    })
+    setRealCorrelations({
+      GOOD_A: { GOOD_B: 0.1, BAD: 0.1 },
+      GOOD_B: { BAD: 0.1 },
+    })
+
+    const result = runBackwardElimination(['GOOD_A', 'GOOD_B', 'BAD'], 2000)
+
+    expect(result.dropped).toEqual(['BAD'])
+    expect(result.optimalSymbols.sort()).toEqual(['GOOD_A', 'GOOD_B'])
+    expect(result.improved).toBe(true)
+    expect(result.optimalSharpe).toBeGreaterThan(result.fullSharpe)
+    expect(result.steps.length).toBe(2)
+  })
+
+  it('stops immediately when removing any symbol does not improve Sharpe', () => {
+    setComputedParams({
+      A: { r: 0.10, s: 0.10 },
+      B: { r: 0.10, s: 0.10 },
+    })
+    setRealCorrelations({ A: { B: 0.0 } })
+
+    const result = runBackwardElimination(['A', 'B'], 2000)
+
+    expect(result.steps.length).toBe(1)
+    expect(result.dropped).toEqual([])
+    expect(result.optimalSymbols).toEqual(['A', 'B'])
+  })
+
+  it('findOptimalSubset and findOptimalSubsetForSymbols both delegate to runBackwardElimination', () => {
+    const a = findOptimalSubset(['A', 'B'], 500)
+    const b = findOptimalSubsetForSymbols(['A', 'B'], 500)
+    expect(a.fullSymbols).toEqual(b.fullSymbols)
   })
 })
