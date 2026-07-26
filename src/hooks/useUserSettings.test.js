@@ -85,4 +85,36 @@ describe('useUserSettings', () => {
     expect(upsert).toHaveBeenCalledWith({ user_id: 'u1', display_name: 'New Name' }, { onConflict: 'user_id' })
     expect(result.current.displayName).toBe('New Name')
   })
+
+  it('loads the alpha vantage key from user_settings and mirrors it to localStorage', async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({ data: { av_key: 'av-abc' }, error: null })
+    const eq = vi.fn(() => ({ maybeSingle }))
+    const select = vi.fn(() => ({ eq }))
+    supabase.from.mockReturnValue({ select })
+
+    const { result } = renderHook(() => useUserSettings('u1'))
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.avKey).toBe('av-abc')
+    expect(localStorage.getItem('bt_av_key')).toBe('av-abc')
+  })
+
+  it('saveAvKey upserts user_settings and updates localStorage', async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+    const eq = vi.fn(() => ({ maybeSingle }))
+    const select = vi.fn(() => ({ eq }))
+    const upsert = vi.fn().mockResolvedValue({ error: null })
+    supabase.from.mockReturnValue({ select, upsert })
+
+    const { result } = renderHook(() => useUserSettings('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await act(async () => {
+      await result.current.saveAvKey('new-av-key')
+    })
+
+    expect(upsert).toHaveBeenCalledWith({ user_id: 'u1', av_key: 'new-av-key' }, { onConflict: 'user_id' })
+    expect(result.current.avKey).toBe('new-av-key')
+    expect(localStorage.getItem('bt_av_key')).toBe('new-av-key')
+  })
 })

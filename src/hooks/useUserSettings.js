@@ -2,9 +2,11 @@ import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../utils/supabase'
 
 const STORAGE_KEY = 'bt_finnhub_key'
+const AV_STORAGE_KEY = 'bt_av_key'
 
 export function useUserSettings(userId) {
   const [finnhubKey, setFinnhubKey] = useState(() => localStorage.getItem(STORAGE_KEY) ?? '')
+  const [avKey, setAvKey] = useState(() => localStorage.getItem(AV_STORAGE_KEY) ?? '')
   const [displayName, setDisplayName] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -15,7 +17,7 @@ export function useUserSettings(userId) {
     setError(null)
     const { data, error: err } = await supabase
       .from('user_settings')
-      .select('finnhub_key, display_name')
+      .select('finnhub_key, av_key, display_name')
       .eq('user_id', userId)
       .maybeSingle()
 
@@ -27,6 +29,10 @@ export function useUserSettings(userId) {
     if (data?.finnhub_key) {
       setFinnhubKey(data.finnhub_key)
       localStorage.setItem(STORAGE_KEY, data.finnhub_key)
+    }
+    if (data?.av_key) {
+      setAvKey(data.av_key)
+      localStorage.setItem(AV_STORAGE_KEY, data.av_key)
     }
     if (data?.display_name) {
       setDisplayName(data.display_name)
@@ -55,5 +61,14 @@ export function useUserSettings(userId) {
     setDisplayName(name)
   }
 
-  return { finnhubKey, displayName, loading, error, saveFinnhubKey, saveDisplayName }
+  async function saveAvKey(key) {
+    const { error: err } = await supabase
+      .from('user_settings')
+      .upsert({ user_id: userId, av_key: key }, { onConflict: 'user_id' })
+    if (err) throw err
+    setAvKey(key)
+    localStorage.setItem(AV_STORAGE_KEY, key)
+  }
+
+  return { finnhubKey, avKey, displayName, loading, error, saveFinnhubKey, saveAvKey, saveDisplayName }
 }

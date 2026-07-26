@@ -4,12 +4,33 @@ import './SettingsPage.css'
 import { useAuth } from '../hooks/useAuth'
 import { useUserSettings } from '../hooks/useUserSettings'
 
+function KeyInput({ id, label, value, onChange }) {
+  const [visible, setVisible] = useState(false)
+
+  return (
+    <div className="key-input-wrap">
+      <input id={id} type={visible ? 'text' : 'password'} value={value} onChange={onChange} />
+      <button
+        type="button"
+        className="key-visibility-toggle"
+        onClick={() => setVisible((v) => !v)}
+        aria-label={`${visible ? 'Hide' : 'Show'} ${label}`}
+      >
+        {visible ? '🙈' : '👁'}
+      </button>
+    </div>
+  )
+}
+
 export default function SettingsPage() {
   const { user } = useAuth()
-  const { finnhubKey, displayName, loading, saveFinnhubKey, saveDisplayName } = useUserSettings(user?.id)
+  const { finnhubKey, avKey, displayName, loading, saveFinnhubKey, saveAvKey, saveDisplayName } = useUserSettings(user?.id)
   const [value, setValue] = useState('')
   const [status, setStatus] = useState(null)
   const [error, setError] = useState(null)
+  const [avValue, setAvValue] = useState('')
+  const [avStatus, setAvStatus] = useState(null)
+  const [avError, setAvError] = useState(null)
   const [displayNameValue, setDisplayNameValue] = useState('')
   const [displayNameStatus, setDisplayNameStatus] = useState(null)
   const [displayNameError, setDisplayNameError] = useState(null)
@@ -17,6 +38,10 @@ export default function SettingsPage() {
   useEffect(() => {
     if (!loading) setValue(finnhubKey)
   }, [loading, finnhubKey])
+
+  useEffect(() => {
+    if (!loading) setAvValue(avKey)
+  }, [loading, avKey])
 
   useEffect(() => {
     if (!loading) setDisplayNameValue(displayName)
@@ -31,6 +56,18 @@ export default function SettingsPage() {
       setStatus('Saved.')
     } catch (err) {
       setError(err.message)
+    }
+  }
+
+  async function handleAvSubmit(e) {
+    e.preventDefault()
+    setAvError(null)
+    setAvStatus(null)
+    try {
+      await saveAvKey(avValue)
+      setAvStatus('Saved.')
+    } catch (err) {
+      setAvError(err.message)
     }
   }
 
@@ -68,12 +105,22 @@ export default function SettingsPage() {
 
       <form onSubmit={handleSubmit}>
         <label htmlFor="finnhubKey">Finnhub API Key</label>
-        <input id="finnhubKey" type="password" value={value} onChange={(e) => setValue(e.target.value)} />
+        <KeyInput id="finnhubKey" label="Finnhub API Key" value={value} onChange={(e) => setValue(e.target.value)} />
 
         {error && <p role="alert">{error}</p>}
         {status && <p>{status}</p>}
 
         <button type="submit">Save</button>
+      </form>
+
+      <form onSubmit={handleAvSubmit}>
+        <label htmlFor="avKey">Alpha Vantage API Key</label>
+        <KeyInput id="avKey" label="Alpha Vantage API Key" value={avValue} onChange={(e) => setAvValue(e.target.value)} />
+
+        {avError && <p role="alert">{avError}</p>}
+        {avStatus && <p>{avStatus}</p>}
+
+        <button type="submit">Save Alpha Vantage Key</button>
       </form>
     </div>
   )

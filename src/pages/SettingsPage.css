@@ -67,3 +67,30 @@
   color: var(--text);
   word-break: break-all;
 }
+
+.key-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.key-input-wrap input {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-page .key-visibility-toggle {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.settings-page .key-visibility-toggle:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
