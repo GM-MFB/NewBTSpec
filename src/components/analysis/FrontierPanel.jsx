@@ -20,6 +20,7 @@ export default function FrontierPanel({
 }) {
   const [overrides, setOverrides] = useState(() => loadOverrides(storageKey))
   const [cashRate, setCashRate] = useState(() => loadCashRate(storageKey))
+  const [showAssumptions, setShowAssumptions] = useState(false)
 
   function setOverride(symbol, key, value) {
     const next = { ...overrides, [symbol]: { ...overrides[symbol], [key]: value } }
@@ -111,6 +112,47 @@ export default function FrontierPanel({
           })}
         </tbody>
       </table>
+
+      <button type="button" onClick={() => setShowAssumptions((v) => !v)}>
+        {showAssumptions ? 'Hide' : 'Adjust Expected Returns & Volatility'}
+      </button>
+
+      {showAssumptions && (
+        <div className="frontier-assumptions">
+          {allSymbols.filter((s) => s !== 'CASH').map((symbol) => {
+            const base = getAssetParams(symbol)
+            const o = overrides[symbol] ?? {}
+            const r = o.r ?? base.r
+            const s = o.s ?? base.s
+            const impliedSharpe = s > 0 ? (r - 0.045) / s : 0
+            const isNew = extraSymbols.includes(symbol) && !symbols.includes(symbol)
+            return (
+              <div key={symbol} className="frontier-assumption-row">
+                <span className="frontier-assumption-symbol">{symbol}{isNew ? ' (new)' : ''}</span>
+                <label htmlFor={`${symbol}-return`}>
+                  {symbol} Return {(r * 100).toFixed(1)}%{o.r === undefined ? ' (default)' : ''}
+                  <input
+                    id={`${symbol}-return`}
+                    type="range" min="0" max="200" step="0.5"
+                    value={r * 100}
+                    onChange={(e) => setOverride(symbol, 'r', Number(e.target.value) / 100)}
+                  />
+                </label>
+                <label htmlFor={`${symbol}-vol`}>
+                  {symbol} Volatility {(s * 100).toFixed(1)}%{o.s === undefined ? ' (default)' : ''}
+                  <input
+                    id={`${symbol}-vol`}
+                    type="range" min="1" max="300" step="0.5"
+                    value={s * 100}
+                    onChange={(e) => setOverride(symbol, 's', Number(e.target.value) / 100)}
+                  />
+                </label>
+                <span className="frontier-assumption-sharpe">Implied Sharpe: {impliedSharpe.toFixed(2)}</span>
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {cash > 0 && (
         <div className="frontier-cash-card">

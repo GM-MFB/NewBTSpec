@@ -54,6 +54,27 @@
   text-align: right;
 }
 
+.frontier-assumptions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px 0;
+}
+
+.frontier-assumption-row {
+  display: grid;
+  grid-template-columns: 100px 1fr 1fr auto;
+  gap: 12px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.frontier-assumption-symbol {
+  font-weight: 700;
+  color: var(--text);
+}
+
 .frontier-cash-card {
   display: flex;
   align-items: center;
