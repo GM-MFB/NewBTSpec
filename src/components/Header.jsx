@@ -4,7 +4,7 @@ import './Header.css'
 
 export default function Header({
   accounts, activeAccount, switchAccount, createAccount, onAddTrade,
-  addLabel = '+ Add Trade', onRefresh, refreshing = false,
+  addLabel = '+ Add Trade', onRefresh, refreshing = false, showAddButton = true,
 }) {
   const [open, setOpen] = useState(false)
 
@@ -52,9 +52,11 @@ export default function Header({
             {refreshing ? 'Refreshing…' : '↻ Refresh'}
           </button>
         )}
-        <button type="button" className="add-trade-btn" onClick={onAddTrade}>
-          {addLabel}
-        </button>
+        {showAddButton && (
+          <button type="button" className="add-trade-btn" onClick={onAddTrade}>
+            {addLabel}
+          </button>
+        )}
         <Link to="/settings" className="settings-link" aria-label="Settings">⚙</Link>
       </div>
     </header>

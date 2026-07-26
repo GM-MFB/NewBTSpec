@@ -32,8 +32,7 @@ export default function StatsPage() {
         activeAccount={activeAccount}
         switchAccount={switchAccount}
         createAccount={createAccount}
-        onAddTrade={() => {}}
-        addLabel=""
+        showAddButton={false}
       />
 
       <div className="stats-toolbar">
