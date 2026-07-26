@@ -33,6 +33,11 @@ export default function ResearchTab({ investments }) {
     setData((prev) => ({ ...prev, [symbol]: result }))
     setPeers((prev) => ({ ...prev, [symbol]: peerList }))
     setLoadingSymbol(null)
+
+    const cacheRaw = localStorage.getItem('bt_fundamentals_cache')
+    const cache = cacheRaw ? JSON.parse(cacheRaw) : {}
+    cache[symbol] = { profile: result.profile, metrics: result.metrics, quote: result.quote }
+    localStorage.setItem('bt_fundamentals_cache', JSON.stringify(cache))
   }
 
   async function research(rawSymbol) {

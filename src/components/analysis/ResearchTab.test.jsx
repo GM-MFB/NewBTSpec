@@ -27,6 +27,7 @@ describe('ResearchTab', () => {
     vi.clearAllMocks()
     useAuth.mockReturnValue({ user: { id: 'u1' } })
     fetchPeers.mockResolvedValue([])
+    localStorage.clear()
   })
 
   it('shows a Key Required state when there is no Finnhub key', () => {
@@ -43,6 +44,18 @@ describe('ResearchTab', () => {
 
     await waitFor(() => expect(screen.getByText('Apple Inc')).toBeInTheDocument())
     expect(screen.getByRole('button', { name: 'AAPL' })).toHaveClass('fund-chip--active')
+  })
+
+  it('writes profile/metrics/quote to bt_fundamentals_cache after fetching a symbol', async () => {
+    useUserSettings.mockReturnValue({ finnhubKey: 'key123', avKey: '', loading: false })
+    fetchFundamentals.mockResolvedValue(mockResult('Apple Inc'))
+
+    render(<MemoryRouter><ResearchTab investments={investments} /></MemoryRouter>)
+    await waitFor(() => expect(screen.getByText('Apple Inc')).toBeInTheDocument())
+
+    const cache = JSON.parse(localStorage.getItem('bt_fundamentals_cache'))
+    expect(cache.AAPL.profile).toEqual({ name: 'Apple Inc' })
+    expect(cache.AAPL.metrics).toEqual({ peBasicExclExtraTTM: 20 })
   })
 
   it('does not auto-research anything when there are no stock investments', () => {
