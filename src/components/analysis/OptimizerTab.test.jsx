@@ -54,6 +54,33 @@ describe('OptimizerTab', () => {
     expect(screen.getAllByText(/sharpe/i).length).toBeGreaterThan(0)
   })
 
+  it('lets the user add and remove symbols in Custom mode', async () => {
+    render(<OptimizerTab investments={investments} />)
+    await userEvent.click(screen.getByRole('button', { name: /^custom$/i }))
+
+    await userEvent.type(screen.getByLabelText(/add symbol/i), 'NVDA{enter}')
+    expect(screen.getByRole('rowheader', { name: /nvda/i })).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: /remove nvda/i }))
+    expect(screen.queryByRole('rowheader', { name: /nvda/i })).not.toBeInTheDocument()
+  })
+
+  it('seeds Custom mode with incomingSymbols on mount', () => {
+    render(<OptimizerTab investments={investments} incomingSymbols={['NVDA', 'AMD']} />)
+    expect(screen.getByRole('button', { name: /^custom$/i })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('rowheader', { name: /nvda/i })).toBeInTheDocument()
+    expect(screen.getByRole('rowheader', { name: /amd/i })).toBeInTheDocument()
+  })
+
+  it('re-seeds Custom mode when a new incomingSymbols array arrives', () => {
+    const { rerender } = render(<OptimizerTab investments={investments} incomingSymbols={['NVDA']} />)
+    expect(screen.getByRole('rowheader', { name: /nvda/i })).toBeInTheDocument()
+
+    rerender(<OptimizerTab investments={investments} incomingSymbols={['TSLA']} />)
+    expect(screen.getByRole('rowheader', { name: /tsla/i })).toBeInTheDocument()
+    expect(screen.queryByRole('rowheader', { name: /nvda/i })).not.toBeInTheDocument()
+  })
+
   it('shows a stale-results badge after correlation data refreshes post-run', async () => {
     const { setRealCorrelations } = await import('../../lib/efficientFrontier')
     const { rerender } = render(<OptimizerTab investments={investments} />)

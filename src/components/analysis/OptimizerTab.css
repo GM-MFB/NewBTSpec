@@ -25,6 +25,50 @@
   color: var(--green);
 }
 
+.optimizer-custom-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.optimizer-custom-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.optimizer-custom-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.optimizer-custom-chip button {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+}
+
+.optimizer-custom-picker input {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 6px 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
 .optimizer-table {
   width: 100%;
   border-collapse: collapse;

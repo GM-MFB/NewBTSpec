@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './OptimizerTab.css'
 import { useAuth } from '../../hooks/useAuth'
 import { useUserSettings } from '../../hooks/useUserSettings'
@@ -16,7 +16,9 @@ const SIM_LEVELS = [
 export default function OptimizerTab({ investments, incomingSymbols = null }) {
   const { user } = useAuth()
   const { finnhubKey } = useUserSettings(user?.id)
-  const [mode, setMode] = useState(incomingSymbols ? 'custom' : 'portfolio')
+  const [mode, setMode] = useState(incomingSymbols && incomingSymbols.length > 0 ? 'custom' : 'portfolio')
+  const [customSymbols, setCustomSymbols] = useState(incomingSymbols ?? [])
+  const [customInput, setCustomInput] = useState('')
   const [simLevel, setSimLevel] = useState('standard')
   const [priceOverrides, setPriceOverrides] = useState({})
   const [fetchErrors, setFetchErrors] = useState({})
@@ -24,8 +26,27 @@ export default function OptimizerTab({ investments, incomingSymbols = null }) {
   const [result, setResult] = useState(null)
   const [ranWithVersion, setRanWithVersion] = useState(null)
 
+  useEffect(() => {
+    if (incomingSymbols && incomingSymbols.length > 0) {
+      setCustomSymbols(incomingSymbols)
+      setMode('custom')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [incomingSymbols])
+
   const portfolioSymbols = investments.filter((i) => ['Stock', 'ETF', 'Crypto'].includes(i.assetType)).map((i) => i.symbol)
-  const symbols = mode === 'custom' ? (incomingSymbols ?? []) : portfolioSymbols
+  const symbols = mode === 'custom' ? customSymbols : portfolioSymbols
+
+  function addCustomSymbol(rawSymbol) {
+    const symbol = rawSymbol.trim().toUpperCase()
+    if (!symbol) return
+    setCustomSymbols((prev) => (prev.includes(symbol) ? prev : [...prev, symbol]))
+    setCustomInput('')
+  }
+
+  function removeCustomSymbol(symbol) {
+    setCustomSymbols((prev) => prev.filter((s) => s !== symbol))
+  }
 
   function priceFor(symbol) {
     if (priceOverrides[symbol] !== undefined) return priceOverrides[symbol]
@@ -63,6 +84,28 @@ export default function OptimizerTab({ investments, incomingSymbols = null }) {
         <button type="button" aria-pressed={mode === 'portfolio'} onClick={() => setMode('portfolio')}>Portfolio</button>
         <button type="button" aria-pressed={mode === 'custom'} onClick={() => setMode('custom')}>Custom</button>
       </div>
+
+      {mode === 'custom' && (
+        <div className="optimizer-custom-picker">
+          <div className="optimizer-custom-chips">
+            {customSymbols.map((symbol) => (
+              <span key={symbol} className="optimizer-custom-chip">
+                {symbol}
+                <button type="button" aria-label={`Remove ${symbol}`} onClick={() => removeCustomSymbol(symbol)}>×</button>
+              </span>
+            ))}
+          </div>
+          <form onSubmit={(e) => { e.preventDefault(); addCustomSymbol(customInput) }}>
+            <label htmlFor="optimizerAddSymbol">Add symbol</label>
+            <input
+              id="optimizerAddSymbol"
+              value={customInput}
+              onChange={(e) => setCustomInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomSymbol(customInput) } }}
+            />
+          </form>
+        </div>
+      )}
 
       {mode === 'custom' && (
         <label htmlFor="optimizerTotalToInvest">
