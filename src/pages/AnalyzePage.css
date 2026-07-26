@@ -1,0 +1,28 @@
+.analyze-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 16px 32px 0;
+}
+
+.analyze-tabs button {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.analyze-tabs button[aria-pressed="true"] {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.analyze-tab-placeholder {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 15px;
+  padding: 80px 24px;
+}

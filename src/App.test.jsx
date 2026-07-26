@@ -69,4 +69,20 @@ describe('App', () => {
     render(<MemoryRouter initialEntries={['/stats']}><App /></MemoryRouter>)
     await waitFor(() => expect(screen.getByTestId('stats-page')).toBeInTheDocument())
   })
+
+  it('renders AnalyzePage at /analyze', async () => {
+    useAuth.mockReturnValue({ user: { id: 'u1' }, session: {}, loading: false, signOut: vi.fn() })
+    useAccounts.mockReturnValue({
+      accounts: [{ id: 'a1', name: 'Main Account' }],
+      activeAccount: { id: 'a1', name: 'Main Account' },
+      activeAccountId: 'a1',
+      switchAccount: vi.fn(),
+      createAccount: vi.fn(),
+      loading: false,
+    })
+    useInvestments.mockReturnValue({ investments: [], loading: false, error: null, reload: vi.fn(), addInvestment: vi.fn(), closeInvestment: vi.fn(), updateInvestment: vi.fn(), deleteInvestment: vi.fn() })
+
+    render(<MemoryRouter initialEntries={['/analyze']}><App /></MemoryRouter>)
+    await waitFor(() => expect(screen.getByTestId('analyze-page')).toBeInTheDocument())
+  })
 })
