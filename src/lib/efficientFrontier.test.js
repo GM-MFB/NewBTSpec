@@ -3,7 +3,7 @@ import {
   getAssetParams, getCorrelation, setRealCorrelations, setComputedParams, getCorrVersion,
   portfolioStats, randomWeights, generateEfficientFrontierData, extractFrontier,
   generateCombinedFrontierData, runBackwardElimination, findOptimalSubset, findOptimalSubsetForSymbols,
-  getCorrelationMatrix, getCorrelationMatrixForSymbols, getPortfolioRiskMetrics,
+  getCorrelationMatrix, getCorrelationMatrixForSymbols, getPortfolioRiskMetrics, getRiskContribution,
 } from './efficientFrontier'
 
 describe('getAssetParams', () => {
@@ -216,5 +216,41 @@ describe('getPortfolioRiskMetrics', () => {
   it('computes totalMV as the sum of market values', () => {
     const metrics = getPortfolioRiskMetrics(positions)
     expect(metrics.totalMV).toBe(10000)
+  })
+})
+
+describe('getRiskContribution', () => {
+  it('flags a position as outsized when its risk% exceeds its weight% by more than 5', () => {
+    setComputedParams({
+      LOW_VOL: { r: 0.08, s: 0.05 },
+      HIGH_VOL: { r: 0.15, s: 0.50 },
+    })
+    setRealCorrelations({ LOW_VOL: { HIGH_VOL: 0.2 } })
+
+    const positions2 = [
+      { symbol: 'LOW_VOL', weight: 0.5 },
+      { symbol: 'HIGH_VOL', weight: 0.5 },
+    ]
+    const contributions = getRiskContribution(positions2)
+    const highVol = contributions.find((c) => c.symbol === 'HIGH_VOL')
+    expect(highVol.riskPct).toBeGreaterThan(highVol.weightPct + 5)
+    expect(highVol.flag).toBe('outsized')
+  })
+
+  it('flags a position as efficient when its risk% is well below its weight%', () => {
+    setComputedParams({
+      LOW_VOL: { r: 0.08, s: 0.05 },
+      HIGH_VOL: { r: 0.15, s: 0.50 },
+    })
+    setRealCorrelations({ LOW_VOL: { HIGH_VOL: 0.2 } })
+
+    const positions2 = [
+      { symbol: 'LOW_VOL', weight: 0.5 },
+      { symbol: 'HIGH_VOL', weight: 0.5 },
+    ]
+    const contributions = getRiskContribution(positions2)
+    const lowVol = contributions.find((c) => c.symbol === 'LOW_VOL')
+    expect(lowVol.riskPct).toBeLessThan(lowVol.weightPct - 5)
+    expect(lowVol.flag).toBe('efficient')
   })
 })

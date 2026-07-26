@@ -228,3 +228,24 @@ export function getPortfolioRiskMetrics(positions) {
 
   return { hhi, diversificationScore, stopCoveragePct, dollarAtRisk, totalMV, expectedReturn: ret, volatility: vol, beta, var95 }
 }
+
+export function getRiskContribution(positions) {
+  const symbols = positions.map((p) => p.symbol)
+  const weights = positions.map((p) => p.weight)
+  const { vol: portfolioVol } = portfolioStats(symbols, weights)
+
+  return positions.map((p, i) => {
+    const params = getAssetParams(p.symbol)
+    const covarSum = symbols.reduce((sum, s2, j) => {
+      const params2 = getAssetParams(s2)
+      return sum + weights[j] * params.s * params2.s * getCorrelation(p.symbol, s2)
+    }, 0)
+    const mcr = portfolioVol > 0 ? (weights[i] * covarSum) / portfolioVol : 0
+    const riskPct = portfolioVol > 0 ? (mcr / portfolioVol) * 100 : 0
+    const weightPct = weights[i] * 100
+    let flag = null
+    if (riskPct > weightPct + 5) flag = 'outsized'
+    else if (riskPct < weightPct - 5) flag = 'efficient'
+    return { symbol: p.symbol, weightPct, riskPct, flag }
+  })
+}
