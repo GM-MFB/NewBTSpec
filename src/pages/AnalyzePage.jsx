@@ -6,6 +6,7 @@ import { useInvestments } from '../hooks/useInvestments'
 import Header from '../components/Header'
 import FundamentalsTab from '../components/analysis/FundamentalsTab'
 import FinancialsTab from '../components/analysis/FinancialsTab'
+import ResearchTab from '../components/analysis/ResearchTab'
 
 const TABS = [
   { key: 'fundamentals', label: 'Fundamentals' },
@@ -49,7 +50,8 @@ export default function AnalyzePage() {
 
       {tab === 'fundamentals' && <FundamentalsTab investments={investments} />}
       {tab === 'financials' && <FinancialsTab investments={investments} />}
-      {tab !== 'fundamentals' && tab !== 'financials' && (
+      {tab === 'research' && <ResearchTab investments={investments} />}
+      {tab !== 'fundamentals' && tab !== 'financials' && tab !== 'research' && (
         <AnalyzeTabPlaceholder label={TABS.find((t) => t.key === tab).label} />
       )}
     </div>
