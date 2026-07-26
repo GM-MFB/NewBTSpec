@@ -6,11 +6,13 @@ import { useAuth } from './hooks/useAuth'
 import { useAccounts } from './hooks/useAccounts'
 import { useInvestments } from './hooks/useInvestments'
 import { useUserSettings } from './hooks/useUserSettings'
+import { useInvestmentsHistory } from './hooks/useInvestmentsHistory'
 
 vi.mock('./hooks/useAuth')
 vi.mock('./hooks/useAccounts')
 vi.mock('./hooks/useInvestments')
 vi.mock('./hooks/useUserSettings')
+vi.mock('./hooks/useInvestmentsHistory')
 
 describe('App', () => {
   it('redirects to login when signed out', async () => {
@@ -50,5 +52,21 @@ describe('App', () => {
 
     render(<MemoryRouter initialEntries={['/settings']}><App /></MemoryRouter>)
     await waitFor(() => expect(screen.getByTestId('settings-page')).toBeInTheDocument())
+  })
+
+  it('renders StatsPage at /stats', async () => {
+    useAuth.mockReturnValue({ user: { id: 'u1' }, session: {}, loading: false, signOut: vi.fn() })
+    useAccounts.mockReturnValue({
+      accounts: [{ id: 'a1', name: 'Main Account' }],
+      activeAccount: { id: 'a1', name: 'Main Account' },
+      activeAccountId: 'a1',
+      switchAccount: vi.fn(),
+      createAccount: vi.fn(),
+      loading: false,
+    })
+    useInvestmentsHistory.mockReturnValue({ investments: [], loading: false, error: null, reload: vi.fn() })
+
+    render(<MemoryRouter initialEntries={['/stats']}><App /></MemoryRouter>)
+    await waitFor(() => expect(screen.getByTestId('stats-page')).toBeInTheDocument())
   })
 })

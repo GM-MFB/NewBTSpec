@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage'
 import InvestmentsPage from './pages/InvestmentsPage'
 import TradesPage from './pages/TradesPage'
 import SettingsPage from './pages/SettingsPage'
+import StatsPage from './pages/StatsPage'
 import PlaceholderPage from './pages/PlaceholderPage'
 
 function RequireAuth({ user, children }) {
@@ -22,7 +23,7 @@ export default function App() {
       <Route path="/" element={<RequireAuth user={user}><InvestmentsPage /></RequireAuth>} />
       <Route path="/trades" element={<RequireAuth user={user}><TradesPage /></RequireAuth>} />
       <Route path="/settings" element={<RequireAuth user={user}><SettingsPage /></RequireAuth>} />
-      <Route path="/stats" element={<RequireAuth user={user}><PlaceholderPage title="Stats" /></RequireAuth>} />
+      <Route path="/stats" element={<RequireAuth user={user}><StatsPage /></RequireAuth>} />
       <Route path="/analyze" element={<RequireAuth user={user}><PlaceholderPage title="Analyze" /></RequireAuth>} />
       <Route path="/matt-cap" element={<RequireAuth user={user}><PlaceholderPage title="Matt Cap" /></RequireAuth>} />
     </Routes>
