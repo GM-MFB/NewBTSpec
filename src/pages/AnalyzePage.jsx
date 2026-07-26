@@ -7,6 +7,9 @@ import Header from '../components/Header'
 import FinancialsTab from '../components/analysis/FinancialsTab'
 import ResearchTab from '../components/analysis/ResearchTab'
 import DCFTab from '../components/analysis/DCFTab'
+import FrontierTab from '../components/analysis/FrontierTab'
+import OptimizerTab from '../components/analysis/OptimizerTab'
+import RiskTab from '../components/analysis/RiskTab'
 
 const TABS = [
   { key: 'research', label: 'Research' },
@@ -50,7 +53,10 @@ export default function AnalyzePage() {
       {tab === 'financials' && <FinancialsTab investments={investments} />}
       {tab === 'research' && <ResearchTab investments={investments} />}
       {tab === 'dcf' && <DCFTab investments={investments} />}
-      {tab !== 'financials' && tab !== 'research' && tab !== 'dcf' && (
+      {tab === 'frontier' && <FrontierTab investments={investments} />}
+      {tab === 'optimizer' && <OptimizerTab investments={investments} />}
+      {tab === 'risk' && <RiskTab investments={investments} />}
+      {!['financials', 'research', 'dcf', 'frontier', 'optimizer', 'risk'].includes(tab) && (
         <AnalyzeTabPlaceholder label={TABS.find((t) => t.key === tab).label} />
       )}
     </div>
