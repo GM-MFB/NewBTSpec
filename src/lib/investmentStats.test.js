@@ -1,5 +1,17 @@
 import { describe, it, expect } from 'vitest'
-import { realizedPnlFor, computeInvestmentStats } from './investmentStats'
+import { realizedPnlFor, computeInvestmentStats, unrealizedPnlFor } from './investmentStats'
+
+describe('unrealizedPnlFor', () => {
+  it('computes unrealized P&L for a stock with a current price set', () => {
+    const investment = { assetType: 'Stock', shares: 10, avgCost: 100, currentPrice: 165 }
+    expect(unrealizedPnlFor(investment)).toBe(650)
+  })
+
+  it('returns blank when current price is not set', () => {
+    const investment = { assetType: 'Stock', shares: 10, avgCost: 100, currentPrice: '' }
+    expect(unrealizedPnlFor(investment)).toBe('')
+  })
+})
 
 describe('realizedPnlFor', () => {
   it('computes stock realized P&L', () => {

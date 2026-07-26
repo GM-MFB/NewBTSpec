@@ -4,6 +4,15 @@ function toNum(value) {
   return value === '' || value === undefined || value === null ? 0 : Number(value)
 }
 
+function isBlank(value) {
+  return value === '' || value === undefined || value === null
+}
+
+export function unrealizedPnlFor(investment) {
+  if (isBlank(investment.currentPrice)) return ''
+  return (Number(investment.currentPrice) - Number(investment.avgCost)) * Number(investment.shares)
+}
+
 export function realizedPnlFor(investment) {
   if (investment.status !== 'closed') return null
   const shares = toNum(investment.shares)

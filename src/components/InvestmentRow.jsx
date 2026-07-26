@@ -2,7 +2,7 @@ import './InvestmentRow.css'
 import { effectiveStrategyDef } from '../lib/optionStrategies'
 import { formatCurrency, formatCurrencyWhole, formatCurrencyAuto } from '../lib/format'
 import { collateralFor, potentialPnlFor } from '../lib/optionMath'
-import { realizedPnlFor } from '../lib/investmentStats'
+import { realizedPnlFor, unrealizedPnlFor } from '../lib/investmentStats'
 
 function daysLeftLabel(expiry) {
   if (!expiry) return ''
@@ -16,11 +16,6 @@ function daysLeftLabel(expiry) {
 
 function isBlank(value) {
   return value === '' || value === undefined || value === null
-}
-
-function unrealizedPnlFor(investment) {
-  if (isBlank(investment.currentPrice)) return ''
-  return (Number(investment.currentPrice) - Number(investment.avgCost)) * Number(investment.shares)
 }
 
 function priceFavorability(investment, strategyDef) {
