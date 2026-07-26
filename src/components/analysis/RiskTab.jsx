@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import './RiskTab.css'
-import { getPortfolioRiskMetrics } from '../../lib/efficientFrontier'
+import { getPortfolioRiskMetrics, getStressTests, getRiskContribution } from '../../lib/efficientFrontier'
 import { formatCurrency } from '../../lib/format'
 
 function betaBand(beta) {
@@ -22,6 +23,7 @@ function coverageBand(pct) {
 }
 
 export default function RiskTab({ investments }) {
+  const [expandedScenario, setExpandedScenario] = useState(null)
   const positions = investments
     .filter((i) => ['Stock', 'ETF', 'Crypto'].includes(i.assetType))
     .map((i) => {
@@ -34,6 +36,8 @@ export default function RiskTab({ investments }) {
 
   const metrics = getPortfolioRiskMetrics(withWeights)
   const largestWeight = Math.max(...withWeights.map((p) => p.weight), 0)
+  const stressTests = getStressTests(withWeights)
+  const riskContributions = getRiskContribution(withWeights)
 
   return (
     <div className="risk-tab">
@@ -72,6 +76,51 @@ export default function RiskTab({ investments }) {
         {metrics.stopCoveragePct < 80 && (
           <p className="risk-warning">Stop coverage is below 80% — consider setting stops on more positions.</p>
         )}
+      </section>
+
+      <section className="risk-stress">
+        <h2>Stress Tests</h2>
+        {stressTests.map((scenario) => (
+          <div key={scenario.name} className="risk-stress-row">
+            <button type="button" onClick={() => setExpandedScenario(expandedScenario === scenario.name ? null : scenario.name)}>
+              {scenario.name} ({(scenario.portfolioMove * 100).toFixed(1)}%, {formatCurrency(scenario.portfolioMove * metrics.totalMV)})
+            </button>
+            {expandedScenario === scenario.name && (
+              <table className="risk-table">
+                <thead><tr><th>Symbol</th><th>Beta</th><th>Move %</th><th>$ Impact</th></tr></thead>
+                <tbody>
+                  {scenario.perPosition.map((p) => (
+                    <tr key={p.symbol}>
+                      <th scope="row">{p.symbol}</th>
+                      <td className="mono">{p.beta.toFixed(2)}</td>
+                      <td className="mono">{(p.move * 100).toFixed(1)}%</td>
+                      <td className="mono">{formatCurrency(p.impact)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        ))}
+      </section>
+
+      <section className="risk-contribution">
+        <h2>Risk Contribution</h2>
+        <table className="risk-table">
+          <thead><tr><th>Symbol</th><th>Weight %</th><th>Risk %</th><th>Flag</th></tr></thead>
+          <tbody>
+            {riskContributions.map((c) => (
+              <tr key={c.symbol}>
+                <th scope="row">{c.symbol}</th>
+                <td className="mono">{c.weightPct.toFixed(1)}%</td>
+                <td className="mono">{c.riskPct.toFixed(1)}%</td>
+                <td className={c.flag === 'outsized' ? 'risk-flag-outsized' : c.flag === 'efficient' ? 'risk-flag-efficient' : ''}>
+                  {c.flag ?? '—'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </section>
     </div>
   )

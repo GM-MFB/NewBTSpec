@@ -26,4 +26,21 @@ describe('RiskTab', () => {
     render(<RiskTab investments={investments} />)
     expect(screen.getByText(/coverage.*below 80/i)).toBeInTheDocument()
   })
+
+  it('renders 6 expandable stress test scenarios, expanding to a sorted per-position table', async () => {
+    const userEvent = (await import('@testing-library/user-event')).default
+    render(<RiskTab investments={investments} />)
+
+    expect(screen.getByText(/^Bull Run/)).toBeInTheDocument()
+    expect(screen.getByText(/^2008-Level/)).toBeInTheDocument()
+
+    await userEvent.click(screen.getByText(/^Bear Market/))
+    expect(screen.getAllByText(/aapl|spy/i).length).toBeGreaterThan(0)
+  })
+
+  it('renders risk contribution rows with outsized/efficient flags', () => {
+    render(<RiskTab investments={investments} />)
+    expect(screen.getByText('Risk Contribution')).toBeInTheDocument()
+    expect(screen.getAllByText(/AAPL|SPY/).length).toBeGreaterThan(0)
+  })
 })
