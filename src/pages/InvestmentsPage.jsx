@@ -103,13 +103,6 @@ export default function InvestmentsPage() {
       {investments.length > 0 && (
         <div className="portfolio-summary">
           <div className="summary-stat">
-            <label htmlFor="weekSelect" className="summary-label">Premium for week</label>
-            <div className="week-premium-inline">
-              <input id="weekSelect" type="week" value={weekValue} onChange={(e) => setWeekValue(e.target.value)} />
-              <span className="summary-value mono">{formatCurrency(premiumForWeek(investments, weekValue))}</span>
-            </div>
-          </div>
-          <div className="summary-stat">
             <span className="summary-label">Total Collateral Deployed</span>
             <span className="summary-value mono">{formatCurrency(summary.totalCollateral)}</span>
           </div>
@@ -122,6 +115,13 @@ export default function InvestmentsPage() {
             <span className={`summary-value mono ${summary.unrealizedStockPnl < 0 ? 'summary-value--negative' : 'summary-value--positive'}`}>
               {formatCurrency(summary.unrealizedStockPnl)}
             </span>
+          </div>
+          <div className="summary-stat summary-stat--week">
+            <label htmlFor="weekSelect" className="summary-label">Premium for week</label>
+            <div className="week-premium-inline">
+              <input id="weekSelect" type="week" value={weekValue} onChange={(e) => setWeekValue(e.target.value)} />
+              <span className="summary-value mono">{formatCurrency(premiumForWeek(investments, weekValue))}</span>
+            </div>
           </div>
         </div>
       )}
