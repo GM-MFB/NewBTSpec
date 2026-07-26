@@ -29,6 +29,47 @@
 .frontier-legend-key--maxdiv::before { background: #d95926; }
 .frontier-legend-key--maxsharpe::before { background: #199e70; }
 
+.frontier-hover-tooltip {
+  background: #141414;
+  border: 1px solid #262626;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  min-width: 140px;
+}
+
+.frontier-hover-tooltip-title {
+  font-weight: 700;
+  color: #e5e5e5;
+  margin: 0 0 4px;
+}
+
+.frontier-hover-tooltip-stats {
+  color: #888;
+  margin: 0 0 6px;
+  font-size: 11px;
+}
+
+.frontier-hover-tooltip-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.frontier-hover-tooltip-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #e5e5e5;
+}
+
+.frontier-hover-tooltip-symbol {
+  font-weight: 700;
+}
+
 .frontier-stat-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));

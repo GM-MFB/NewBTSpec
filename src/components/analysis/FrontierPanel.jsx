@@ -51,6 +51,30 @@ function FrontierStatCard({ title, subtitle, point, symbols, colorMap }) {
   )
 }
 
+export function FrontierHoverTooltip({ active, payload, symbols, colorMap }) {
+  if (!active || !payload || payload.length === 0) return null
+  const point = payload[0].payload
+  if (!point.weights) return null
+  const rows = symbols
+    .map((s, i) => ({ symbol: s, weight: point.weights[i] * 100 }))
+    .filter((r) => r.weight > 0.5)
+    .sort((a, b) => b.weight - a.weight)
+  return (
+    <div className="frontier-hover-tooltip">
+      {point.label && <p className="frontier-hover-tooltip-title">{point.label}</p>}
+      <p className="frontier-hover-tooltip-stats">Return {point.ret.toFixed(1)}% · Vol {point.vol.toFixed(1)}%</p>
+      <ul className="frontier-hover-tooltip-list">
+        {rows.map((r) => (
+          <li key={r.symbol}>
+            <span className="frontier-hover-tooltip-symbol" style={{ color: colorMap[r.symbol] }}>{r.symbol}</span>
+            <span className="mono">{r.weight.toFixed(1)}%</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 function loadOverrides(storageKey) {
   const raw = localStorage.getItem(storageKey)
   return raw ? JSON.parse(raw) : {}
@@ -98,7 +122,7 @@ export default function FrontierPanel({
     return sum + (currentPoint.weights[i] ?? 0) * price
   }, 0)
 
-  const chartData = simData.frontier.map((p) => ({ vol: p.vol * 100, ret: p.ret * 100 }))
+  const chartData = simData.frontier.map((p) => ({ vol: p.vol * 100, ret: p.ret * 100, weights: p.weights }))
   const colorMap = assignSymbolColors(allSymbols, currentPoint.weights)
 
   return (
@@ -113,16 +137,12 @@ export default function FrontierPanel({
           <CartesianGrid stroke="#262626" strokeDasharray="0" />
           <XAxis dataKey="vol" name="Volatility %" tick={{ fill: '#888', fontSize: 11 }} axisLine={{ stroke: '#262626' }} tickLine={false} />
           <YAxis dataKey="ret" name="Return %" tick={{ fill: '#888', fontSize: 11 }} axisLine={{ stroke: '#262626' }} tickLine={false} />
-          <Tooltip
-            contentStyle={{ background: '#141414', border: '1px solid #262626', borderRadius: 6, fontSize: 12 }}
-            itemStyle={{ color: '#e5e5e5' }}
-            labelStyle={{ color: '#888' }}
-          />
+          <Tooltip content={(props) => <FrontierHoverTooltip {...props} symbols={allSymbols} colorMap={colorMap} />} />
           <Legend wrapperStyle={{ fontSize: 11, color: '#888' }} />
-          <Line type="monotone" dataKey="ret" data={chartData} name="Efficient Frontier" stroke="#898781" strokeWidth={2} dot={false} />
-          <Scatter name="Your Portfolio" data={[{ vol: currentPoint.vol * 100, ret: currentPoint.ret * 100 }]} fill="#3987e5" />
-          <Scatter name="Max Diversification" data={[{ vol: simData.maxDiversification.vol * 100, ret: simData.maxDiversification.ret * 100 }]} fill="#d95926" />
-          <Scatter name="Max Sharpe" data={[{ vol: simData.maxSharpe.vol * 100, ret: simData.maxSharpe.ret * 100 }]} fill="#199e70" />
+          <Line type="monotone" dataKey="ret" data={chartData} name="Efficient Frontier" stroke="#898781" strokeWidth={2} dot={{ r: 2, fill: '#898781' }} />
+          <Scatter name="Your Portfolio" data={[{ vol: currentPoint.vol * 100, ret: currentPoint.ret * 100, weights: currentPoint.weights, label: 'Your Portfolio' }]} fill="#3987e5" />
+          <Scatter name="Max Diversification" data={[{ vol: simData.maxDiversification.vol * 100, ret: simData.maxDiversification.ret * 100, weights: simData.maxDiversification.weights, label: 'Max Diversification' }]} fill="#d95926" />
+          <Scatter name="Max Sharpe" data={[{ vol: simData.maxSharpe.vol * 100, ret: simData.maxSharpe.ret * 100, weights: simData.maxSharpe.weights, label: 'Max Sharpe' }]} fill="#199e70" />
         </ComposedChart>
       </ResponsiveContainer>
 

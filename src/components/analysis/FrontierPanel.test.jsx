@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import FrontierPanel from './FrontierPanel'
+import FrontierPanel, { FrontierHoverTooltip } from './FrontierPanel'
 import { setComputedParams, setRealCorrelations } from '../../lib/efficientFrontier'
 
 describe('FrontierPanel', () => {
@@ -140,5 +140,46 @@ describe('FrontierPanel', () => {
       />,
     )
     expect(document.querySelectorAll('.frontier-action-buy, .frontier-action-sell, .frontier-action-hold').length).toBeGreaterThan(0)
+  })
+
+  it('keeps each frontier point\'s weights available for the hover tooltip', () => {
+    render(<FrontierPanel symbols={['AAPL', 'SPY']} weights={[0.6, 0.4]} storageKey="test_ef_params_hover" nSim={300} />)
+    expect(screen.getAllByText('Your Portfolio').length).toBeGreaterThan(0)
+  })
+})
+
+describe('FrontierHoverTooltip', () => {
+  const colorMap = { AAPL: '#3987e5', SPY: '#d95926', TLT: '#199e70' }
+
+  it('renders nothing when inactive', () => {
+    const { container } = render(
+      <FrontierHoverTooltip active={false} payload={[]} symbols={['AAPL', 'SPY']} colorMap={colorMap} />,
+    )
+    expect(container).toBeEmptyDOMElement()
+  })
+
+  it('renders nothing when the payload has no weights', () => {
+    const payload = [{ payload: { vol: 12, ret: 8 } }]
+    const { container } = render(
+      <FrontierHoverTooltip active payload={payload} symbols={['AAPL', 'SPY']} colorMap={colorMap} />,
+    )
+    expect(container).toBeEmptyDOMElement()
+  })
+
+  it('renders the Return/Vol header and a sorted, filtered allocation list', () => {
+    const payload = [{ payload: { vol: 12.34, ret: 8.9, weights: [0.003, 0.6, 0.397] } }]
+    render(<FrontierHoverTooltip active payload={payload} symbols={['AAPL', 'SPY', 'TLT']} colorMap={colorMap} />)
+
+    expect(screen.getByText(/return 8\.9%/i)).toBeInTheDocument()
+    expect(screen.getByText(/vol 12\.3%/i)).toBeInTheDocument()
+    expect(screen.queryByText('AAPL')).not.toBeInTheDocument()
+    const symbolEls = screen.getAllByText(/^(SPY|TLT)$/)
+    expect(symbolEls.map((el) => el.textContent)).toEqual(['SPY', 'TLT'])
+  })
+
+  it('renders a title line when the point has a label', () => {
+    const payload = [{ payload: { vol: 10, ret: 5, weights: [1, 0, 0], label: 'Your Portfolio' } }]
+    render(<FrontierHoverTooltip active payload={payload} symbols={['AAPL', 'SPY', 'TLT']} colorMap={colorMap} />)
+    expect(screen.getByText('Your Portfolio')).toBeInTheDocument()
   })
 })
