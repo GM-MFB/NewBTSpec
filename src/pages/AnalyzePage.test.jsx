@@ -48,4 +48,34 @@ describe('AnalyzePage', () => {
     await userEvent.click(screen.getByRole('button', { name: /^wheel$/i }))
     expect(screen.getByText(/coming soon/i)).toBeInTheDocument()
   })
+
+  it('sending a Sector Browser selection to Frontier switches tabs and seeds the picker', async () => {
+    mockCommon()
+    useUserSettings.mockReturnValue({ finnhubKey: 'key123', avKey: '', loading: false })
+    render(<MemoryRouter><AnalyzePage /></MemoryRouter>)
+
+    await userEvent.click(screen.getByRole('button', { name: /^research$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^compare$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /browse by sector/i }))
+    await userEvent.click(screen.getAllByRole('checkbox')[0])
+    await userEvent.click(screen.getByRole('button', { name: /send to frontier/i }))
+
+    expect(screen.getByRole('button', { name: /^frontier$/i })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /^custom set$/i })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('sending a Sector Browser selection to Optimizer switches tabs and seeds the picker', async () => {
+    mockCommon()
+    useUserSettings.mockReturnValue({ finnhubKey: 'key123', avKey: '', loading: false })
+    render(<MemoryRouter><AnalyzePage /></MemoryRouter>)
+
+    await userEvent.click(screen.getByRole('button', { name: /^research$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^compare$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /browse by sector/i }))
+    await userEvent.click(screen.getAllByRole('checkbox')[0])
+    await userEvent.click(screen.getByRole('button', { name: /send to optimizer/i }))
+
+    expect(screen.getByRole('button', { name: /^optimizer$/i })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /^custom$/i })).toHaveAttribute('aria-pressed', 'true')
+  })
 })
