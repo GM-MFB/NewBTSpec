@@ -73,6 +73,22 @@ describe('StatsPage', () => {
     expect(screen.getAllByText('AAPL').length).toBeGreaterThan(0)
   })
 
+  it('groups a closed option with no strategy under a category derived from option_type/option_direction, not Other', () => {
+    mockAccounts()
+    const legacyOption = {
+      id: 'i4', status: 'closed', assetType: 'Option', symbol: 'TSLA',
+      shares: 1, avgCost: 5, sellPrice: 2, sellDate: '2026-01-15',
+      strategy: '', optionType: 'put', optionDirection: 'short', strike: 200, expiry: '2026-01-17',
+    }
+    useInvestmentsHistory.mockReturnValue({ investments: [...investments, legacyOption], loading: false, error: null, reload: vi.fn() })
+
+    render(<MemoryRouter><StatsPage /></MemoryRouter>)
+
+    expect(screen.getByText('Short Put')).toBeInTheDocument()
+    expect(screen.getAllByText('TSLA').length).toBeGreaterThan(0)
+    expect(screen.queryByText('Strategy:')).not.toBeInTheDocument()
+  })
+
   it('shows an error banner with retry when loading fails', async () => {
     mockAccounts()
     const reload = vi.fn()

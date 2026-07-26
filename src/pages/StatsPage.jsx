@@ -6,7 +6,7 @@ import { useAccounts } from '../hooks/useAccounts'
 import { useInvestmentsHistory } from '../hooks/useInvestmentsHistory'
 import { computeInvestmentStats } from '../lib/investmentStats'
 import { formatCurrency } from '../lib/format'
-import { STRATEGIES } from '../lib/optionStrategies'
+import { STRATEGIES, effectiveStrategyDef } from '../lib/optionStrategies'
 import Header from '../components/Header'
 import StatsCharts from '../components/StatsCharts'
 import InvestmentRow from '../components/InvestmentRow'
@@ -30,14 +30,29 @@ export default function StatsPage() {
 
   const closedInvestments = investments.filter((i) => i.status === 'closed')
   const closedStocks = closedInvestments.filter((i) => i.assetType === 'Stock')
-  const closedStrategyGroups = STRATEGIES
-    .map((s) => ({ ...s, items: closedInvestments.filter((i) => i.assetType === 'Option' && i.strategy === s.value) }))
+  const closedOptions = closedInvestments.filter((i) => i.assetType === 'Option')
+
+  const knownStrategyGroups = STRATEGIES
+    .map((s) => ({ key: s.value, label: s.label, items: closedOptions.filter((i) => i.strategy === s.value) }))
     .filter((g) => g.items.length > 0)
-  const closedCategorizedIds = new Set([
-    ...closedStocks.map((i) => i.id),
-    ...closedStrategyGroups.flatMap((g) => g.items.map((i) => i.id)),
-  ])
-  const closedOtherInvestments = closedInvestments.filter((i) => !closedCategorizedIds.has(i.id))
+  const categorizedOptionIds = new Set(knownStrategyGroups.flatMap((g) => g.items.map((i) => i.id)))
+  const uncategorizedOptions = closedOptions.filter((i) => !categorizedOptionIds.has(i.id))
+
+  const fallbackGroupsByLabel = new Map()
+  const closedOtherInvestments = []
+  for (const investment of uncategorizedOptions) {
+    const def = effectiveStrategyDef(investment)
+    if (!def) {
+      closedOtherInvestments.push(investment)
+      continue
+    }
+    const key = `fallback:${def.label}`
+    if (!fallbackGroupsByLabel.has(key)) fallbackGroupsByLabel.set(key, { key, label: def.label, items: [] })
+    fallbackGroupsByLabel.get(key).items.push(investment)
+  }
+  closedOtherInvestments.push(...closedInvestments.filter((i) => i.assetType !== 'Stock' && i.assetType !== 'Option'))
+
+  const closedStrategyGroups = [...knownStrategyGroups, ...fallbackGroupsByLabel.values()]
 
   return (
     <div data-testid="stats-page">
@@ -158,7 +173,7 @@ export default function StatsPage() {
             <section className="investment-group">
               <h2 className="group-title">Option</h2>
               {closedStrategyGroups.map((group) => (
-                <div key={group.value} className="strategy-group">
+                <div key={group.key} className="strategy-group">
                   <h3 className="strategy-title">{group.label}</h3>
                   <ul className="investment-list">
                     {group.items.map((investment) => (

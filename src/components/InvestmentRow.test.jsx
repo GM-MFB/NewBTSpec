@@ -26,7 +26,7 @@ describe('InvestmentRow', () => {
     expect(screen.queryByText('Current Price:')).not.toBeInTheDocument()
   })
 
-  it('renders contracts, strike, expiry, and avg price inline for an option, with no strategy shown for an open position', () => {
+  it('renders contracts, strike, expiry, and avg price inline for an option, with no strategy meta item ever shown on the row', () => {
     const investment = { id: 'i2', symbol: 'SPY', assetType: 'Option', shares: 5, avgCost: 3.5, strategy: 'covered_call', strike: 450, expiry: '2026-03-01' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
     expect(screen.getByText('SPY')).toBeInTheDocument()
@@ -38,32 +38,11 @@ describe('InvestmentRow', () => {
     expect(screen.getByText('Avg Price:')).toBeInTheDocument()
   })
 
-  it('shows the Strategy meta item on a closed option row', () => {
-    const investment = {
-      id: 'i2', symbol: 'SPY', assetType: 'Option', status: 'closed',
-      shares: 5, avgCost: 3.5, sellPrice: 1, sellDate: '2026-01-10', strategy: 'covered_call', strike: 450, expiry: '2026-03-01',
-    }
-    render(<InvestmentRow investment={investment} />)
-    expect(screen.getByText('Strategy:')).toBeInTheDocument()
-    expect(screen.getByText('Covered Call')).toBeInTheDocument()
-  })
-
-  it('falls back to option_type/option_direction for the Strategy label when strategy is blank', () => {
+  it('does not show a Strategy meta item on a closed option row, even with a fallback strategy', () => {
     const investment = {
       id: 'i2', symbol: 'SPY', assetType: 'Option', status: 'closed',
       shares: 5, avgCost: 3.5, sellPrice: 1, sellDate: '2026-01-10',
       strategy: '', optionType: 'put', optionDirection: 'short', strike: 450, expiry: '2026-03-01',
-    }
-    render(<InvestmentRow investment={investment} />)
-    expect(screen.getByText('Strategy:')).toBeInTheDocument()
-    expect(screen.getByText('Short Put')).toBeInTheDocument()
-  })
-
-  it('does not show a Strategy meta item when both strategy and option_type/option_direction are blank', () => {
-    const investment = {
-      id: 'i2', symbol: 'SPY', assetType: 'Option', status: 'closed',
-      shares: 5, avgCost: 3.5, sellPrice: 1, sellDate: '2026-01-10',
-      strategy: '', optionType: '', optionDirection: '', strike: 450, expiry: '2026-03-01',
     }
     render(<InvestmentRow investment={investment} />)
     expect(screen.queryByText('Strategy:')).not.toBeInTheDocument()

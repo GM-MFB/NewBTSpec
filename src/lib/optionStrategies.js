@@ -10,3 +10,25 @@ export const STRATEGIES = [
 export function strategyByValue(value) {
   return STRATEGIES.find((s) => s.value === value)
 }
+
+function isBlank(value) {
+  return value === '' || value === undefined || value === null
+}
+
+function capitalize(value) {
+  return value ? value.charAt(0).toUpperCase() + value.slice(1) : ''
+}
+
+export function effectiveStrategyDef(investment) {
+  const strategyDef = strategyByValue(investment.strategy)
+  if (strategyDef) return strategyDef
+  const { optionType, optionDirection } = investment
+  if (isBlank(optionType) || isBlank(optionDirection)) return null
+  return {
+    value: null,
+    label: `${capitalize(optionDirection)} ${capitalize(optionType)}`,
+    optionType,
+    optionDirection,
+    isSpread: false,
+  }
+}

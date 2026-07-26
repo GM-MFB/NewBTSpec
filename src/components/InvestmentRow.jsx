@@ -1,5 +1,5 @@
 import './InvestmentRow.css'
-import { strategyByValue } from '../lib/optionStrategies'
+import { effectiveStrategyDef } from '../lib/optionStrategies'
 import { formatCurrency, formatCurrencyWhole, formatCurrencyAuto } from '../lib/format'
 import { collateralFor, potentialPnlFor } from '../lib/optionMath'
 import { realizedPnlFor } from '../lib/investmentStats'
@@ -16,24 +16,6 @@ function daysLeftLabel(expiry) {
 
 function isBlank(value) {
   return value === '' || value === undefined || value === null
-}
-
-function capitalize(value) {
-  return value ? value.charAt(0).toUpperCase() + value.slice(1) : ''
-}
-
-function effectiveStrategyDef(investment) {
-  const strategyDef = strategyByValue(investment.strategy)
-  if (strategyDef) return strategyDef
-  const { optionType, optionDirection } = investment
-  if (isBlank(optionType) || isBlank(optionDirection)) return null
-  return {
-    value: null,
-    label: `${capitalize(optionDirection)} ${capitalize(optionType)}`,
-    optionType,
-    optionDirection,
-    isSpread: false,
-  }
 }
 
 function unrealizedPnlFor(investment) {
@@ -114,7 +96,6 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, c
       <div className="investment-row-meta mono">
         {isOption ? (
           <>
-            {isClosed && <MetaItem field="strategy" label="Strategy" value={strategyDef?.label} />}
             <MetaItem field="contracts" label="Contracts" value={investment.shares} />
             <StrikeMeta investment={investment} strategyDef={strategyDef} strikeDisplay={strikeDisplay} />
             <MetaItem field="expires" label="Expires" value={investment.expiry} />
