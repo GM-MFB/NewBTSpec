@@ -48,6 +48,18 @@ describe('FinancialsTab', () => {
     expect(screen.getByRole('button', { name: 'AAPL' })).toBeInTheDocument()
   })
 
+  it('shows the active symbol prominently at the top once researched, and highlights its chip', async () => {
+    useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
+    fetchFinancials.mockResolvedValue(sampleData)
+
+    render(<MemoryRouter><FinancialsTab investments={investments} /></MemoryRouter>)
+    await userEvent.click(screen.getByRole('button', { name: 'AAPL' }))
+
+    await waitFor(() => expect(screen.getByText('Income Statement')).toBeInTheDocument())
+    expect(screen.getByTestId('fin-active-symbol')).toHaveTextContent('AAPL')
+    expect(screen.getByRole('button', { name: 'AAPL' })).toHaveClass('fin-chip--active')
+  })
+
   it('fetches and renders the three statement tables when a symbol is researched', async () => {
     useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
     fetchFinancials.mockResolvedValue(sampleData)

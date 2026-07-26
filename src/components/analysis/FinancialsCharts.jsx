@@ -43,6 +43,8 @@ const TOOLTIP_STYLE = {
   color: '#e5e5e5',
   fontSize: 12,
 }
+const TOOLTIP_ITEM_STYLE = { color: '#e5e5e5' }
+const TOOLTIP_LABEL_STYLE = { color: AXIS_TEXT }
 
 function pnlColor(value) {
   return value >= 0 ? GREEN : RED
@@ -74,7 +76,7 @@ function DollarBarChart({ data, seriesKeys, seriesLabels }) {
         <CartesianGrid stroke={GRID} strokeDasharray="0" vertical={false} />
         <XAxis dataKey="date" {...sharedAxisProps} />
         <YAxis {...sharedAxisProps} tickFormatter={(v) => formatLarge(v)} width={70} />
-        <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => formatLarge(v)} />
+        <Tooltip contentStyle={TOOLTIP_STYLE} itemStyle={TOOLTIP_ITEM_STYLE} labelStyle={TOOLTIP_LABEL_STYLE} formatter={(v) => formatLarge(v)} />
         <Legend wrapperStyle={{ fontSize: 11, color: AXIS_TEXT }} />
         {seriesKeys.map((key, i) => (
           <Bar key={key} dataKey={key} name={seriesLabels[i]} fill={CATEGORICAL[i]} radius={[4, 4, 0, 0]} maxBarSize={24} />
@@ -91,7 +93,7 @@ function DollarLineChart({ data, seriesKeys, seriesLabels, referenceY }) {
         <CartesianGrid stroke={GRID} strokeDasharray="0" vertical={false} />
         <XAxis dataKey="date" {...sharedAxisProps} />
         <YAxis {...sharedAxisProps} width={60} />
-        <Tooltip contentStyle={TOOLTIP_STYLE} />
+        <Tooltip contentStyle={TOOLTIP_STYLE} itemStyle={TOOLTIP_ITEM_STYLE} labelStyle={TOOLTIP_LABEL_STYLE} />
         <Legend wrapperStyle={{ fontSize: 11, color: AXIS_TEXT }} />
         {referenceY !== undefined && <ReferenceLine y={referenceY} stroke={GRID} strokeDasharray="4 4" />}
         {seriesKeys.map((key, i) => (
@@ -109,7 +111,7 @@ function PercentLineChart({ data, seriesKeys, seriesLabels }) {
         <CartesianGrid stroke={GRID} strokeDasharray="0" vertical={false} />
         <XAxis dataKey="date" {...sharedAxisProps} />
         <YAxis {...sharedAxisProps} width={50} tickFormatter={(v) => `${v}%`} />
-        <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => `${Number(v).toFixed(1)}%`} />
+        <Tooltip contentStyle={TOOLTIP_STYLE} itemStyle={TOOLTIP_ITEM_STYLE} labelStyle={TOOLTIP_LABEL_STYLE} formatter={(v) => `${Number(v).toFixed(1)}%`} />
         <Legend wrapperStyle={{ fontSize: 11, color: AXIS_TEXT }} />
         {seriesKeys.map((key, i) => (
           <Line key={key} type="monotone" dataKey={key} name={seriesLabels[i]} stroke={CATEGORICAL[i]} strokeWidth={2} dot={{ r: 3 }} connectNulls />
@@ -126,7 +128,7 @@ function SignedGrowthChart({ data, dataKey, name }) {
         <CartesianGrid stroke={GRID} strokeDasharray="0" vertical={false} />
         <XAxis dataKey="date" {...sharedAxisProps} />
         <YAxis {...sharedAxisProps} width={50} tickFormatter={(v) => `${v}%`} />
-        <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => `${Number(v).toFixed(1)}%`} />
+        <Tooltip contentStyle={TOOLTIP_STYLE} itemStyle={TOOLTIP_ITEM_STYLE} labelStyle={TOOLTIP_LABEL_STYLE} formatter={(v) => `${Number(v).toFixed(1)}%`} />
         <Bar dataKey={dataKey} name={name} radius={[4, 4, 0, 0]} maxBarSize={24}>
           {data.map((row, i) => (
             <Cell key={i} fill={row[dataKey] === null ? GRID : pnlColor(row[dataKey])} />
@@ -144,7 +146,7 @@ function YoyGrowthChart({ data }) {
         <CartesianGrid stroke={GRID} strokeDasharray="0" vertical={false} />
         <XAxis dataKey="date" {...sharedAxisProps} />
         <YAxis {...sharedAxisProps} width={50} tickFormatter={(v) => `${v}%`} />
-        <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => `${Number(v).toFixed(1)}%`} />
+        <Tooltip contentStyle={TOOLTIP_STYLE} itemStyle={TOOLTIP_ITEM_STYLE} labelStyle={TOOLTIP_LABEL_STYLE} formatter={(v) => `${Number(v).toFixed(1)}%`} />
         <Legend wrapperStyle={{ fontSize: 11, color: AXIS_TEXT }} />
         <Bar dataKey="revGrowth" name="Revenue Growth" radius={[4, 4, 0, 0]} maxBarSize={20}>
           {data.map((row, i) => <Cell key={i} fill={row.revGrowth === null ? GRID : pnlColor(row.revGrowth)} />)}
@@ -196,7 +198,7 @@ function EbitdaChart({ data }) {
         <CartesianGrid stroke={GRID} strokeDasharray="0" vertical={false} />
         <XAxis dataKey="date" {...sharedAxisProps} />
         <YAxis {...sharedAxisProps} tickFormatter={(v) => formatLarge(v)} width={70} />
-        <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => formatLarge(v)} />
+        <Tooltip contentStyle={TOOLTIP_STYLE} itemStyle={TOOLTIP_ITEM_STYLE} labelStyle={TOOLTIP_LABEL_STYLE} formatter={(v) => formatLarge(v)} />
         <Legend wrapperStyle={{ fontSize: 11, color: AXIS_TEXT }} />
         <Bar dataKey="ebitda" name="EBITDA" fill={CATEGORICAL[0]} radius={[4, 4, 0, 0]} maxBarSize={24} />
         <Line type="monotone" dataKey="operatingIncome" name="Operating Income" stroke={CATEGORICAL[1]} strokeWidth={2} dot={{ r: 3 }} />
@@ -223,7 +225,7 @@ function EpsChart({ eps, onFetchEps, epsLoading }) {
         <CartesianGrid stroke={GRID} strokeDasharray="0" vertical={false} />
         <XAxis dataKey="date" {...sharedAxisProps} />
         <YAxis {...sharedAxisProps} width={50} />
-        <Tooltip contentStyle={TOOLTIP_STYLE} />
+        <Tooltip contentStyle={TOOLTIP_STYLE} itemStyle={TOOLTIP_ITEM_STYLE} labelStyle={TOOLTIP_LABEL_STYLE} />
         <Bar dataKey="eps" name="Reported EPS" fill={CATEGORICAL[0]} radius={[4, 4, 0, 0]} maxBarSize={24} />
       </BarChart>
     </ResponsiveContainer>

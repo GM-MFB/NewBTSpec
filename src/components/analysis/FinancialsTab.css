@@ -83,6 +83,24 @@
   color: var(--green);
 }
 
+.fin-chip--active {
+  border-color: var(--green);
+  color: var(--green);
+  background: var(--bg);
+}
+
+.fin-header {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.fin-symbol {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
 .fin-key-required {
   text-align: center;
   color: var(--text-dim);

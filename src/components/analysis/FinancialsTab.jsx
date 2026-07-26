@@ -141,7 +141,12 @@ export default function FinancialsTab({ investments }) {
       <div className="fin-toolbar">
         <div className="fin-symbol-picker">
           {stockSymbols.map((symbol) => (
-            <button key={symbol} type="button" className="fin-chip" onClick={() => research(symbol)}>
+            <button
+              key={symbol}
+              type="button"
+              className={`fin-chip${symbol === activeSymbol ? ' fin-chip--active' : ''}`}
+              onClick={() => research(symbol)}
+            >
               {symbol}
             </button>
           ))}
@@ -163,6 +168,12 @@ export default function FinancialsTab({ investments }) {
           </div>
         )}
       </div>
+
+      {result && (
+        <div className="fin-header">
+          <span className="fin-symbol" data-testid="fin-active-symbol">{activeSymbol}</span>
+        </div>
+      )}
 
       {result && (
         <div className="fin-frequency-toggle">
