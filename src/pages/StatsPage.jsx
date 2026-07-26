@@ -119,7 +119,7 @@ export default function StatsPage() {
             <h2 className="stats-section-title">By Strategy</h2>
             <table className="stats-table">
               <thead>
-                <tr><th>Strategy</th><th>Count</th><th>Win Rate</th><th>Total P&L</th></tr>
+                <tr><th>Strategy</th><th>Trades</th><th>Win Rate</th><th>Total P&L</th></tr>
               </thead>
               <tbody>
                 {stats.byStrategy.map((row) => (
@@ -138,7 +138,7 @@ export default function StatsPage() {
             <h2 className="stats-section-title">By Symbol</h2>
             <table className="stats-table">
               <thead>
-                <tr><th>Symbol</th><th>Count</th><th>Total P&L</th></tr>
+                <tr><th>Symbol</th><th>Trades</th><th>Total P&L</th></tr>
               </thead>
               <tbody>
                 {stats.bySymbol.map((row) => (
