@@ -2,7 +2,7 @@ import { useState } from 'react'
 import './SectorBrowser.css'
 import { SECTORS } from '../../lib/sectorStocks'
 
-export default function SectorBrowser({ onAddToCompare }) {
+export default function SectorBrowser({ onAddToCompare, onSendToFrontier, onSendToOptimizer }) {
   const [selected, setSelected] = useState(new Set())
 
   function toggle(sym) {
@@ -16,6 +16,16 @@ export default function SectorBrowser({ onAddToCompare }) {
 
   function handleAdd() {
     onAddToCompare([...selected])
+    setSelected(new Set())
+  }
+
+  function handleSendToFrontier() {
+    onSendToFrontier([...selected])
+    setSelected(new Set())
+  }
+
+  function handleSendToOptimizer() {
+    onSendToOptimizer([...selected])
     setSelected(new Set())
   }
 
@@ -42,6 +52,8 @@ export default function SectorBrowser({ onAddToCompare }) {
       <div className="sector-actions">
         <span>{selected.size} selected</span>
         <button type="button" onClick={handleAdd} disabled={selected.size === 0}>Add to Compare</button>
+        <button type="button" onClick={handleSendToFrontier} disabled={selected.size === 0}>Send to Frontier</button>
+        <button type="button" onClick={handleSendToOptimizer} disabled={selected.size === 0}>Send to Optimizer</button>
       </div>
     </div>
   )

@@ -29,4 +29,35 @@ describe('SectorBrowser', () => {
     render(<SectorBrowser onAddToCompare={vi.fn()} />)
     expect(screen.getByRole('button', { name: /add to compare/i })).toBeDisabled()
   })
+
+  it('calls onSendToFrontier with the selected symbols and clears the selection', async () => {
+    const onSendToFrontier = vi.fn()
+    render(<SectorBrowser onAddToCompare={vi.fn()} onSendToFrontier={onSendToFrontier} onSendToOptimizer={vi.fn()} />)
+
+    const firstCheckbox = screen.getAllByRole('checkbox')[0]
+    await userEvent.click(firstCheckbox)
+    await userEvent.click(screen.getByRole('button', { name: /send to frontier/i }))
+
+    expect(onSendToFrontier).toHaveBeenCalledTimes(1)
+    expect(onSendToFrontier.mock.calls[0][0]).toHaveLength(1)
+    expect(firstCheckbox).not.toBeChecked()
+  })
+
+  it('calls onSendToOptimizer with the selected symbols and clears the selection', async () => {
+    const onSendToOptimizer = vi.fn()
+    render(<SectorBrowser onAddToCompare={vi.fn()} onSendToFrontier={vi.fn()} onSendToOptimizer={onSendToOptimizer} />)
+
+    const firstCheckbox = screen.getAllByRole('checkbox')[0]
+    await userEvent.click(firstCheckbox)
+    await userEvent.click(screen.getByRole('button', { name: /send to optimizer/i }))
+
+    expect(onSendToOptimizer).toHaveBeenCalledTimes(1)
+    expect(onSendToOptimizer.mock.calls[0][0]).toHaveLength(1)
+  })
+
+  it('disables the send buttons when nothing is selected', () => {
+    render(<SectorBrowser onAddToCompare={vi.fn()} onSendToFrontier={vi.fn()} onSendToOptimizer={vi.fn()} />)
+    expect(screen.getByRole('button', { name: /send to frontier/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /send to optimizer/i })).toBeDisabled()
+  })
 })
