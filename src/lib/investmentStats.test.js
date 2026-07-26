@@ -26,6 +26,11 @@ describe('realizedPnlFor', () => {
     const investment = { status: 'open', assetType: 'Stock', shares: 10, avgCost: 100, sellPrice: '' }
     expect(realizedPnlFor(investment)).toBeNull()
   })
+
+  it('falls back to option_direction for the short/long P&L formula when strategy is blank', () => {
+    const investment = { status: 'closed', assetType: 'Option', strategy: '', optionDirection: 'short', shares: 1, avgCost: 2, sellPrice: 0.5 }
+    expect(realizedPnlFor(investment)).toBe(150)
+  })
 })
 
 describe('computeInvestmentStats', () => {

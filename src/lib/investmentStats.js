@@ -15,7 +15,8 @@ export function realizedPnlFor(investment) {
   }
 
   const strategyDef = strategyByValue(investment.strategy)
-  if (strategyDef?.optionDirection === 'short') {
+  const optionDirection = strategyDef?.optionDirection || investment.optionDirection
+  if (optionDirection === 'short') {
     return (avgCost - sellPrice) * shares * 100
   }
   return (sellPrice - avgCost) * shares * 100
