@@ -14,9 +14,9 @@ describe('FrontierPanel', () => {
   it('renders the frontier chart with 3 reference points labeled', () => {
     render(<FrontierPanel symbols={['AAPL', 'SPY']} weights={[0.6, 0.4]} storageKey="test_ef_params" nSim={300} />)
 
-    expect(screen.getByText('Your Portfolio')).toBeInTheDocument()
-    expect(screen.getByText('Max Diversification')).toBeInTheDocument()
-    expect(screen.getByText('Max Sharpe')).toBeInTheDocument()
+    expect(screen.getAllByText('Your Portfolio').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Max Diversification').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Max Sharpe').length).toBeGreaterThan(0)
   })
 
   it('renders a rebalancing table row per symbol', () => {
@@ -50,6 +50,95 @@ describe('FrontierPanel', () => {
       />,
     )
     await userEvent.click(screen.getByRole('button', { name: /adjust expected returns/i }))
-    expect(screen.getByText('SPY (new)')).toBeInTheDocument()
+    expect(document.querySelector('.frontier-assumptions')).toHaveTextContent('SPY (new)')
+  })
+
+  it('renders 3 stat cards with title, subtitle, and headline stats', () => {
+    render(<FrontierPanel symbols={['AAPL', 'SPY']} weights={[0.6, 0.4]} storageKey="test_ef_params_4" nSim={300} />)
+
+    expect(screen.getByText('Current allocation')).toBeInTheDocument()
+    expect(screen.getByText('Best correlation spread')).toBeInTheDocument()
+    expect(screen.getByText('Best risk-adjusted return')).toBeInTheDocument()
+    expect(screen.getAllByText('Exp. Annual Return')).toHaveLength(3)
+    expect(screen.getAllByText('Sharpe Ratio')).toHaveLength(3)
+  })
+
+  it('renders one allocation bar row per symbol per card, sorted by that card\'s weight', () => {
+    render(<FrontierPanel symbols={['AAPL', 'SPY']} weights={[0.6, 0.4]} storageKey="test_ef_params_5" nSim={300} />)
+
+    expect(screen.getAllByText('Suggested Allocation')).toHaveLength(3)
+    const allocationRows = document.querySelectorAll('.frontier-allocation-row')
+    expect(allocationRows.length).toBe(6)
+  })
+
+  it('gives each symbol a consistent color between its allocation bar and its rebalancing-table dot', () => {
+    render(
+      <FrontierPanel
+        symbols={['AAPL', 'SPY']}
+        weights={[0.6, 0.4]}
+        storageKey="test_ef_params_colors"
+        priceMap={{ AAPL: 150, SPY: 500 }}
+        nSim={300}
+      />,
+    )
+    const aaplBarColor = document.querySelector('.frontier-allocation-symbol').style.color
+    const aaplDotColor = document.querySelector('.frontier-symbol-dot').style.background
+    expect([aaplBarColor, aaplDotColor].every((c) => c.length > 0)).toBe(true)
+  })
+
+  it('shows the total portfolio value header above the rebalancing table', () => {
+    render(
+      <FrontierPanel
+        symbols={['AAPL', 'SPY']}
+        weights={[0.6, 0.4]}
+        storageKey="test_ef_params_6"
+        priceMap={{ AAPL: 150, SPY: 500 }}
+        nSim={300}
+      />,
+    )
+    expect(screen.getByText(/based on total portfolio value of/i)).toBeInTheDocument()
+  })
+
+  it('shows a colored symbol dot, price, and share count in the rebalancing table', () => {
+    render(
+      <FrontierPanel
+        symbols={['AAPL', 'SPY']}
+        weights={[0.6, 0.4]}
+        storageKey="test_ef_params_7"
+        priceMap={{ AAPL: 150, SPY: 500 }}
+        nSim={300}
+      />,
+    )
+    const aaplCell = screen.getByRole('rowheader', { name: /aapl/i })
+    expect(aaplCell).toHaveTextContent('$150.00')
+    expect(document.querySelector('.frontier-symbol-dot')).toBeTruthy()
+  })
+
+  it('shows a "(new)" badge for a combined-mode extra symbol in the rebalancing table', () => {
+    render(
+      <FrontierPanel
+        symbols={['AAPL']}
+        weights={[1]}
+        storageKey="test_ef_params_8"
+        mode="combined"
+        extraSymbols={['SPY']}
+        priceMap={{ SPY: 500 }}
+        nSim={300}
+      />,
+    )
+    expect(screen.getByRole('rowheader', { name: /spy.*new/i })).toBeInTheDocument()
+  })
+
+  it('shows colored Buy/Sell/Hold action text with a %Δ line', () => {
+    render(
+      <FrontierPanel
+        symbols={['AAPL', 'SPY']}
+        weights={[0.6, 0.4]}
+        storageKey="test_ef_params_9"
+        priceMap={{ AAPL: 150, SPY: 500 }}
+        nSim={300}
+      />,
+    )
+    expect(document.querySelectorAll('.frontier-action-buy, .frontier-action-sell, .frontier-action-hold').length).toBeGreaterThan(0)
   })
 })

@@ -4,6 +4,52 @@ import {
 } from 'recharts'
 import './FrontierPanel.css'
 import { generateEfficientFrontierData, generateCombinedFrontierData, getAssetParams } from '../../lib/efficientFrontier'
+import { formatCurrency, formatLarge } from '../../lib/format'
+
+const PALETTE = ['#3987e5', '#d95926', '#199e70', '#c98500', '#d55181', '#008300', '#9085e9', '#e66767']
+
+function assignSymbolColors(symbols, weights) {
+  const order = symbols
+    .map((s, i) => ({ symbol: s, weight: weights[i] }))
+    .sort((a, b) => b.weight - a.weight)
+  const colorMap = {}
+  order.forEach(({ symbol }, i) => { colorMap[symbol] = PALETTE[i % PALETTE.length] })
+  return colorMap
+}
+
+function formatShares(n) {
+  if (!Number.isFinite(n)) return '—'
+  return Math.abs(n) < 1 ? n.toFixed(2) : Math.round(n).toLocaleString()
+}
+
+function FrontierStatCard({ title, subtitle, point, symbols, colorMap }) {
+  const rows = symbols
+    .map((s, i) => ({ symbol: s, weight: point.weights[i] * 100 }))
+    .sort((a, b) => b.weight - a.weight)
+  return (
+    <div className="frontier-stat-card">
+      <h3>{title}</h3>
+      <p className="frontier-stat-card-subtitle">{subtitle}</p>
+      <dl className="frontier-stat-list">
+        <div><dt>Exp. Annual Return</dt><dd className="frontier-stat-positive">{(point.ret * 100).toFixed(1)}%</dd></div>
+        <div><dt>Annualized Volatility</dt><dd>{(point.vol * 100).toFixed(1)}%</dd></div>
+        <div><dt>Sharpe Ratio</dt><dd>{point.sharpe.toFixed(2)}</dd></div>
+      </dl>
+      <p className="frontier-stat-card-label">Suggested Allocation</p>
+      <div className="frontier-allocation-bars">
+        {rows.map((r) => (
+          <div key={r.symbol} className="frontier-allocation-row">
+            <span className="frontier-allocation-symbol" style={{ color: colorMap[r.symbol] }}>{r.symbol}</span>
+            <div className="frontier-allocation-track">
+              <div className="frontier-allocation-fill" style={{ width: `${r.weight}%`, background: colorMap[r.symbol] }} />
+            </div>
+            <span className="frontier-allocation-pct mono">{r.weight.toFixed(1)}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 function loadOverrides(storageKey) {
   const raw = localStorage.getItem(storageKey)
@@ -52,15 +98,8 @@ export default function FrontierPanel({
     return sum + (currentPoint.weights[i] ?? 0) * price
   }, 0)
 
-  function actionFor(targetWeight, symbol, currentWeight) {
-    const price = priceMap[symbol]
-    if (!price) return '—'
-    const deltaShares = Math.round(((targetWeight - currentWeight) / 100) * totalMV / price)
-    if (deltaShares === 0) return 'hold'
-    return deltaShares > 0 ? `buy ${deltaShares}` : `sell ${Math.abs(deltaShares)}`
-  }
-
   const chartData = simData.frontier.map((p) => ({ vol: p.vol * 100, ret: p.ret * 100 }))
+  const colorMap = assignSymbolColors(allSymbols, currentPoint.weights)
 
   return (
     <div className="frontier-panel">
@@ -87,31 +126,75 @@ export default function FrontierPanel({
         </ComposedChart>
       </ResponsiveContainer>
 
-      <table className="frontier-table">
-        <thead>
-          <tr>
-            <th>Symbol</th>
-            <th>Current %</th>
-            <th>Max-Div % / Action</th>
-            <th>Max-Sharpe % / Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {allSymbols.map((symbol, i) => {
-            const currentWeight = currentPoint.weights[i] * 100
-            const maxDivWeight = simData.maxDiversification.weights[i] * 100
-            const maxSharpeWeight = simData.maxSharpe.weights[i] * 100
-            return (
-              <tr key={symbol}>
-                <th scope="row">{symbol}</th>
-                <td className="mono">{currentWeight.toFixed(1)}%</td>
-                <td className="mono">{maxDivWeight.toFixed(1)}% ({actionFor(maxDivWeight, symbol, currentWeight)})</td>
-                <td className="mono">{maxSharpeWeight.toFixed(1)}% ({actionFor(maxSharpeWeight, symbol, currentWeight)})</td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+      <div className="frontier-stat-cards">
+        <FrontierStatCard title="Your Portfolio" subtitle="Current allocation" point={currentPoint} symbols={allSymbols} colorMap={colorMap} />
+        <FrontierStatCard title="Max Diversification" subtitle="Best correlation spread" point={simData.maxDiversification} symbols={allSymbols} colorMap={colorMap} />
+        <FrontierStatCard title="Max Sharpe" subtitle="Best risk-adjusted return" point={simData.maxSharpe} symbols={allSymbols} colorMap={colorMap} />
+      </div>
+
+      <div className="frontier-rebalancing">
+        <p className="frontier-rebalancing-header">
+          Based on total portfolio value of {formatLarge(totalMV)}
+        </p>
+        <table className="frontier-table">
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Current %</th>
+              <th>Shares</th>
+              <th>Max-Div %</th>
+              <th>Action</th>
+              <th>Max-Sharpe %</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {allSymbols.map((symbol, i) => {
+              const currentWeight = currentPoint.weights[i] * 100
+              const maxDivWeight = simData.maxDiversification.weights[i] * 100
+              const maxSharpeWeight = simData.maxSharpe.weights[i] * 100
+              const price = priceMap[symbol]
+              const shares = price ? (currentWeight / 100) * totalMV / price : null
+              const isNew = extraSymbols.includes(symbol) && !symbols.includes(symbol)
+
+              function renderAction(targetWeight) {
+                if (!price) return <span className="frontier-action-hold">—</span>
+                const deltaShares = Math.round(((targetWeight - currentWeight) / 100) * totalMV / price)
+                const deltaPct = targetWeight - currentWeight
+                if (deltaShares === 0) {
+                  return <span className="frontier-action-hold">Hold</span>
+                }
+                const className = deltaShares > 0 ? 'frontier-action-buy' : 'frontier-action-sell'
+                const label = deltaShares > 0 ? `▲ Buy ${deltaShares}` : `▼ Sell ${Math.abs(deltaShares)}`
+                return (
+                  <span className={className}>
+                    {label}
+                    <br />
+                    <span className="frontier-action-delta">{deltaPct >= 0 ? '+' : ''}{deltaPct.toFixed(1)}%</span>
+                  </span>
+                )
+              }
+
+              return (
+                <tr key={symbol}>
+                  <th scope="row">
+                    <span className="frontier-symbol-dot" style={{ background: colorMap[symbol] }} />
+                    {symbol}{isNew ? ' (new)' : ''}
+                    <br />
+                    <span className="frontier-symbol-price">{price ? formatCurrency(price) : '—'}</span>
+                  </th>
+                  <td className="mono">{currentWeight.toFixed(1)}%</td>
+                  <td className="mono">{shares !== null ? formatShares(shares) : '—'}</td>
+                  <td className="mono">{maxDivWeight.toFixed(1)}%</td>
+                  <td>{renderAction(maxDivWeight)}</td>
+                  <td className="mono">{maxSharpeWeight.toFixed(1)}%</td>
+                  <td>{renderAction(maxSharpeWeight)}</td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
 
       <button type="button" onClick={() => setShowAssumptions((v) => !v)}>
         {showAssumptions ? 'Hide' : 'Adjust Expected Returns & Volatility'}
