@@ -154,4 +154,24 @@ describe('ResearchTab', () => {
 
     await waitFor(() => expect(fetchCorrelations).toHaveBeenCalledWith(['AAPL']))
   })
+
+  it('passes onSendToFrontier and onSendToOptimizer through to SectorBrowser', async () => {
+    useUserSettings.mockReturnValue({ finnhubKey: 'key123', avKey: '', loading: false })
+    const onSendToFrontier = vi.fn()
+    const onSendToOptimizer = vi.fn()
+
+    render(
+      <MemoryRouter>
+        <ResearchTab investments={investments} onSendToFrontier={onSendToFrontier} onSendToOptimizer={onSendToOptimizer} />
+      </MemoryRouter>,
+    )
+    await userEvent.click(screen.getByRole('button', { name: /^compare$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /browse by sector/i }))
+
+    const firstCheckbox = screen.getAllByRole('checkbox')[0]
+    await userEvent.click(firstCheckbox)
+    await userEvent.click(screen.getByRole('button', { name: /send to frontier/i }))
+
+    expect(onSendToFrontier).toHaveBeenCalledTimes(1)
+  })
 })

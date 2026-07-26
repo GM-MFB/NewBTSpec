@@ -12,7 +12,7 @@ import PortfolioContext from './PortfolioContext'
 import { fetchCorrelations } from '../../lib/fetchCorrelations'
 import { setRealCorrelations, setComputedParams } from '../../lib/efficientFrontier'
 
-export default function ResearchTab({ investments }) {
+export default function ResearchTab({ investments, onSendToFrontier, onSendToOptimizer }) {
   const { user } = useAuth()
   const { finnhubKey, loading: settingsLoading } = useUserSettings(user?.id)
   const [data, setData] = useState({})
@@ -146,7 +146,13 @@ export default function ResearchTab({ investments }) {
         </div>
       )}
 
-      {view === 'compare' && showSectorBrowser && <SectorBrowser onAddToCompare={handleAddToCompare} />}
+      {view === 'compare' && showSectorBrowser && (
+        <SectorBrowser
+          onAddToCompare={handleAddToCompare}
+          onSendToFrontier={onSendToFrontier}
+          onSendToOptimizer={onSendToOptimizer}
+        />
+      )}
 
       {loadingSymbol && <p>Loading {loadingSymbol}…</p>}
 
