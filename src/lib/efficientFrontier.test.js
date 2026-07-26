@@ -3,6 +3,7 @@ import {
   getAssetParams, getCorrelation, setRealCorrelations, setComputedParams, getCorrVersion,
   portfolioStats, randomWeights, generateEfficientFrontierData, extractFrontier,
   generateCombinedFrontierData, runBackwardElimination, findOptimalSubset, findOptimalSubsetForSymbols,
+  getCorrelationMatrix, getCorrelationMatrixForSymbols,
 } from './efficientFrontier'
 
 describe('getAssetParams', () => {
@@ -176,5 +177,19 @@ describe('runBackwardElimination', () => {
     const a = findOptimalSubset(['A', 'B'], 500)
     const b = findOptimalSubsetForSymbols(['A', 'B'], 500)
     expect(a.fullSymbols).toEqual(b.fullSymbols)
+  })
+})
+
+describe('getCorrelationMatrix', () => {
+  it('returns a symmetric matrix with 1 on the diagonal', () => {
+    const matrix = getCorrelationMatrix(['AAPL', 'MSFT', 'SPY'])
+    expect(matrix).toHaveLength(3)
+    expect(matrix[0][0]).toBe(1)
+    expect(matrix[1][1]).toBe(1)
+    expect(matrix[0][1]).toBe(matrix[1][0])
+  })
+
+  it('getCorrelationMatrixForSymbols is equivalent to getCorrelationMatrix', () => {
+    expect(getCorrelationMatrixForSymbols(['AAPL', 'SPY'])).toEqual(getCorrelationMatrix(['AAPL', 'SPY']))
   })
 })

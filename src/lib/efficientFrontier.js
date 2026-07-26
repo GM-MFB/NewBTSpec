@@ -193,3 +193,10 @@ export function findOptimalSubset(portfolioSymbols, nSim, options = {}) {
 export function findOptimalSubsetForSymbols(symbols, nSim, options = {}) {
   return runBackwardElimination(symbols, nSim, options)
 }
+
+export function getCorrelationMatrix(symbols) {
+  return symbols.map((a) => symbols.map((b) => getCorrelation(a, b)))
+}
+export function getCorrelationMatrixForSymbols(symbols) {
+  return getCorrelationMatrix(symbols)
+}
