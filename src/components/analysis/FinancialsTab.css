@@ -110,12 +110,14 @@
 
 .fin-table {
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: 13px;
   white-space: nowrap;
+  width: 100%;
+  min-width: 100%;
 }
 
 .fin-table th, .fin-table td {
-  padding: 6px 10px;
+  padding: 10px 20px;
   border-bottom: 1px solid var(--border);
   text-align: right;
 }
