@@ -1,0 +1,157 @@
+.financials-tab {
+  padding: 20px 32px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.fin-symbol-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.fin-symbol-picker form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fin-symbol-picker label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+}
+
+.fin-symbol-picker input {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 6px 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.fin-chip {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.fin-chip:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.fin-key-required {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 14px;
+  padding: 60px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.fin-frequency-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px;
+  width: fit-content;
+}
+
+.fin-frequency-toggle button {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.fin-frequency-toggle button[aria-pressed="true"] {
+  background: var(--bg);
+  color: var(--green);
+}
+
+.fin-panels {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.fin-section h2 {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.fin-table-wrap {
+  overflow-x: auto;
+}
+
+.fin-table {
+  border-collapse: collapse;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.fin-table th, .fin-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+}
+
+.fin-table th:first-child, .fin-table td:first-child {
+  text-align: left;
+}
+
+.fin-table th {
+  color: var(--text-dim);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.fin-table td {
+  color: var(--text);
+}
+
+.fin-sticky-col {
+  position: sticky;
+  left: 0;
+  background: var(--bg);
+  color: var(--text-dim);
+}
+
+.fin-badge {
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.fin-badge--up {
+  color: var(--green);
+}
+
+.fin-badge--down {
+  color: var(--red);
+}

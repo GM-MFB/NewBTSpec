@@ -6,10 +6,12 @@ import AnalyzePage from './AnalyzePage'
 import { useAuth } from '../hooks/useAuth'
 import { useAccounts } from '../hooks/useAccounts'
 import { useInvestments } from '../hooks/useInvestments'
+import { useUserSettings } from '../hooks/useUserSettings'
 
 vi.mock('../hooks/useAuth')
 vi.mock('../hooks/useAccounts')
 vi.mock('../hooks/useInvestments')
+vi.mock('../hooks/useUserSettings')
 
 function mockCommon() {
   useAuth.mockReturnValue({ user: { id: 'u1' } })
@@ -22,6 +24,7 @@ function mockCommon() {
     loading: false,
   })
   useInvestments.mockReturnValue({ investments: [], loading: false, error: null, reload: vi.fn() })
+  useUserSettings.mockReturnValue({ finnhubKey: '', avKey: '', loading: false })
 }
 
 describe('AnalyzePage', () => {
@@ -42,7 +45,7 @@ describe('AnalyzePage', () => {
   it('shows a Coming soon placeholder for an unbuilt tab', async () => {
     mockCommon()
     render(<MemoryRouter><AnalyzePage /></MemoryRouter>)
-    await userEvent.click(screen.getByRole('button', { name: /^financials$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^research$/i }))
     expect(screen.getByText(/coming soon/i)).toBeInTheDocument()
   })
 })
