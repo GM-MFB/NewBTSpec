@@ -69,3 +69,23 @@ export function getCorrelation(sym1, sym2) {
   const cat2 = getAssetParams(sym2).cat
   return CAT_CORR[cat1]?.[cat2] ?? CAT_CORR[cat2]?.[cat1] ?? UNKNOWN_PAIR_CORR
 }
+
+export function portfolioStats(symbols, weights, paramsOverride = {}) {
+  const params = symbols.map((s) => paramsOverride[s] ?? getAssetParams(s))
+  const ret = weights.reduce((sum, w, i) => sum + w * params[i].r, 0)
+  let variance = 0
+  for (let i = 0; i < symbols.length; i += 1) {
+    for (let j = 0; j < symbols.length; j += 1) {
+      variance += weights[i] * weights[j] * params[i].s * params[j].s * getCorrelation(symbols[i], symbols[j])
+    }
+  }
+  const vol = Math.sqrt(Math.max(0, variance))
+  const sharpe = vol > 0 ? (ret - RISK_FREE) / vol : 0
+  return { ret, vol, sharpe }
+}
+
+export function randomWeights(n) {
+  const draws = Array.from({ length: n }, () => -Math.log(Math.random()))
+  const total = draws.reduce((a, b) => a + b, 0)
+  return draws.map((d) => d / total)
+}

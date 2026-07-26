@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { getAssetParams, getCorrelation, setRealCorrelations, setComputedParams, getCorrVersion } from './efficientFrontier'
+import {
+  getAssetParams, getCorrelation, setRealCorrelations, setComputedParams, getCorrVersion,
+  portfolioStats, randomWeights,
+} from './efficientFrontier'
 
 describe('getAssetParams', () => {
   it('returns the static table entry for a known ticker', () => {
@@ -53,5 +56,34 @@ describe('getCorrelation', () => {
     expect(getCorrVersion()).toBe(before + 1)
     setComputedParams({ AAPL: { r: 0.1, s: 0.2 } })
     expect(getCorrVersion()).toBe(before + 2)
+  })
+})
+
+describe('portfolioStats', () => {
+  it('computes return/vol/sharpe for a hand-computed 2-asset example', () => {
+    setComputedParams({
+      ASSET_A: { r: 0.10, s: 0.20 },
+      ASSET_B: { r: 0.20, s: 0.30 },
+    })
+    setRealCorrelations({ ASSET_A: { ASSET_B: 0.5 } })
+
+    const { ret, vol, sharpe } = portfolioStats(['ASSET_A', 'ASSET_B'], [0.5, 0.5])
+
+    const expectedRet = 0.5 * 0.10 + 0.5 * 0.20
+    const variance = (0.5 ** 2) * (0.20 ** 2) + (0.5 ** 2) * (0.30 ** 2) + 2 * 0.5 * 0.5 * 0.20 * 0.30 * 0.5
+    const expectedVol = Math.sqrt(variance)
+
+    expect(ret).toBeCloseTo(expectedRet, 6)
+    expect(vol).toBeCloseTo(expectedVol, 6)
+    expect(sharpe).toBeCloseTo((expectedRet - 0.045) / expectedVol, 6)
+  })
+})
+
+describe('randomWeights', () => {
+  it('sums to 1 and all values are positive', () => {
+    const weights = randomWeights(5)
+    expect(weights).toHaveLength(5)
+    expect(weights.every((w) => w > 0)).toBe(true)
+    expect(weights.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 10)
   })
 })
