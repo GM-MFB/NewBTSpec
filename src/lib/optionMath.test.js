@@ -17,6 +17,11 @@ describe('collateralFor', () => {
     const investment = { shares: 1, strike: 300 }
     expect(collateralFor(investment, strategyByValue('call'))).toBe('')
   })
+
+  it('returns blank for a covered call (collateralized by owned shares, not cash)', () => {
+    const investment = { shares: 1, strike: 450 }
+    expect(collateralFor(investment, strategyByValue('covered_call'))).toBe('')
+  })
 })
 
 describe('potentialPnlFor', () => {

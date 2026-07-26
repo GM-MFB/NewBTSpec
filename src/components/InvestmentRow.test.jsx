@@ -143,6 +143,13 @@ describe('InvestmentRow', () => {
     expect(screen.queryByText('P&L:')).not.toBeInTheDocument()
   })
 
+  it('does not show collateral for a covered call (covered by owned shares, not cash), but still shows P&L', () => {
+    const investment = { id: 'i2', symbol: 'SPY', assetType: 'Option', shares: 5, avgCost: 3.5, strategy: 'covered_call', strike: 450, expiry: '2026-03-01' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.queryByText('Collateral:')).not.toBeInTheDocument()
+    expect(screen.getByText('P&L:')).toBeInTheDocument()
+  })
+
   it('shows Shares as owned/required when coveredShares is provided', () => {
     const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 255, avgCost: 150, strategy: '', strike: '', expiry: '' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} coveredShares={200} />)

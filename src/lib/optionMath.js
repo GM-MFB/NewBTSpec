@@ -2,6 +2,7 @@ export function collateralFor(investment, strategyDef) {
   const contracts = Number(investment.shares)
   const strike = Number(investment.strike)
   if (!strategyDef || strategyDef.optionDirection !== 'short' || !contracts || !strike) return ''
+  if (strategyDef.value === 'covered_call') return ''
   if (strategyDef.isSpread) {
     const strike2 = Number(investment.strike2)
     if (!strike2) return ''

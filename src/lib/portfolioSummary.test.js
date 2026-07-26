@@ -13,6 +13,15 @@ describe('computeSummary', () => {
     expect(summary.potentialPremium).toBe(420)
   })
 
+  it('excludes covered calls from collateral (covered by shares, not cash) but still counts their premium', () => {
+    const investments = [
+      { assetType: 'Option', strategy: 'covered_call', shares: 1, strike: 450, avgCost: 3.5 },
+    ]
+    const summary = computeSummary(investments)
+    expect(summary.totalCollateral).toBe(0)
+    expect(summary.potentialPremium).toBe(350)
+  })
+
   it('sums unrealized stock P&L using current price minus avg cost, times shares', () => {
     const investments = [
       { assetType: 'Stock', shares: 10, avgCost: 150, currentPrice: 165 },
