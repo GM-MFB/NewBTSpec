@@ -33,6 +33,37 @@
   background: rgba(239, 68, 68, 0.12);
 }
 
+.week-premium-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 32px 0;
+}
+
+.week-premium-bar label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+}
+
+.week-premium-bar input[type="week"] {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 6px 10px;
+  font-size: 13px;
+  color-scheme: dark;
+}
+
+.week-premium-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
 .portfolio-summary {
   display: flex;
   flex-wrap: wrap;

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import InvestmentsPage from './InvestmentsPage'
@@ -145,10 +145,30 @@ describe('InvestmentsPage', () => {
 
     const summaryBar = screen.getByText('Total Collateral Deployed').closest('.portfolio-summary')
     expect(summaryBar).toHaveTextContent('$76,000.00')
-    expect(summaryBar).toHaveTextContent('Potential Options Premium')
+    expect(summaryBar).toHaveTextContent('Outstanding Option Premium')
     expect(summaryBar).toHaveTextContent('$300.00')
     expect(summaryBar).toHaveTextContent('Unrealized Stock P&L')
     expect(summaryBar).toHaveTextContent('$100.00')
+  })
+
+  it('shows the premium-for-week selector and updates the total when the week changes', async () => {
+    mockAccounts()
+    useInvestments.mockReturnValue({
+      investments: [
+        { id: 'i1', symbol: 'QQQ', assetType: 'Option', shares: 2, avgCost: 1.5, strategy: 'cash_secured_put', strike: 380, expiry: '2026-01-28' },
+        { id: 'i2', symbol: 'SPY', assetType: 'Option', shares: 1, avgCost: 2, strategy: 'covered_call', strike: 450, expiry: '2026-02-10' },
+      ],
+      loading: false, error: null, reload: vi.fn(),
+      addInvestment: vi.fn(), closeInvestment: vi.fn(), updateInvestment: vi.fn(), deleteInvestment: vi.fn(),
+    })
+
+    render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
+
+    const weekInput = screen.getByLabelText(/premium for week/i)
+    fireEvent.change(weekInput, { target: { value: '2026-W05' } })
+
+    const bar = weekInput.closest('.week-premium-bar')
+    expect(bar).toHaveTextContent('$300.00')
   })
 
   it('hides the portfolio summary when there are no open investments', () => {

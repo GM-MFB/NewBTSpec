@@ -10,6 +10,8 @@ import { coveredSharesFor } from '../lib/coverage'
 import { computeSummary } from '../lib/portfolioSummary'
 import { formatCurrency } from '../lib/format'
 import { fetchQuote } from '../lib/finnhub'
+import { currentWeekValue } from '../lib/isoWeek'
+import { premiumForWeek } from '../lib/weeklyPremium'
 import Header from '../components/Header'
 import InvestmentRow from '../components/InvestmentRow'
 import AddInvestmentModal from '../components/AddInvestmentModal'
@@ -25,6 +27,7 @@ export default function InvestmentsPage() {
   const [refreshing, setRefreshing] = useState(false)
   const [missingKey, setMissingKey] = useState(false)
   const [refreshFailedSymbols, setRefreshFailedSymbols] = useState([])
+  const [weekValue, setWeekValue] = useState(currentWeekValue())
 
   const stockInvestments = investments.filter((i) => i.assetType === 'Stock')
   const strategyGroups = STRATEGIES
@@ -98,13 +101,21 @@ export default function InvestmentsPage() {
       )}
 
       {investments.length > 0 && (
+        <div className="week-premium-bar">
+          <label htmlFor="weekSelect">Premium for week</label>
+          <input id="weekSelect" type="week" value={weekValue} onChange={(e) => setWeekValue(e.target.value)} />
+          <span className="week-premium-value mono">{formatCurrency(premiumForWeek(investments, weekValue))}</span>
+        </div>
+      )}
+
+      {investments.length > 0 && (
         <div className="portfolio-summary">
           <div className="summary-stat">
             <span className="summary-label">Total Collateral Deployed</span>
             <span className="summary-value mono">{formatCurrency(summary.totalCollateral)}</span>
           </div>
           <div className="summary-stat">
-            <span className="summary-label">Potential Options Premium</span>
+            <span className="summary-label">Outstanding Option Premium</span>
             <span className="summary-value mono">{formatCurrency(summary.potentialPremium)}</span>
           </div>
           <div className="summary-stat">
