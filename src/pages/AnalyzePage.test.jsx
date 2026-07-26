@@ -45,7 +45,7 @@ describe('AnalyzePage', () => {
   it('shows a Coming soon placeholder for an unbuilt tab', async () => {
     mockCommon()
     render(<MemoryRouter><AnalyzePage /></MemoryRouter>)
-    await userEvent.click(screen.getByRole('button', { name: /^dcf$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^frontier$/i }))
     expect(screen.getByText(/coming soon/i)).toBeInTheDocument()
   })
 })
