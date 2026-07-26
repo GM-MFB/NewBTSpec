@@ -206,41 +206,41 @@ export default function StatsPage() {
 
           <div className="investment-groups">
             {closedStocks.length > 0 && (
-              <section className="investment-group">
-                <h2 className="group-title">Stock</h2>
+              <details className="investment-group" open>
+                <summary className="group-title">Stock<span className="group-count">{closedStocks.length}</span></summary>
                 <ul className="investment-list">
                   {closedStocks.map((investment) => (
                     <InvestmentRow key={investment.id} investment={investment} onDelete={deleteInvestment} />
                   ))}
                 </ul>
-              </section>
+              </details>
             )}
 
             {closedStrategyGroups.length > 0 && (
-              <section className="investment-group">
-                <h2 className="group-title">Option</h2>
+              <details className="investment-group" open>
+                <summary className="group-title">Option</summary>
                 {closedStrategyGroups.map((group) => (
-                  <div key={group.key} className="strategy-group">
-                    <h3 className="strategy-title">{group.label}</h3>
+                  <details key={group.key} className="strategy-group" open>
+                    <summary className="strategy-title">{group.label}<span className="group-count">{group.items.length}</span></summary>
                     <ul className="investment-list">
                       {group.items.map((investment) => (
                         <InvestmentRow key={investment.id} investment={investment} onDelete={deleteInvestment} />
                       ))}
                     </ul>
-                  </div>
+                  </details>
                 ))}
-              </section>
+              </details>
             )}
 
             {closedOtherInvestments.length > 0 && (
-              <section className="investment-group">
-                <h2 className="group-title">Other</h2>
+              <details className="investment-group" open>
+                <summary className="group-title">Other<span className="group-count">{closedOtherInvestments.length}</span></summary>
                 <ul className="investment-list">
                   {closedOtherInvestments.map((investment) => (
                     <InvestmentRow key={investment.id} investment={investment} onDelete={deleteInvestment} />
                   ))}
                 </ul>
-              </section>
+              </details>
             )}
           </div>
         </div>

@@ -215,3 +215,35 @@
 .closed-investments-section .investment-groups {
   padding-top: 0;
 }
+
+.closed-investments-section summary.group-title,
+.closed-investments-section summary.strategy-title {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: revert;
+}
+
+.closed-investments-section summary.group-title::marker,
+.closed-investments-section summary.strategy-title::marker {
+  color: var(--text-dim);
+}
+
+.closed-investments-section summary.group-title:hover,
+.closed-investments-section summary.strategy-title:hover {
+  color: var(--text);
+}
+
+.group-count {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-dim);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 7px;
+  line-height: 1.5;
+  text-transform: none;
+  letter-spacing: normal;
+}

@@ -80,6 +80,30 @@ describe('StatsPage', () => {
     expect(screen.getAllByText('AAPL').length).toBeGreaterThan(0)
   })
 
+  it('renders each closed-investment group as an expanded, collapsible dropdown', () => {
+    mockAccounts()
+    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment: vi.fn() })
+
+    render(<MemoryRouter><StatsPage /></MemoryRouter>)
+
+    const stockDetails = screen.getByText('Stock').closest('details')
+    expect(stockDetails).toHaveAttribute('open')
+    const optionSummary = screen.getAllByText('Cash Secured Put').find((el) => el.closest('details'))
+    expect(optionSummary.closest('details')).toHaveAttribute('open')
+  })
+
+  it('hides a group\'s trades when its dropdown arrow is clicked to collapse it', () => {
+    mockAccounts()
+    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment: vi.fn() })
+
+    render(<MemoryRouter><StatsPage /></MemoryRouter>)
+
+    const stockSummary = screen.getByText('Stock')
+    fireEvent.click(stockSummary)
+
+    expect(stockSummary.closest('details')).not.toHaveAttribute('open')
+  })
+
   it('calls deleteInvestment with the row id when Delete is clicked on a closed investment', async () => {
     mockAccounts()
     const deleteInvestment = vi.fn()
