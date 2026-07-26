@@ -23,6 +23,19 @@
   border-color: var(--text-dim);
 }
 
+.investment-row--closed {
+  border-left: 3px solid var(--border);
+  background: var(--bg);
+}
+
+.investment-row--closed:hover {
+  border-left-color: var(--text-dim);
+}
+
+.investment-row--closed .investment-symbol {
+  color: var(--text-dim);
+}
+
 .investment-row-top {
   display: flex;
   align-items: center;

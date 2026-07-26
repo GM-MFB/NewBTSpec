@@ -89,7 +89,7 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, c
   }
 
   return (
-    <li className="investment-row" data-testid="investment-row">
+    <li className={`investment-row${isClosed ? ' investment-row--closed' : ''}`} data-testid="investment-row">
       <div className="investment-row-top">
         <span className="mono investment-symbol">{investment.symbol}</span>
       </div>

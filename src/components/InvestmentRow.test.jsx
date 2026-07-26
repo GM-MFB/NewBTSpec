@@ -4,6 +4,18 @@ import userEvent from '@testing-library/user-event'
 import InvestmentRow from './InvestmentRow'
 
 describe('InvestmentRow', () => {
+  it('adds a closed modifier class to the row when the investment is closed', () => {
+    const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', status: 'closed', shares: 10, avgCost: 100, sellPrice: 150, sellDate: '2026-01-10', strategy: '', strike: '', expiry: '' }
+    render(<InvestmentRow investment={investment} />)
+    expect(screen.getByTestId('investment-row')).toHaveClass('investment-row--closed')
+  })
+
+  it('does not add the closed modifier class to an open row', () => {
+    const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, strategy: '', strike: '', expiry: '' }
+    render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    expect(screen.getByTestId('investment-row')).not.toHaveClass('investment-row--closed')
+  })
+
   it('renders symbol, shares, and avg cost inline for a stock, with no asset-type badge', () => {
     const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, strategy: '', strike: '', expiry: '' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)

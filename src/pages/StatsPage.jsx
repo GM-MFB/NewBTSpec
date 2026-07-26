@@ -155,46 +155,51 @@ export default function StatsPage() {
       )}
 
       {!loading && closedInvestments.length > 0 && (
-        <div className="investment-groups">
-          <h2 className="stats-section-title">Closed Investments</h2>
+        <div className="closed-investments-section">
+          <div className="closed-investments-header">
+            <h2 className="stats-section-title">Closed Investments</h2>
+            <span className="closed-investments-count">{closedInvestments.length}</span>
+          </div>
 
-          {closedStocks.length > 0 && (
-            <section className="investment-group">
-              <h2 className="group-title">Stock</h2>
-              <ul className="investment-list">
-                {closedStocks.map((investment) => (
-                  <InvestmentRow key={investment.id} investment={investment} onDelete={deleteInvestment} />
+          <div className="investment-groups">
+            {closedStocks.length > 0 && (
+              <section className="investment-group">
+                <h2 className="group-title">Stock</h2>
+                <ul className="investment-list">
+                  {closedStocks.map((investment) => (
+                    <InvestmentRow key={investment.id} investment={investment} onDelete={deleteInvestment} />
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {closedStrategyGroups.length > 0 && (
+              <section className="investment-group">
+                <h2 className="group-title">Option</h2>
+                {closedStrategyGroups.map((group) => (
+                  <div key={group.key} className="strategy-group">
+                    <h3 className="strategy-title">{group.label}</h3>
+                    <ul className="investment-list">
+                      {group.items.map((investment) => (
+                        <InvestmentRow key={investment.id} investment={investment} onDelete={deleteInvestment} />
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </ul>
-            </section>
-          )}
+              </section>
+            )}
 
-          {closedStrategyGroups.length > 0 && (
-            <section className="investment-group">
-              <h2 className="group-title">Option</h2>
-              {closedStrategyGroups.map((group) => (
-                <div key={group.key} className="strategy-group">
-                  <h3 className="strategy-title">{group.label}</h3>
-                  <ul className="investment-list">
-                    {group.items.map((investment) => (
-                      <InvestmentRow key={investment.id} investment={investment} onDelete={deleteInvestment} />
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </section>
-          )}
-
-          {closedOtherInvestments.length > 0 && (
-            <section className="investment-group">
-              <h2 className="group-title">Other</h2>
-              <ul className="investment-list">
-                {closedOtherInvestments.map((investment) => (
-                  <InvestmentRow key={investment.id} investment={investment} onDelete={deleteInvestment} />
-                ))}
-              </ul>
-            </section>
-          )}
+            {closedOtherInvestments.length > 0 && (
+              <section className="investment-group">
+                <h2 className="group-title">Other</h2>
+                <ul className="investment-list">
+                  {closedOtherInvestments.map((investment) => (
+                    <InvestmentRow key={investment.id} investment={investment} onDelete={deleteInvestment} />
+                  ))}
+                </ul>
+              </section>
+            )}
+          </div>
         </div>
       )}
     </div>

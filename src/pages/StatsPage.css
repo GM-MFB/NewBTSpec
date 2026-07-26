@@ -109,6 +109,36 @@
   color: var(--text);
 }
 
-.investment-groups > .stats-section-title {
+.closed-investments-section {
+  border-top: 1px solid var(--border);
+  padding-top: 28px;
+  margin-top: 8px;
+}
+
+.closed-investments-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 0 32px 16px;
+}
+
+.closed-investments-header .stats-section-title {
+  margin: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.closed-investments-count {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dim);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 9px;
+  line-height: 1.5;
+}
+
+.closed-investments-section .investment-groups {
+  padding-top: 0;
 }
