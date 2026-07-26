@@ -1,0 +1,72 @@
+.frontier-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.frontier-legend-caption {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.frontier-legend-key {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.frontier-legend-key::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.frontier-legend-key--portfolio::before { background: #3987e5; }
+.frontier-legend-key--maxdiv::before { background: #d95926; }
+.frontier-legend-key--maxsharpe::before { background: #199e70; }
+
+.frontier-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.frontier-table th, .frontier-table td {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+}
+
+.frontier-table th[scope="row"] {
+  text-align: left;
+  color: var(--text-dim);
+}
+
+.frontier-table thead th {
+  color: var(--text-dim);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: right;
+}
+
+.frontier-cash-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.frontier-cash-card input {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 6px 8px;
+  width: 80px;
+}
