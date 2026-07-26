@@ -1,0 +1,60 @@
+.optimizer-tab {
+  padding: 20px 32px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.optimizer-mode-toggle, .optimizer-sim-selector {
+  display: flex;
+  gap: 4px;
+}
+
+.optimizer-mode-toggle button, .optimizer-sim-selector button {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.optimizer-mode-toggle button[aria-pressed="true"], .optimizer-sim-selector button[aria-pressed="true"] {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.optimizer-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.optimizer-table th, .optimizer-table td {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+}
+
+.optimizer-table th[scope="row"] {
+  text-align: left;
+  color: var(--text-dim);
+}
+
+.optimizer-stale-badge {
+  color: var(--red);
+  font-size: 12px;
+}
+
+.optimizer-trail-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.optimizer-kept { color: var(--green); }
+.optimizer-dropped { color: var(--text-dim); text-decoration: line-through; }
