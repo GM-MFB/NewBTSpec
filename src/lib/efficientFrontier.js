@@ -1,0 +1,71 @@
+export const RISK_FREE = 0.045
+export const SPY_VOL = 0.17
+
+const ASSET_PARAMS = {
+  AAPL: { r: 0.15, s: 0.27, cat: 'tech' },
+  NVDA: { r: 0.28, s: 0.45, cat: 'tech' },
+  MSFT: { r: 0.14, s: 0.24, cat: 'tech' },
+  META: { r: 0.18, s: 0.38, cat: 'tech' },
+  AMZN: { r: 0.16, s: 0.32, cat: 'tech' },
+  GOOGL: { r: 0.14, s: 0.28, cat: 'tech' },
+  AMD: { r: 0.22, s: 0.42, cat: 'tech' },
+  TSLA: { r: 0.20, s: 0.55, cat: 'tech' },
+  SMH: { r: 0.20, s: 0.35, cat: 'etf_eq' },
+  SPY: { r: 0.10, s: 0.16, cat: 'etf_eq' },
+  QQQ: { r: 0.13, s: 0.20, cat: 'etf_eq' },
+  TLT: { r: 0.03, s: 0.12, cat: 'bond' },
+  GLD: { r: 0.06, s: 0.14, cat: 'gold' },
+  XOM: { r: 0.09, s: 0.25, cat: 'energy' },
+  BTC: { r: 0.35, s: 0.60, cat: 'crypto' },
+  ETH: { r: 0.35, s: 0.70, cat: 'crypto' },
+  JPM: { r: 0.11, s: 0.22, cat: 'financial' },
+  SOFI: { r: 0.18, s: 0.50, cat: 'financial' },
+}
+const DEFAULT_PARAMS = { r: 0.12, s: 0.28, cat: 'other' }
+
+const CAT_CORR = {
+  tech: { tech: 0.65, etf_eq: 0.70, bond: -0.10, gold: 0.00, crypto: 0.25, energy: 0.20, financial: 0.35, other: 0.40, cash: 0 },
+  etf_eq: { etf_eq: 0.85, bond: -0.15, gold: 0.05, crypto: 0.20, energy: 0.30, financial: 0.45, other: 0.45, cash: 0 },
+  bond: { bond: 0.70, gold: 0.10, crypto: -0.05, energy: -0.10, financial: -0.05, other: -0.05, cash: 0 },
+  gold: { gold: 1.0, crypto: 0.10, energy: 0.15, financial: 0.00, other: 0.05, cash: 0 },
+  crypto: { crypto: 0.60, energy: 0.05, financial: 0.10, other: 0.15, cash: 0 },
+  energy: { energy: 0.55, financial: 0.20, other: 0.25, cash: 0 },
+  financial: { financial: 0.60, other: 0.35, cash: 0 },
+  other: { other: 0.50, cash: 0 },
+  cash: { cash: 0 },
+}
+const UNKNOWN_PAIR_CORR = 0.50
+
+let _realCorr = {}
+let _computedParams = {}
+let corrVersion = 0
+
+export function setRealCorrelations(map) {
+  _realCorr = { ..._realCorr, ...map }
+  corrVersion += 1
+}
+
+export function setComputedParams(map) {
+  _computedParams = { ..._computedParams, ...map }
+  corrVersion += 1
+}
+
+export function getCorrVersion() {
+  return corrVersion
+}
+
+export function getAssetParams(symbol) {
+  const base = ASSET_PARAMS[symbol] ?? { ...DEFAULT_PARAMS }
+  const computed = _computedParams[symbol]
+  return computed ? { r: computed.r, s: computed.s, cat: base.cat } : base
+}
+
+export function getCorrelation(sym1, sym2) {
+  if (sym1 === sym2) return 1
+  if (sym1 === 'CASH' || sym2 === 'CASH') return 0
+  const real = _realCorr[sym1]?.[sym2] ?? _realCorr[sym2]?.[sym1]
+  if (real !== undefined && real !== null) return real
+  const cat1 = getAssetParams(sym1).cat
+  const cat2 = getAssetParams(sym2).cat
+  return CAT_CORR[cat1]?.[cat2] ?? CAT_CORR[cat2]?.[cat1] ?? UNKNOWN_PAIR_CORR
+}
