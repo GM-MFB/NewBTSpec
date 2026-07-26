@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { generatePdfReport } from './pdfReport'
 import html2canvas from 'html2canvas'
+import autoTable from 'jspdf-autotable'
 
 const saveMock = vi.fn()
 const addImageMock = vi.fn()
@@ -8,6 +9,7 @@ const textMock = vi.fn()
 const setFontSizeMock = vi.fn()
 const setTextColorMock = vi.fn()
 const setPageMock = vi.fn()
+const addPageMock = vi.fn()
 const jsPdfInstance = {
   save: saveMock,
   addImage: addImageMock,
@@ -15,6 +17,7 @@ const jsPdfInstance = {
   setFontSize: setFontSizeMock,
   setTextColor: setTextColorMock,
   setPage: setPageMock,
+  addPage: addPageMock,
   internal: { pageSize: { getWidth: () => 210, getHeight: () => 297 }, getNumberOfPages: () => 1 },
   lastAutoTable: { finalY: 40 },
 }
@@ -66,5 +69,36 @@ describe('generatePdfReport', () => {
     await generatePdfReport(exportData, fakeElement)
     expect(addImageMock).not.toHaveBeenCalled()
     expect(saveMock).toHaveBeenCalled()
+  })
+
+  it('gives each individual chart card its own page', async () => {
+    const card1 = {}
+    const card2 = {}
+    const fakeElement = { querySelectorAll: () => [card1, card2] }
+
+    await generatePdfReport(exportData, fakeElement)
+
+    expect(html2canvas).toHaveBeenCalledWith(card1)
+    expect(html2canvas).toHaveBeenCalledWith(card2)
+    expect(addImageMock).toHaveBeenCalledTimes(2)
+    expect(addPageMock).toHaveBeenCalled()
+  })
+
+  it('starts the data tables on a fresh page after the charts', async () => {
+    const fakeElement = { querySelectorAll: () => [{}] }
+    await generatePdfReport(exportData, fakeElement)
+    // one addPage per chart card, plus one more before the tables resume
+    expect(addPageMock.mock.calls.length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('rounds P&L figures to 2 decimal places before adding them to tables', async () => {
+    const messyData = {
+      ...exportData,
+      bySymbol: [{ symbol: 'AAPL', count: 1, totalPnl: 499.999999999999 }],
+    }
+    await generatePdfReport(messyData, null)
+
+    const bySymbolCall = autoTable.mock.calls.find((c) => c[1].head[0][0] === 'Symbol')
+    expect(bySymbolCall[1].body[0][2]).toBe(500)
   })
 })

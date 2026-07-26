@@ -11,6 +11,10 @@ function pnlColor(value) {
   return value >= 0 ? GREEN : RED
 }
 
+function roundMoney(value) {
+  return typeof value === 'number' ? Math.round(value * 100) / 100 : value
+}
+
 function addHeader(doc, meta) {
   doc.setFontSize(18)
   doc.text('BT Speculation — Performance Report', 14, 18)
@@ -34,22 +38,36 @@ function addKeyValueTable(doc, title, rows, startY) {
   return doc.lastAutoTable.finalY + 10
 }
 
-async function addChartsSection(doc, chartsElement, startY) {
-  if (!chartsElement) return startY
+async function addChartCardPage(doc, target) {
   let canvas
   try {
-    canvas = await html2canvas(chartsElement)
+    canvas = await html2canvas(target)
   } catch {
-    return startY
+    return
   }
+  doc.addPage()
   const imgData = canvas.toDataURL('image/png')
   const pageWidth = doc.internal.pageSize.getWidth()
-  const imgWidth = pageWidth - 28
-  const imgHeight = (canvas.height / canvas.width) * imgWidth
-  doc.setFontSize(13)
-  doc.text('Charts', 14, startY)
-  doc.addImage(imgData, 'PNG', 14, startY + 4, imgWidth, imgHeight)
-  return startY + imgHeight + 20
+  const pageHeight = doc.internal.pageSize.getHeight()
+  const margin = 14
+  const maxWidth = pageWidth - margin * 2
+  const maxHeight = pageHeight - margin * 2
+  let imgWidth = maxWidth
+  let imgHeight = (canvas.height / canvas.width) * imgWidth
+  if (imgHeight > maxHeight) {
+    imgHeight = maxHeight
+    imgWidth = (canvas.width / canvas.height) * imgHeight
+  }
+  doc.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight)
+}
+
+async function addChartsSection(doc, chartsElement) {
+  if (!chartsElement) return
+  let cards = chartsElement.querySelectorAll ? Array.from(chartsElement.querySelectorAll('.chart-card')) : []
+  if (cards.length === 0) cards = [chartsElement]
+  for (const card of cards) {
+    await addChartCardPage(doc, card)
+  }
 }
 
 function addRowsTable(doc, title, head, body, startY) {
@@ -109,33 +127,37 @@ export async function generatePdfReport(exportData, chartsElement) {
     ['Total Premium Collected', formatCurrency(exportData.options.totalPremiumCollected)],
   ], y)
 
-  y = await addChartsSection(doc, chartsElement, y)
+  if (chartsElement) {
+    await addChartsSection(doc, chartsElement)
+    doc.addPage()
+    y = 20
+  }
 
   if (exportData.byStrategy.length > 0) {
     y = addRowsTable(doc, 'By Strategy',
       ['Strategy', 'Trades', 'Win Rate', 'Total P&L'],
-      exportData.byStrategy.map((r) => [r.label, r.count, `${r.winRate.toFixed(1)}%`, r.totalPnl]),
+      exportData.byStrategy.map((r) => [r.label, r.count, `${r.winRate.toFixed(1)}%`, roundMoney(r.totalPnl)]),
       y)
   }
 
   if (exportData.bySymbol.length > 0) {
     y = addRowsTable(doc, 'By Symbol',
       ['Symbol', 'Trades', 'Total P&L'],
-      exportData.bySymbol.map((r) => [r.symbol, r.count, r.totalPnl]),
+      exportData.bySymbol.map((r) => [r.symbol, r.count, roundMoney(r.totalPnl)]),
       y)
   }
 
   if (exportData.closedRows.length > 0) {
     y = addRowsTable(doc, 'Closed Investments',
       ['Symbol', 'Type', 'Strategy', 'Avg Cost', 'Sell Price', 'Sell Date', 'Realized P&L'],
-      exportData.closedRows.map((r) => [r.symbol, r.assetType, r.strategyLabel, formatCurrency(r.avgCost), formatCurrency(r.sellPrice), r.sellDate, r.realizedPnl]),
+      exportData.closedRows.map((r) => [r.symbol, r.assetType, r.strategyLabel, formatCurrency(r.avgCost), formatCurrency(r.sellPrice), r.sellDate, roundMoney(r.realizedPnl)]),
       y)
   }
 
   if (exportData.openRows.length > 0) {
     y = addRowsTable(doc, 'Open Positions',
       ['Symbol', 'Type', 'Strategy', 'Shares', 'Avg Cost', 'Current Price', 'Unrealized P&L'],
-      exportData.openRows.map((r) => [r.symbol, r.assetType, r.strategyLabel, r.shares, formatCurrency(r.avgCost), r.currentPrice === '' ? '' : formatCurrency(r.currentPrice), r.unrealizedPnl === '' ? '' : r.unrealizedPnl]),
+      exportData.openRows.map((r) => [r.symbol, r.assetType, r.strategyLabel, r.shares, formatCurrency(r.avgCost), r.currentPrice === '' ? '' : formatCurrency(r.currentPrice), roundMoney(r.unrealizedPnl)]),
       y)
   }
 
