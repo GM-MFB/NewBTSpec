@@ -22,11 +22,13 @@ function unrealizedPnlFor(investment) {
   return (Number(investment.currentPrice) - Number(investment.avgCost)) * Number(investment.shares)
 }
 
-function priceFavorability(investment) {
-  if (isBlank(investment.currentPrice)) return null
+function priceFavorability(investment, strategyDef) {
+  if (isBlank(investment.currentPrice) || !strategyDef) return null
   const strike = Number(investment.strike)
   const currentPrice = Number(investment.currentPrice)
-  return currentPrice > strike ? 'price-favorable' : 'price-unfavorable'
+  const wantsAbove = (strategyDef.optionType === 'call') === (strategyDef.optionDirection === 'long')
+  const favorable = wantsAbove ? currentPrice > strike : currentPrice < strike
+  return favorable ? 'price-favorable' : 'price-unfavorable'
 }
 
 function MetaItem({ field, label, value, colorClass }) {
@@ -39,9 +41,9 @@ function MetaItem({ field, label, value, colorClass }) {
   )
 }
 
-function StrikeMeta({ investment, strikeDisplay }) {
+function StrikeMeta({ investment, strategyDef, strikeDisplay }) {
   const currentPriceDisplay = formatCurrency(investment.currentPrice)
-  const favorability = priceFavorability(investment)
+  const favorability = priceFavorability(investment, strategyDef)
 
   return (
     <span className="meta-item meta-item--strike">
@@ -90,7 +92,7 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, c
         {isOption ? (
           <>
             <MetaItem field="contracts" label="Contracts" value={investment.shares} />
-            <StrikeMeta investment={investment} strikeDisplay={strikeDisplay} />
+            <StrikeMeta investment={investment} strategyDef={strategyDef} strikeDisplay={strikeDisplay} />
             <MetaItem field="expires" label="Expires" value={investment.expiry} />
             <MetaItem field="days-left" label="Days Left" value={daysLeftLabel(investment.expiry)} />
             <MetaItem field="avg-price" label="Avg Price" value={formatCurrency(investment.avgCost)} />
