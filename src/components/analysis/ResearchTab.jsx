@@ -75,16 +75,19 @@ export default function ResearchTab({ investments }) {
     <div className="research-tab">
       <div className="research-toolbar">
         <div className="fund-symbol-picker">
-          {stockSymbols.map((symbol) => (
-            <button
-              key={symbol}
-              type="button"
-              className={`fund-chip${symbol === activeSymbol ? ' fund-chip--active' : ''}`}
-              onClick={() => research(symbol)}
-            >
-              {symbol}
-            </button>
-          ))}
+          {stockSymbols.map((symbol) => {
+            const isActive = view === 'compare' ? compareSymbols.includes(symbol) : symbol === activeSymbol
+            return (
+              <button
+                key={symbol}
+                type="button"
+                className={`fund-chip${isActive ? ' fund-chip--active' : ''}`}
+                onClick={() => research(symbol)}
+              >
+                {symbol}
+              </button>
+            )
+          })}
           <form onSubmit={(e) => { e.preventDefault(); research(inputValue) }}>
             <label htmlFor="researchAddSymbol">Add symbol</label>
             <input

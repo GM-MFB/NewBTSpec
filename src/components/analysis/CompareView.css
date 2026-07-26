@@ -38,16 +38,25 @@
   margin-left: 4px;
 }
 
+.compare-header-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .compare-remove {
-  display: block;
-  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  line-height: 1;
   background: transparent;
   border: 1px solid var(--border);
+  border-radius: 999px;
   color: var(--text-dim);
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 12px;
+  padding: 0;
 }
 
 .compare-remove:hover {

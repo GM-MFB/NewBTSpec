@@ -62,6 +62,21 @@ describe('ResearchTab', () => {
     expect(screen.getByRole('columnheader', { name: /AAPL/ })).toBeInTheDocument()
   })
 
+  it('highlights the symbol chip when added to compare in Compare view', async () => {
+    useUserSettings.mockReturnValue({ finnhubKey: 'key123', avKey: '', loading: false })
+    fetchFundamentals.mockImplementation((symbol) => Promise.resolve(mockResult(symbol)))
+
+    render(<MemoryRouter><ResearchTab investments={investments} /></MemoryRouter>)
+    await userEvent.click(screen.getByRole('button', { name: /^compare$/i }))
+
+    const chip = screen.getByRole('button', { name: 'AAPL' })
+    expect(chip).not.toHaveClass('fund-chip--active')
+
+    await userEvent.click(chip)
+
+    await waitFor(() => expect(chip).toHaveClass('fund-chip--active'))
+  })
+
   it('feeds Sector Browser Add to Compare into the same compare list', async () => {
     useUserSettings.mockReturnValue({ finnhubKey: 'key123', avKey: '', loading: false })
     fetchFundamentals.mockImplementation((symbol) => Promise.resolve(mockResult(symbol)))

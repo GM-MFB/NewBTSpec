@@ -10,8 +10,10 @@ export default function CompareView({ symbols, data, onRemove }) {
             <th></th>
             {symbols.map((symbol) => (
               <th key={symbol}>
-                {symbol}
-                <button type="button" className="compare-remove" onClick={() => onRemove(symbol)}>Remove</button>
+                <span className="compare-header-cell">
+                  {symbol}
+                  <button type="button" className="compare-remove" aria-label={`Remove ${symbol}`} onClick={() => onRemove(symbol)}>×</button>
+                </span>
               </th>
             ))}
           </tr>
