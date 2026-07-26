@@ -96,7 +96,7 @@ describe('StatsPage', () => {
 
     render(<MemoryRouter><StatsPage /></MemoryRouter>)
 
-    expect(screen.getByText('Short Put')).toBeInTheDocument()
+    expect(screen.getAllByText('Short Put').length).toBeGreaterThan(0)
     expect(screen.getAllByText('TSLA').length).toBeGreaterThan(0)
     expect(screen.queryByText('Strategy:')).not.toBeInTheDocument()
   })

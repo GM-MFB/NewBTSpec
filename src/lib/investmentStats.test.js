@@ -71,6 +71,18 @@ describe('computeInvestmentStats', () => {
     ])
   })
 
+  it('groups a closed option with no strategy under a fallback label from option_type/option_direction', () => {
+    const withLegacy = [
+      ...investments,
+      { status: 'closed', assetType: 'Option', symbol: 'TSLA', strategy: '', optionType: 'put', optionDirection: 'short', shares: 1, avgCost: 2, sellPrice: 0.5, sellDate: '2026-01-18' },
+    ]
+    const stats = computeInvestmentStats(withLegacy)
+    expect(stats.byStrategy).toEqual(expect.arrayContaining([
+      expect.objectContaining({ label: 'Short Put', count: 1, totalPnl: 150 }),
+    ]))
+    expect(stats.options.totalPremiumCollected).toBe(500)
+  })
+
   it('groups by symbol, sorted by totalPnl descending', () => {
     const stats = computeInvestmentStats(investments)
     expect(stats.bySymbol[0]).toEqual(expect.objectContaining({ symbol: 'AAPL', totalPnl: 800 }))

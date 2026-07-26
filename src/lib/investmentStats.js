@@ -1,4 +1,4 @@
-import { strategyByValue, STRATEGIES } from './optionStrategies'
+import { strategyByValue, STRATEGIES, effectiveStrategyDef } from './optionStrategies'
 
 function toNum(value) {
   return value === '' || value === undefined || value === null ? 0 : Number(value)
@@ -53,16 +53,21 @@ export function computeInvestmentStats(investments) {
   const stockStats = winLossStats(closedStocks)
   const optionStats = winLossStats(closedOptions)
   const totalPremiumCollected = closedOptions.reduce((sum, i) => {
-    const strategyDef = strategyByValue(i.strategy)
-    if (strategyDef?.optionDirection !== 'short') return sum
+    const def = effectiveStrategyDef(i)
+    if (def?.optionDirection !== 'short') return sum
     return sum + toNum(i.avgCost) * toNum(i.shares) * 100
   }, 0)
 
-  const byStrategy = STRATEGIES
-    .map((s) => {
-      const items = closedOptions.filter((i) => i.strategy === s.value)
-      return { strategy: s.value, label: s.label, ...winLossStats(items) }
-    })
+  const strategyGroups = new Map(STRATEGIES.map((s) => [s.value, { key: s.value, label: s.label, items: [] }]))
+  for (const investment of closedOptions) {
+    const def = effectiveStrategyDef(investment)
+    if (!def) continue
+    const key = def.value ?? `fallback:${def.label}`
+    if (!strategyGroups.has(key)) strategyGroups.set(key, { key, label: def.label, items: [] })
+    strategyGroups.get(key).items.push(investment)
+  }
+  const byStrategy = [...strategyGroups.values()]
+    .map((g) => ({ strategy: g.key, label: g.label, ...winLossStats(g.items) }))
     .filter((g) => g.count > 0)
 
   const symbolTotals = new Map()
