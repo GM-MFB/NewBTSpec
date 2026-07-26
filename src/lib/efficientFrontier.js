@@ -138,3 +138,12 @@ export function generateEfficientFrontierData(symbols, { nSim = 10000, cashOptio
 
   return { symbols: simSymbols, points, maxSharpe, maxDiversification, frontier: extractFrontier(points) }
 }
+
+export function generateCombinedFrontierData(portfolioSymbols, portfolioWeights, extraSymbols, options = {}) {
+  const newSymbols = extraSymbols.filter((s) => !portfolioSymbols.includes(s))
+  const allSymbols = [...portfolioSymbols, ...newSymbols]
+  const currentWeights = [...portfolioWeights, ...newSymbols.map(() => 0)]
+  const simData = generateEfficientFrontierData(allSymbols, options)
+  const current = portfolioStats(allSymbols, currentWeights)
+  return { ...simData, current: { ...current, weights: currentWeights } }
+}

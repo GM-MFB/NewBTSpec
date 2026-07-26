@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   getAssetParams, getCorrelation, setRealCorrelations, setComputedParams, getCorrVersion,
   portfolioStats, randomWeights, generateEfficientFrontierData, extractFrontier,
+  generateCombinedFrontierData,
 } from './efficientFrontier'
 
 describe('getAssetParams', () => {
@@ -120,5 +121,18 @@ describe('generateEfficientFrontierData', () => {
     const result = generateEfficientFrontierData(['AAPL', 'SPY'], { nSim: 200, cashOptions: { amount: 1000, rate: 0.03 } })
     expect(result.symbols).toContain('CASH')
     expect(result.points[0].weights).toHaveLength(3)
+  })
+})
+
+describe('generateCombinedFrontierData', () => {
+  it('unions portfolio and new symbols, with 0 weight for new ones in the current point', () => {
+    const result = generateCombinedFrontierData(['AAPL', 'SPY'], [0.6, 0.4], ['TLT'], { nSim: 200 })
+    expect(result.symbols).toEqual(['AAPL', 'SPY', 'TLT'])
+    expect(result.current.weights).toEqual([0.6, 0.4, 0])
+  })
+
+  it('excludes an extra symbol already held from the new-symbols union', () => {
+    const result = generateCombinedFrontierData(['AAPL', 'SPY'], [0.5, 0.5], ['AAPL'], { nSim: 200 })
+    expect(result.symbols).toEqual(['AAPL', 'SPY'])
   })
 })
