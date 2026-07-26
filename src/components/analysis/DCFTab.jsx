@@ -212,18 +212,20 @@ export default function DCFTab({ investments }) {
 
           <section className="dcf-years">
             <h2>Year-by-Year FCF</h2>
-            <table className="dcf-table">
-              <thead><tr><th>Year</th><th>Projected FCF</th><th>PV</th></tr></thead>
-              <tbody>
-                {result.years.map((y) => (
-                  <tr key={y.year}>
-                    <td>Year {y.year}</td>
-                    <td className="mono">{formatLarge(y.fcf)}</td>
-                    <td className="mono">{formatLarge(y.discounted)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="dcf-table-wrap">
+              <table className="dcf-table">
+                <thead><tr><th>Year</th><th>Projected FCF</th><th>PV</th></tr></thead>
+                <tbody>
+                  {result.years.map((y) => (
+                    <tr key={y.year}>
+                      <td>Year {y.year}</td>
+                      <td className="mono">{formatLarge(y.fcf)}</td>
+                      <td className="mono">{formatLarge(y.discounted)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </section>
 
           <section className="dcf-chart-section">
@@ -248,26 +250,28 @@ export default function DCFTab({ investments }) {
 
           <section className="dcf-sensitivity">
             <h2>Sensitivity Grid</h2>
-            <table className="dcf-table">
-              <thead>
-                <tr>
-                  <th>Discount \ Growth</th>
-                  {[...new Set(grid.map((c) => c.growthRatePct))].map((g) => <th key={g}>{g.toFixed(0)}%</th>)}
-                </tr>
-              </thead>
-              <tbody>
-                {[...new Set(grid.map((c) => c.discountRatePct))].map((d) => (
-                  <tr key={d}>
-                    <td>{d}%</td>
-                    {grid.filter((c) => c.discountRatePct === d).map((c) => (
-                      <td key={c.growthRatePct} data-testid="sensitivity-cell" className={`dcf-cell-${c.bucket}`}>
-                        {c.marginOfSafetyPct !== null ? `${c.marginOfSafetyPct.toFixed(0)}%` : '—'}
-                      </td>
-                    ))}
+            <div className="dcf-table-wrap">
+              <table className="dcf-table">
+                <thead>
+                  <tr>
+                    <th>Discount \ Growth</th>
+                    {[...new Set(grid.map((c) => c.growthRatePct))].map((g) => <th key={g}>{g.toFixed(0)}%</th>)}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {[...new Set(grid.map((c) => c.discountRatePct))].map((d) => (
+                    <tr key={d}>
+                      <td>{d}%</td>
+                      {grid.filter((c) => c.discountRatePct === d).map((c) => (
+                        <td key={c.growthRatePct} data-testid="sensitivity-cell" className={`dcf-cell-${c.bucket}`}>
+                          {c.marginOfSafetyPct !== null ? `${c.marginOfSafetyPct.toFixed(0)}%` : '—'}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </section>
 
           <section className="dcf-breakdown">
