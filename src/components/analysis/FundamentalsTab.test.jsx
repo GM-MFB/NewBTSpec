@@ -34,6 +34,21 @@ describe('FundamentalsTab', () => {
     expect(screen.getByRole('button', { name: 'AAPL' })).toBeInTheDocument()
   })
 
+  it('highlights the active symbol chip once researched', async () => {
+    useUserSettings.mockReturnValue({ finnhubKey: 'key123', avKey: '', loading: false })
+    fetchFundamentals.mockResolvedValue({
+      profile: { name: 'Apple Inc' }, quote: { c: 165, pc: 160 }, metrics: {}, recs: null, targets: null, news: [], earnings: null,
+    })
+
+    render(<MemoryRouter><FundamentalsTab investments={investments} /></MemoryRouter>)
+    const chip = screen.getByRole('button', { name: 'AAPL' })
+    expect(chip).not.toHaveClass('fund-chip--active')
+
+    await userEvent.click(chip)
+
+    await waitFor(() => expect(chip).toHaveClass('fund-chip--active'))
+  })
+
   it('fetches and renders the Valuation panel when a symbol chip is clicked', async () => {
     useUserSettings.mockReturnValue({ finnhubKey: 'key123', avKey: '', loading: false })
     fetchFundamentals.mockResolvedValue({

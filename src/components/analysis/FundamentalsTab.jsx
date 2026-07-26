@@ -78,7 +78,12 @@ export default function FundamentalsTab({ investments }) {
     <div className="fundamentals-tab">
       <div className="fund-symbol-picker">
         {stockSymbols.map((symbol) => (
-          <button key={symbol} type="button" className="fund-chip" onClick={() => research(symbol)}>
+          <button
+            key={symbol}
+            type="button"
+            className={`fund-chip${symbol === activeSymbol ? ' fund-chip--active' : ''}`}
+            onClick={() => research(symbol)}
+          >
             {symbol}
           </button>
         ))}

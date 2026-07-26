@@ -51,6 +51,12 @@
   color: var(--green);
 }
 
+.fund-chip--active {
+  border-color: var(--green);
+  color: var(--green);
+  background: var(--bg);
+}
+
 .fund-key-required,
 .fund-etf-card {
   text-align: center;
