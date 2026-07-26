@@ -89,3 +89,52 @@ export function randomWeights(n) {
   const total = draws.reduce((a, b) => a + b, 0)
   return draws.map((d) => d / total)
 }
+
+export function extractFrontier(points) {
+  if (points.length === 0) return []
+  const minVol = Math.min(...points.map((p) => p.vol))
+  const maxVol = Math.max(...points.map((p) => p.vol))
+  const bucketWidth = (maxVol - minVol) / 150 || 1
+
+  const buckets = new Array(150).fill(null)
+  for (const p of points) {
+    const idx = Math.min(149, Math.floor((p.vol - minVol) / bucketWidth))
+    if (!buckets[idx] || p.ret > buckets[idx].ret) buckets[idx] = p
+  }
+
+  const frontier = []
+  let runningMax = -Infinity
+  for (const bucket of buckets) {
+    if (bucket && bucket.ret > runningMax) {
+      frontier.push(bucket)
+      runningMax = bucket.ret
+    }
+  }
+  return frontier
+}
+
+export function generateEfficientFrontierData(symbols, { nSim = 10000, cashOptions = null, paramsOverride = {} } = {}) {
+  const simSymbols = [...symbols]
+  const simParams = { ...paramsOverride }
+  if (cashOptions?.amount > 0) {
+    simSymbols.push('CASH')
+    simParams.CASH = { r: cashOptions.rate ?? 0.03, s: 0.001 }
+  }
+
+  const points = []
+  let maxSharpe = null
+  let maxDiversification = null
+
+  for (let i = 0; i < nSim; i += 1) {
+    const weights = randomWeights(simSymbols.length)
+    const { ret, vol, sharpe } = portfolioStats(simSymbols, weights, simParams)
+    const weightedAvgVol = simSymbols.reduce((sum, s, idx) => sum + weights[idx] * (simParams[s] ?? getAssetParams(s)).s, 0)
+    const diversificationRatio = vol > 0 ? weightedAvgVol / vol : 1
+    const point = { ret, vol, sharpe, diversificationRatio, weights: [...weights] }
+    points.push(point)
+    if (!maxSharpe || sharpe > maxSharpe.sharpe) maxSharpe = point
+    if (!maxDiversification || diversificationRatio > maxDiversification.diversificationRatio) maxDiversification = point
+  }
+
+  return { symbols: simSymbols, points, maxSharpe, maxDiversification, frontier: extractFrontier(points) }
+}

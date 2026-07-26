@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   getAssetParams, getCorrelation, setRealCorrelations, setComputedParams, getCorrVersion,
-  portfolioStats, randomWeights,
+  portfolioStats, randomWeights, generateEfficientFrontierData, extractFrontier,
 } from './efficientFrontier'
 
 describe('getAssetParams', () => {
@@ -85,5 +85,40 @@ describe('randomWeights', () => {
     expect(weights).toHaveLength(5)
     expect(weights.every((w) => w > 0)).toBe(true)
     expect(weights.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 10)
+  })
+})
+
+describe('extractFrontier', () => {
+  it('keeps only monotonically-increasing-return points across vol buckets', () => {
+    const points = [
+      { ret: 0.05, vol: 0.10 },
+      { ret: 0.08, vol: 0.15 },
+      { ret: 0.06, vol: 0.20 },
+      { ret: 0.12, vol: 0.25 },
+    ]
+    const frontier = extractFrontier(points)
+    const returns = frontier.map((p) => p.ret)
+    expect(returns).toEqual([...returns].sort((a, b) => a - b))
+    expect(frontier.some((p) => p.ret === 0.06)).toBe(false)
+  })
+
+  it('returns an empty array for no points', () => {
+    expect(extractFrontier([])).toEqual([])
+  })
+})
+
+describe('generateEfficientFrontierData', () => {
+  it('runs the requested number of simulations and returns a non-empty frontier', () => {
+    const result = generateEfficientFrontierData(['AAPL', 'SPY', 'TLT'], { nSim: 500 })
+    expect(result.points).toHaveLength(500)
+    expect(result.frontier.length).toBeGreaterThan(0)
+    expect(result.maxSharpe).toBeDefined()
+    expect(result.maxDiversification).toBeDefined()
+  })
+
+  it('adds CASH as a near-risk-free asset when cashOptions.amount > 0', () => {
+    const result = generateEfficientFrontierData(['AAPL', 'SPY'], { nSim: 200, cashOptions: { amount: 1000, rate: 0.03 } })
+    expect(result.symbols).toContain('CASH')
+    expect(result.points[0].weights).toHaveLength(3)
   })
 })
