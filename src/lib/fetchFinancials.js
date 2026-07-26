@@ -67,6 +67,21 @@ function mergeByDate(incomeReports, balanceReports, cashFlowReports) {
   return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date)).slice(-8)
 }
 
+function mapEpsReports(reports) {
+  return reports
+    .map((r) => ({ date: r.fiscalDateEnding, eps: toNum(r.reportedEPS) }))
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-8)
+}
+
+export async function fetchEpsHistory(symbol, apiKey) {
+  const data = await fetchStatement('EARNINGS', symbol, apiKey)
+  return {
+    annual: mapEpsReports(data.annualEarnings ?? []),
+    quarterly: mapEpsReports(data.quarterlyEarnings ?? []),
+  }
+}
+
 export async function fetchFinancials(symbol, apiKey) {
   const income = await fetchStatement('INCOME_STATEMENT', symbol, apiKey)
   await delay(1100)

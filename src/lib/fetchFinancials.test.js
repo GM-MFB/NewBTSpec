@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { fetchFinancials } from './fetchFinancials'
+import { fetchFinancials, fetchEpsHistory } from './fetchFinancials'
 
 function jsonResponse(body) {
   return Promise.resolve({ ok: true, json: () => Promise.resolve(body) })
@@ -89,5 +89,29 @@ describe('fetchFinancials', () => {
     const promise = fetchFinancials('AAPL', 'key123')
     vi.runAllTimersAsync()
     await expect(promise).rejects.toThrow()
+  })
+})
+
+describe('fetchEpsHistory', () => {
+  beforeEach(() => {
+    global.fetch = vi.fn()
+  })
+
+  it('calls the AV EARNINGS endpoint and maps reported EPS per period, most recent 8', async () => {
+    const annualEarnings = Array.from({ length: 10 }, (_, i) => ({ fiscalDateEnding: `${2015 + i}-12-31`, reportedEPS: String(i) }))
+    const quarterlyEarnings = [{ fiscalDateEnding: '2024-09-30', reportedEPS: '1.25' }]
+    global.fetch.mockResolvedValue({ ok: true, json: () => Promise.resolve({ annualEarnings, quarterlyEarnings }) })
+
+    const result = await fetchEpsHistory('AAPL', 'key123')
+
+    expect(global.fetch.mock.calls[0][0]).toContain('EARNINGS')
+    expect(result.annual).toHaveLength(8)
+    expect(result.annual[7]).toEqual({ date: '2024-12-31', eps: 9 })
+    expect(result.quarterly).toEqual([{ date: '2024-09-30', eps: 1.25 }])
+  })
+
+  it('throws when AV returns a rate-limit Note', async () => {
+    global.fetch.mockResolvedValue({ ok: true, json: () => Promise.resolve({ Note: 'rate limited' }) })
+    await expect(fetchEpsHistory('AAPL', 'key123')).rejects.toThrow()
   })
 })
