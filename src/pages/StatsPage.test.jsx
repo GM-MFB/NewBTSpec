@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import StatsPage from './StatsPage'
@@ -99,6 +99,46 @@ describe('StatsPage', () => {
     expect(screen.getAllByText('Short Put').length).toBeGreaterThan(0)
     expect(screen.getAllByText('TSLA').length).toBeGreaterThan(0)
     expect(screen.queryByText('Strategy:')).not.toBeInTheDocument()
+  })
+
+  it('filters everything by sell date when a start date is set', () => {
+    mockAccounts()
+    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment: vi.fn() })
+
+    render(<MemoryRouter><StatsPage /></MemoryRouter>)
+
+    fireEvent.change(screen.getByLabelText(/from/i), { target: { value: '2026-01-11' } })
+
+    expect(screen.queryByText('AAPL')).not.toBeInTheDocument()
+    expect(screen.getAllByText('QQQ').length).toBeGreaterThan(0)
+    expect(screen.getByText('Closed Positions').closest('.stat-tile').querySelector('.stat-tile-value')).toHaveTextContent('1')
+  })
+
+  it('filters everything by sell date when an end date is set', () => {
+    mockAccounts()
+    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment: vi.fn() })
+
+    render(<MemoryRouter><StatsPage /></MemoryRouter>)
+
+    fireEvent.change(screen.getByLabelText(/to/i), { target: { value: '2026-01-11' } })
+
+    expect(screen.getAllByText('AAPL').length).toBeGreaterThan(0)
+    expect(screen.queryByText('QQQ')).not.toBeInTheDocument()
+  })
+
+  it('clears the date range filter when Clear is clicked', () => {
+    mockAccounts()
+    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment: vi.fn() })
+
+    render(<MemoryRouter><StatsPage /></MemoryRouter>)
+
+    fireEvent.change(screen.getByLabelText(/from/i), { target: { value: '2026-01-11' } })
+    expect(screen.queryByText('AAPL')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /^clear$/i }))
+
+    expect(screen.getAllByText('AAPL').length).toBeGreaterThan(0)
+    expect(screen.getByLabelText(/from/i)).toHaveValue('')
   })
 
   it('shows an error banner with retry when loading fails', async () => {

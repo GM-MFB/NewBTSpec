@@ -7,6 +7,7 @@ import { useInvestmentsHistory } from '../hooks/useInvestmentsHistory'
 import { computeInvestmentStats } from '../lib/investmentStats'
 import { formatCurrency } from '../lib/format'
 import { STRATEGIES, effectiveStrategyDef } from '../lib/optionStrategies'
+import { isWithinDateRange } from '../lib/dateRange'
 import Header from '../components/Header'
 import StatsCharts from '../components/StatsCharts'
 import InvestmentRow from '../components/InvestmentRow'
@@ -25,10 +26,16 @@ export default function StatsPage() {
   const { accounts, activeAccount, activeAccountId, switchAccount, createAccount } = useAccounts(user?.id)
   const { investments, loading, error, reload, deleteInvestment } = useInvestmentsHistory(activeAccountId)
   const [view, setView] = useState('numbers')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
 
-  const stats = computeInvestmentStats(investments)
+  const filteredInvestments = investments.filter(
+    (i) => i.status !== 'closed' || isWithinDateRange(i.sellDate, startDate, endDate)
+  )
 
-  const closedInvestments = investments.filter((i) => i.status === 'closed')
+  const stats = computeInvestmentStats(filteredInvestments)
+
+  const closedInvestments = filteredInvestments.filter((i) => i.status === 'closed')
   const closedStocks = closedInvestments.filter((i) => i.assetType === 'Stock')
   const closedOptions = closedInvestments.filter((i) => i.assetType === 'Option')
 
@@ -65,6 +72,16 @@ export default function StatsPage() {
       />
 
       <div className="stats-toolbar">
+        <div className="date-range-filter">
+          <label htmlFor="statsStartDate">From</label>
+          <input id="statsStartDate" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+          <label htmlFor="statsEndDate">To</label>
+          <input id="statsEndDate" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+          {(startDate || endDate) && (
+            <button type="button" onClick={() => { setStartDate(''); setEndDate('') }}>Clear</button>
+          )}
+        </div>
+
         <div className="view-toggle">
           <button type="button" aria-pressed={view === 'numbers'} onClick={() => setView('numbers')}>Numbers</button>
           <button type="button" aria-pressed={view === 'charts'} onClick={() => setView('charts')}>Charts</button>
