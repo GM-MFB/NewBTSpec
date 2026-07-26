@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { generatePdfReport } from './pdfReport'
+import html2canvas from 'html2canvas'
 
 const saveMock = vi.fn()
 const addImageMock = vi.fn()
@@ -57,5 +58,13 @@ describe('generatePdfReport', () => {
     const fakeElement = {}
     await generatePdfReport(exportData, fakeElement)
     expect(addImageMock).toHaveBeenCalled()
+  })
+
+  it('still saves the PDF even if chart capture throws', async () => {
+    html2canvas.mockRejectedValueOnce(new Error('capture failed'))
+    const fakeElement = {}
+    await generatePdfReport(exportData, fakeElement)
+    expect(addImageMock).not.toHaveBeenCalled()
+    expect(saveMock).toHaveBeenCalled()
   })
 })

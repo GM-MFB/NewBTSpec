@@ -36,7 +36,12 @@ function addKeyValueTable(doc, title, rows, startY) {
 
 async function addChartsSection(doc, chartsElement, startY) {
   if (!chartsElement) return startY
-  const canvas = await html2canvas(chartsElement)
+  let canvas
+  try {
+    canvas = await html2canvas(chartsElement)
+  } catch {
+    return startY
+  }
   const imgData = canvas.toDataURL('image/png')
   const pageWidth = doc.internal.pageSize.getWidth()
   const imgWidth = pageWidth - 28
