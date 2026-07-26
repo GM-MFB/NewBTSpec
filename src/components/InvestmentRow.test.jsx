@@ -25,19 +25,19 @@ describe('InvestmentRow', () => {
     expect(screen.getByText('Avg Cost:')).toBeInTheDocument()
   })
 
-  it('shows Collateral on an open stock row as current price times shares', () => {
+  it('shows Market Value on an open stock row as current price times shares', () => {
     const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, currentPrice: 165, strategy: '', strike: '', expiry: '' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
     const sharesItem = screen.getByText('Shares:').closest('.meta-item')
-    const collateralItem = screen.getByText('Collateral:').closest('.meta-item')
-    expect(collateralItem).toHaveTextContent('$1,650.00')
-    expect(sharesItem.compareDocumentPosition(collateralItem) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    const marketValueItem = screen.getByText('Market Value:').closest('.meta-item')
+    expect(marketValueItem).toHaveTextContent('$1,650.00')
+    expect(sharesItem.compareDocumentPosition(marketValueItem) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
-  it('does not show Collateral on a stock row when current price is blank', () => {
+  it('does not show Market Value on a stock row when current price is blank', () => {
     const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, currentPrice: '', strategy: '', strike: '', expiry: '' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
-    expect(screen.queryByText('Collateral:')).not.toBeInTheDocument()
+    expect(screen.queryByText('Market Value:')).not.toBeInTheDocument()
   })
 
   it('shows Current Price on a stock row when set', () => {

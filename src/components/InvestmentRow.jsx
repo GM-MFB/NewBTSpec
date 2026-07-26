@@ -65,7 +65,7 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, c
   const collateral = isOption ? formatCurrencyWhole(collateralFor(investment, strategyDef)) : ''
   const potentialPnl = isOption ? formatCurrency(potentialPnlFor(investment, strategyDef)) : ''
   const sharesDisplay = coveredShares ? `${investment.shares}/${coveredShares}` : investment.shares
-  const stockCollateral = !isOption && !isBlank(investment.currentPrice)
+  const marketValue = !isOption && !isBlank(investment.currentPrice)
     ? formatCurrency(Number(investment.currentPrice) * Number(investment.shares))
     : ''
 
@@ -114,7 +114,7 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, c
         ) : (
           <>
             <MetaItem field="shares" label="Shares" value={sharesDisplay} />
-            <MetaItem field="stock-collateral" label="Collateral" value={stockCollateral} />
+            <MetaItem field="market-value" label="Market Value" value={marketValue} />
             <MetaItem field="avg-cost" label="Avg Cost" value={formatCurrency(investment.avgCost)} />
             {isClosed ? (
               <>
