@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatCurrency, formatCurrencyWhole, formatCurrencyAuto } from './format'
+import { formatCurrency, formatCurrencyWhole, formatCurrencyAuto, formatLarge } from './format'
 
 describe('formatCurrency', () => {
   it('formats a whole number as USD with two decimals', () => {
@@ -45,5 +45,27 @@ describe('formatCurrencyAuto', () => {
   it('returns an empty string for blank/undefined/null/NaN input', () => {
     expect(formatCurrencyAuto('')).toBe('')
     expect(formatCurrencyAuto(undefined)).toBe('')
+  })
+})
+
+describe('formatLarge', () => {
+  it('formats trillions with a T suffix', () => {
+    expect(formatLarge(2_400_000_000_000)).toBe('$2.40T')
+  })
+
+  it('formats billions with a B suffix', () => {
+    expect(formatLarge(850_000_000)).toBe('$850.00M')
+  })
+
+  it('formats millions with an M suffix', () => {
+    expect(formatLarge(4_200_000)).toBe('$4.20M')
+  })
+
+  it('formats sub-million values as plain currency', () => {
+    expect(formatLarge(4200)).toBe('$4,200.00')
+  })
+
+  it('returns blank for blank input', () => {
+    expect(formatLarge('')).toBe('')
   })
 })
