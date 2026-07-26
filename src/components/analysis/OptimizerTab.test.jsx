@@ -46,4 +46,23 @@ describe('OptimizerTab', () => {
     expect(fetchQuote).toHaveBeenCalledWith('AAPL', 'key123')
     expect(fetchQuote).toHaveBeenCalledWith('SPY', 'key123')
   })
+
+  it('runs the optimizer and shows one elimination-trail row per step', async () => {
+    render(<OptimizerTab investments={investments} />)
+    await userEvent.click(screen.getByRole('button', { name: /^run optimizer$/i }))
+    await waitFor(() => expect(screen.getByText('Elimination Trail')).toBeInTheDocument())
+    expect(screen.getAllByText(/sharpe/i).length).toBeGreaterThan(0)
+  })
+
+  it('shows a stale-results badge after correlation data refreshes post-run', async () => {
+    const { setRealCorrelations } = await import('../../lib/efficientFrontier')
+    const { rerender } = render(<OptimizerTab investments={investments} />)
+    await userEvent.click(screen.getByRole('button', { name: /^run optimizer$/i }))
+    await waitFor(() => expect(screen.getByText('Elimination Trail')).toBeInTheDocument())
+
+    setRealCorrelations({ AAPL: { SPY: 0.9 } })
+    rerender(<OptimizerTab investments={investments} />)
+
+    expect(screen.getByText(/re-run for updated results/i)).toBeInTheDocument()
+  })
 })
