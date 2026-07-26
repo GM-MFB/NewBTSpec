@@ -1,4 +1,4 @@
-import './FundamentalsTab.css'
+import './SymbolPanels.css'
 import { unrealizedPnlFor } from '../../lib/investmentStats'
 import { formatCurrency, formatCurrencyAuto, formatLarge, formatDecimal } from '../../lib/format'
 

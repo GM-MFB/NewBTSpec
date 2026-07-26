@@ -4,14 +4,12 @@ import { useAuth } from '../hooks/useAuth'
 import { useAccounts } from '../hooks/useAccounts'
 import { useInvestments } from '../hooks/useInvestments'
 import Header from '../components/Header'
-import FundamentalsTab from '../components/analysis/FundamentalsTab'
 import FinancialsTab from '../components/analysis/FinancialsTab'
 import ResearchTab from '../components/analysis/ResearchTab'
 
 const TABS = [
-  { key: 'fundamentals', label: 'Fundamentals' },
-  { key: 'financials', label: 'Financials' },
   { key: 'research', label: 'Research' },
+  { key: 'financials', label: 'Financials' },
   { key: 'dcf', label: 'DCF' },
   { key: 'frontier', label: 'Frontier' },
   { key: 'optimizer', label: 'Optimizer' },
@@ -28,7 +26,7 @@ export default function AnalyzePage() {
   const { user } = useAuth()
   const { accounts, activeAccount, activeAccountId, switchAccount, createAccount } = useAccounts(user?.id)
   const { investments } = useInvestments(activeAccountId)
-  const [tab, setTab] = useState('fundamentals')
+  const [tab, setTab] = useState('research')
 
   return (
     <div data-testid="analyze-page">
@@ -48,10 +46,9 @@ export default function AnalyzePage() {
         ))}
       </div>
 
-      {tab === 'fundamentals' && <FundamentalsTab investments={investments} />}
       {tab === 'financials' && <FinancialsTab investments={investments} />}
       {tab === 'research' && <ResearchTab investments={investments} />}
-      {tab !== 'fundamentals' && tab !== 'financials' && tab !== 'research' && (
+      {tab !== 'financials' && tab !== 'research' && (
         <AnalyzeTabPlaceholder label={TABS.find((t) => t.key === tab).label} />
       )}
     </div>

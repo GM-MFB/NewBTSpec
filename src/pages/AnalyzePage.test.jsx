@@ -28,18 +28,18 @@ function mockCommon() {
 }
 
 describe('AnalyzePage', () => {
-  it('defaults to the Fundamentals tab', () => {
+  it('defaults to the Research tab', () => {
     mockCommon()
     render(<MemoryRouter><AnalyzePage /></MemoryRouter>)
-    expect(screen.getByRole('button', { name: /^fundamentals$/i })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /^research$/i })).toHaveAttribute('aria-pressed', 'true')
   })
 
-  it('renders all 9 tabs', () => {
+  it('renders Research first, followed by the other 7 tabs', () => {
     mockCommon()
     render(<MemoryRouter><AnalyzePage /></MemoryRouter>)
-    for (const label of ['Fundamentals', 'Financials', 'Research', 'DCF', 'Frontier', 'Optimizer', 'Risk', 'Wheel', 'Screener']) {
-      expect(screen.getByRole('button', { name: new RegExp(`^${label}$`, 'i') })).toBeInTheDocument()
-    }
+    const labels = ['Research', 'Financials', 'DCF', 'Frontier', 'Optimizer', 'Risk', 'Wheel', 'Screener']
+    const buttons = screen.getAllByRole('button', { name: new RegExp(`^(${labels.join('|')})$`, 'i') })
+    expect(buttons.map((b) => b.textContent)).toEqual(labels)
   })
 
   it('shows a Coming soon placeholder for an unbuilt tab', async () => {
