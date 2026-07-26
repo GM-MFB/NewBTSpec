@@ -31,8 +31,9 @@ describe('Header', () => {
     expect(switchAccount).toHaveBeenCalledWith('a2')
   })
 
-  it('renders Trades, Stats, Analyze, Matt Cap nav links and an Add button', () => {
+  it('renders Home, Trades, Stats, Analyze, Matt Cap nav links and an Add button', () => {
     setup()
+    expect(screen.getByRole('link', { name: /^home$/i })).toHaveAttribute('href', '/')
     expect(screen.getByRole('link', { name: /trades/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /stats/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /analyze/i })).toBeInTheDocument()

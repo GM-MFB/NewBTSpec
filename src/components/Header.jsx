@@ -40,6 +40,7 @@ export default function Header({
       </div>
 
       <nav className="app-nav">
+        <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : undefined)}>Home</NavLink>
         <NavLink to="/trades" className={({ isActive }) => (isActive ? 'active' : undefined)}>Trades</NavLink>
         <NavLink to="/stats" className={({ isActive }) => (isActive ? 'active' : undefined)}>Stats</NavLink>
         <NavLink to="/analyze" className={({ isActive }) => (isActive ? 'active' : undefined)}>Analyze</NavLink>
