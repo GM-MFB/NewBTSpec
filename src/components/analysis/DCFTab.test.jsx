@@ -77,6 +77,16 @@ describe('DCFTab', () => {
     await waitFor(() => expect(screen.getByTestId('intrinsic-value').textContent).not.toBe(before))
   })
 
+  it('renders the FCF history and projection chart', async () => {
+    useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
+    fetchFinancials.mockResolvedValue(sampleData)
+
+    render(<MemoryRouter><DCFTab investments={investments} /></MemoryRouter>)
+    await waitFor(() => expect(screen.getByText('Intrinsic Value')).toBeInTheDocument())
+
+    expect(screen.getByText('FCF History & Projection')).toBeInTheDocument()
+  })
+
   it('does not crash when there is only 1 annual period (no implied growth)', async () => {
     useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
     fetchFinancials.mockResolvedValue({ annual: [sampleData.annual[0]], quarterly: [] })

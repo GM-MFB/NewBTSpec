@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import {
+  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+} from 'recharts'
 import './FinancialsTab.css'
 import './DCFTab.css'
 import { useAuth } from '../../hooks/useAuth'
@@ -17,6 +20,12 @@ function getFundamentalsCacheEntry(symbol) {
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value))
+}
+
+function buildFcfChartData(financialsData, years) {
+  const historical = (financialsData.annual ?? []).map((p) => ({ date: p.date, historicalFCF: p.freeCF, projectedFCF: null }))
+  const projected = years.map((y) => ({ date: `Year ${y.year}`, historicalFCF: null, projectedFCF: y.fcf }))
+  return [...historical, ...projected]
 }
 
 export default function DCFTab({ investments }) {
@@ -215,6 +224,26 @@ export default function DCFTab({ investments }) {
                 ))}
               </tbody>
             </table>
+          </section>
+
+          <section className="dcf-chart-section">
+            <h2>FCF History & Projection</h2>
+            <ResponsiveContainer width="100%" height={260}>
+              <LineChart data={buildFcfChartData(financialsData, result.years)} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+                <CartesianGrid stroke="#262626" strokeDasharray="0" vertical={false} />
+                <XAxis dataKey="date" tick={{ fill: '#888', fontSize: 11 }} axisLine={{ stroke: '#262626' }} tickLine={false} />
+                <YAxis tick={{ fill: '#888', fontSize: 11 }} axisLine={{ stroke: '#262626' }} tickLine={false} tickFormatter={(v) => formatLarge(v)} width={70} />
+                <Tooltip
+                  contentStyle={{ background: '#141414', border: '1px solid #262626', borderRadius: 6, fontSize: 12 }}
+                  itemStyle={{ color: '#e5e5e5' }}
+                  labelStyle={{ color: '#888' }}
+                  formatter={(v) => formatLarge(v)}
+                />
+                <Legend wrapperStyle={{ fontSize: 11, color: '#888' }} />
+                <Line type="monotone" dataKey="historicalFCF" name="Historical FCF" stroke="#3987e5" strokeWidth={2} dot={{ r: 3 }} connectNulls={false} />
+                <Line type="monotone" dataKey="projectedFCF" name="Projected FCF" stroke="#3987e5" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 3 }} connectNulls />
+              </LineChart>
+            </ResponsiveContainer>
           </section>
 
           <section className="dcf-sensitivity">
