@@ -42,4 +42,21 @@ describe('useInvestmentsHistory', () => {
     expect(supabase.from).toHaveBeenCalledWith('investments')
     expect(eq).toHaveBeenCalledWith('account_id', 'a1')
   })
+
+  it('deletes an investment and reloads', async () => {
+    const order = vi.fn().mockResolvedValue({ data: [], error: null })
+    const eq = vi.fn(() => ({ order }))
+    const select = vi.fn(() => ({ eq }))
+    const deleteEq = vi.fn().mockResolvedValue({ error: null })
+    const del = vi.fn(() => ({ eq: deleteEq }))
+    supabase.from.mockReturnValue({ select, delete: del })
+
+    const { result } = renderHook(() => useInvestmentsHistory('a1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await result.current.deleteInvestment('i1')
+
+    expect(del).toHaveBeenCalled()
+    expect(deleteEq).toHaveBeenCalledWith('id', 'i1')
+  })
 })

@@ -23,7 +23,7 @@ function StatTile({ label, value, tone }) {
 export default function StatsPage() {
   const { user } = useAuth()
   const { accounts, activeAccount, activeAccountId, switchAccount, createAccount } = useAccounts(user?.id)
-  const { investments, loading, error, reload } = useInvestmentsHistory(activeAccountId)
+  const { investments, loading, error, reload, deleteInvestment } = useInvestmentsHistory(activeAccountId)
   const [view, setView] = useState('numbers')
 
   const stats = computeInvestmentStats(investments)
@@ -163,7 +163,7 @@ export default function StatsPage() {
               <h2 className="group-title">Stock</h2>
               <ul className="investment-list">
                 {closedStocks.map((investment) => (
-                  <InvestmentRow key={investment.id} investment={investment} />
+                  <InvestmentRow key={investment.id} investment={investment} onDelete={deleteInvestment} />
                 ))}
               </ul>
             </section>
@@ -177,7 +177,7 @@ export default function StatsPage() {
                   <h3 className="strategy-title">{group.label}</h3>
                   <ul className="investment-list">
                     {group.items.map((investment) => (
-                      <InvestmentRow key={investment.id} investment={investment} />
+                      <InvestmentRow key={investment.id} investment={investment} onDelete={deleteInvestment} />
                     ))}
                   </ul>
                 </div>
@@ -190,7 +190,7 @@ export default function StatsPage() {
               <h2 className="group-title">Other</h2>
               <ul className="investment-list">
                 {closedOtherInvestments.map((investment) => (
-                  <InvestmentRow key={investment.id} investment={investment} />
+                  <InvestmentRow key={investment.id} investment={investment} onDelete={deleteInvestment} />
                 ))}
               </ul>
             </section>

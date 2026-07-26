@@ -30,5 +30,11 @@ export function useInvestmentsHistory(accountId) {
     load()
   }, [load])
 
-  return { investments, loading, error, reload: load }
+  async function deleteInvestment(id) {
+    const { error: err } = await supabase.from('investments').delete().eq('id', id)
+    if (err) throw err
+    await load()
+  }
+
+  return { investments, loading, error, reload: load, deleteInvestment }
 }

@@ -32,7 +32,7 @@ const investments = [
 describe('StatsPage', () => {
   it('shows the Numbers view by default with overview stat tiles', () => {
     mockAccounts()
-    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn() })
+    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment: vi.fn() })
 
     render(<MemoryRouter><StatsPage /></MemoryRouter>)
 
@@ -45,7 +45,7 @@ describe('StatsPage', () => {
 
   it('switches to the Charts view when toggled', async () => {
     mockAccounts()
-    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn() })
+    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment: vi.fn() })
 
     render(<MemoryRouter><StatsPage /></MemoryRouter>)
 
@@ -57,7 +57,7 @@ describe('StatsPage', () => {
 
   it('shows all closed investments below the stats, grouped like the main page, in both views', async () => {
     mockAccounts()
-    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn() })
+    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment: vi.fn() })
 
     render(<MemoryRouter><StatsPage /></MemoryRouter>)
 
@@ -67,10 +67,22 @@ describe('StatsPage', () => {
     expect(screen.queryByText('MSFT')).not.toBeInTheDocument()
     expect(screen.getAllByText('Sell Price:').length).toBeGreaterThan(0)
     expect(screen.queryByRole('button', { name: /^close$/i })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /^delete$/i }).length).toBeGreaterThan(0)
 
     await userEvent.click(screen.getByRole('button', { name: /^charts$/i }))
     expect(screen.getByText('Closed Investments')).toBeInTheDocument()
     expect(screen.getAllByText('AAPL').length).toBeGreaterThan(0)
+  })
+
+  it('calls deleteInvestment with the row id when Delete is clicked on a closed investment', async () => {
+    mockAccounts()
+    const deleteInvestment = vi.fn()
+    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment })
+
+    render(<MemoryRouter><StatsPage /></MemoryRouter>)
+
+    await userEvent.click(screen.getAllByRole('button', { name: /^delete$/i })[0])
+    expect(deleteInvestment).toHaveBeenCalledWith('i1')
   })
 
   it('groups a closed option with no strategy under a category derived from option_type/option_direction, not Other', () => {
