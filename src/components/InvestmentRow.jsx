@@ -96,7 +96,7 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, c
       <div className="investment-row-meta mono">
         {isOption ? (
           <>
-            <MetaItem field="strategy" label="Strategy" value={strategyDef?.label} />
+            {isClosed && <MetaItem field="strategy" label="Strategy" value={strategyDef?.label} />}
             <MetaItem field="contracts" label="Contracts" value={investment.shares} />
             <StrikeMeta investment={investment} strategyDef={strategyDef} strikeDisplay={strikeDisplay} />
             <MetaItem field="expires" label="Expires" value={investment.expiry} />

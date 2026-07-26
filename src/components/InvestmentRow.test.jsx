@@ -26,17 +26,26 @@ describe('InvestmentRow', () => {
     expect(screen.queryByText('Current Price:')).not.toBeInTheDocument()
   })
 
-  it('renders contracts, strike, expiry, and avg price inline for an option, with the strategy shown on the row', () => {
+  it('renders contracts, strike, expiry, and avg price inline for an option, with no strategy shown for an open position', () => {
     const investment = { id: 'i2', symbol: 'SPY', assetType: 'Option', shares: 5, avgCost: 3.5, strategy: 'covered_call', strike: 450, expiry: '2026-03-01' }
     render(<InvestmentRow investment={investment} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
     expect(screen.getByText('SPY')).toBeInTheDocument()
-    expect(screen.getByText('Strategy:')).toBeInTheDocument()
-    expect(screen.getByText('Covered Call')).toBeInTheDocument()
+    expect(screen.queryByText('Strategy:')).not.toBeInTheDocument()
     expect(screen.getByText('Contracts:')).toBeInTheDocument()
     expect(screen.getByText('Strike:')).toBeInTheDocument()
     expect(screen.getByText('Expires:')).toBeInTheDocument()
     expect(screen.getByText('Days Left:')).toBeInTheDocument()
     expect(screen.getByText('Avg Price:')).toBeInTheDocument()
+  })
+
+  it('shows the Strategy meta item on a closed option row', () => {
+    const investment = {
+      id: 'i2', symbol: 'SPY', assetType: 'Option', status: 'closed',
+      shares: 5, avgCost: 3.5, sellPrice: 1, sellDate: '2026-01-10', strategy: 'covered_call', strike: 450, expiry: '2026-03-01',
+    }
+    render(<InvestmentRow investment={investment} />)
+    expect(screen.getByText('Strategy:')).toBeInTheDocument()
+    expect(screen.getByText('Covered Call')).toBeInTheDocument()
   })
 
   it('does not show a Strategy meta item for a stock row', () => {
