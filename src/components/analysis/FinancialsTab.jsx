@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom'
 import './FinancialsTab.css'
 import { useAuth } from '../../hooks/useAuth'
 import { useUserSettings } from '../../hooks/useUserSettings'
-import { fetchFinancials } from '../../lib/fetchFinancials'
+import { fetchFinancials, fetchEpsHistory } from '../../lib/fetchFinancials'
 import { getSharedCache, saveSharedCache } from '../../lib/financialsSharedCache'
 import { pctChange } from '../../lib/pctChange'
 import { formatLarge } from '../../lib/format'
+import FinancialsCharts from './FinancialsCharts'
 
 const INCOME_ROWS = [
   ['revenue', 'Revenue'], ['cogs', 'COGS'], ['grossProfit', 'Gross Profit'],
@@ -74,6 +75,9 @@ export default function FinancialsTab({ investments }) {
   const [inputValue, setInputValue] = useState('')
   const [frequency, setFrequency] = useState('annual')
   const [loadingSymbol, setLoadingSymbol] = useState(null)
+  const [view, setView] = useState('numbers')
+  const [epsData, setEpsData] = useState({})
+  const [epsLoading, setEpsLoading] = useState(false)
 
   const stockSymbols = [...new Set(investments.filter((i) => i.assetType === 'Stock').map((i) => i.symbol))]
 
@@ -110,6 +114,14 @@ export default function FinancialsTab({ investments }) {
     await saveSharedCache(symbol, result, user?.id)
   }
 
+  async function handleFetchEps() {
+    if (!activeSymbol) return
+    setEpsLoading(true)
+    const result = await fetchEpsHistory(activeSymbol, avKey)
+    setEpsData((prev) => ({ ...prev, [activeSymbol]: result }))
+    setEpsLoading(false)
+  }
+
   if (!settingsLoading && !avKey) {
     return (
       <div className="fin-key-required">
@@ -122,24 +134,34 @@ export default function FinancialsTab({ investments }) {
 
   const result = activeSymbol ? data[activeSymbol] : null
   const periods = result ? result[frequency] : []
+  const eps = activeSymbol && epsData[activeSymbol] ? epsData[activeSymbol][frequency] : null
 
   return (
     <div className="financials-tab">
-      <div className="fin-symbol-picker">
-        {stockSymbols.map((symbol) => (
-          <button key={symbol} type="button" className="fin-chip" onClick={() => research(symbol)}>
-            {symbol}
-          </button>
-        ))}
-        <form onSubmit={(e) => { e.preventDefault(); research(inputValue) }}>
-          <label htmlFor="finAddSymbol">Add symbol</label>
-          <input
-            id="finAddSymbol"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); research(inputValue) } }}
-          />
-        </form>
+      <div className="fin-toolbar">
+        <div className="fin-symbol-picker">
+          {stockSymbols.map((symbol) => (
+            <button key={symbol} type="button" className="fin-chip" onClick={() => research(symbol)}>
+              {symbol}
+            </button>
+          ))}
+          <form onSubmit={(e) => { e.preventDefault(); research(inputValue) }}>
+            <label htmlFor="finAddSymbol">Add symbol</label>
+            <input
+              id="finAddSymbol"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); research(inputValue) } }}
+            />
+          </form>
+        </div>
+
+        {result && (
+          <div className="fin-view-toggle">
+            <button type="button" aria-pressed={view === 'numbers'} onClick={() => setView('numbers')}>Numbers</button>
+            <button type="button" aria-pressed={view === 'charts'} onClick={() => setView('charts')}>Charts</button>
+          </div>
+        )}
       </div>
 
       {result && (
@@ -151,12 +173,16 @@ export default function FinancialsTab({ investments }) {
 
       {loadingSymbol && loadingSymbol === activeSymbol && <p>Loading {activeSymbol}…</p>}
 
-      {result && periods.length > 0 && (
+      {result && periods.length > 0 && view === 'numbers' && (
         <div className="fin-panels">
           <StatementTable title="Income Statement" rows={INCOME_ROWS} periods={periods} />
           <StatementTable title="Balance Sheet" rows={BALANCE_ROWS} periods={periods} />
           <StatementTable title="Cash Flow" rows={CASH_FLOW_ROWS} periods={periods} />
         </div>
+      )}
+
+      {result && periods.length > 0 && view === 'charts' && (
+        <FinancialsCharts periods={periods} eps={eps} onFetchEps={handleFetchEps} epsLoading={epsLoading} />
       )}
     </div>
   )

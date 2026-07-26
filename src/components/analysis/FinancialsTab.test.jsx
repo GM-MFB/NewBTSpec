@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import FinancialsTab from './FinancialsTab'
 import { useAuth } from '../../hooks/useAuth'
 import { useUserSettings } from '../../hooks/useUserSettings'
-import { fetchFinancials } from '../../lib/fetchFinancials'
+import { fetchFinancials, fetchEpsHistory } from '../../lib/fetchFinancials'
 import { getSharedCache, saveSharedCache } from '../../lib/financialsSharedCache'
 
 vi.mock('../../hooks/useAuth')
@@ -97,5 +97,38 @@ describe('FinancialsTab', () => {
     await userEvent.click(screen.getByRole('button', { name: 'AAPL' }))
 
     await waitFor(() => expect(screen.getByText('Income Statement')).toBeInTheDocument())
+  })
+
+  it('defaults to Numbers view and switches to Charts when toggled', async () => {
+    useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
+    fetchFinancials.mockResolvedValue(sampleData)
+
+    render(<MemoryRouter><FinancialsTab investments={investments} /></MemoryRouter>)
+    await userEvent.click(screen.getByRole('button', { name: 'AAPL' }))
+    await waitFor(() => expect(screen.getByText('Income Statement')).toBeInTheDocument())
+
+    expect(screen.getByRole('button', { name: /^numbers$/i })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.queryByTestId('financials-charts')).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: /^charts$/i }))
+
+    expect(screen.getByTestId('financials-charts')).toBeInTheDocument()
+    expect(screen.queryByText('Income Statement')).not.toBeInTheDocument()
+  })
+
+  it('fetches EPS data on demand from the charts view and passes it through', async () => {
+    useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
+    fetchFinancials.mockResolvedValue(sampleData)
+    fetchEpsHistory.mockResolvedValue({ annual: [{ date: '2024-12-31', eps: 5.2 }], quarterly: [] })
+
+    render(<MemoryRouter><FinancialsTab investments={investments} /></MemoryRouter>)
+    await userEvent.click(screen.getByRole('button', { name: 'AAPL' }))
+    await waitFor(() => expect(screen.getByText('Income Statement')).toBeInTheDocument())
+    await userEvent.click(screen.getByRole('button', { name: /^charts$/i }))
+
+    await userEvent.click(screen.getByRole('button', { name: /fetch eps data/i }))
+
+    expect(fetchEpsHistory).toHaveBeenCalledWith('AAPL', 'avkey123')
+    await waitFor(() => expect(screen.queryByRole('button', { name: /fetch eps data/i })).not.toBeInTheDocument())
   })
 })
