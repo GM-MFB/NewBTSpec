@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import FrontierPanel, { FrontierHoverTooltip } from './FrontierPanel'
 import { setComputedParams, setRealCorrelations } from '../../lib/efficientFrontier'
 
@@ -26,10 +25,9 @@ describe('FrontierPanel', () => {
     expect(screen.getByRole('rowheader', { name: /spy/i })).toBeInTheDocument()
   })
 
-  it('expands the assumptions editor and persists an override to localStorage', async () => {
+  it('shows the assumptions editor expanded by default and persists an override to localStorage', async () => {
     render(<FrontierPanel symbols={['AAPL', 'SPY']} weights={[0.6, 0.4]} storageKey="test_ef_params_2" nSim={300} />)
 
-    await userEvent.click(screen.getByRole('button', { name: /adjust expected returns/i }))
     const returnInput = screen.getByLabelText(/aapl.*return/i)
     fireEvent.change(returnInput, { target: { value: '25' } })
 
@@ -49,7 +47,6 @@ describe('FrontierPanel', () => {
         nSim={300}
       />,
     )
-    await userEvent.click(screen.getByRole('button', { name: /adjust expected returns/i }))
     expect(document.querySelector('.frontier-assumptions')).toHaveTextContent('SPY (new)')
   })
 

@@ -90,7 +90,7 @@ export default function FrontierPanel({
 }) {
   const [overrides, setOverrides] = useState(() => loadOverrides(storageKey))
   const [cashRate, setCashRate] = useState(() => loadCashRate(storageKey))
-  const [showAssumptions, setShowAssumptions] = useState(false)
+  const [showAssumptions, setShowAssumptions] = useState(true)
 
   function setOverride(symbol, key, value) {
     const next = { ...overrides, [symbol]: { ...overrides[symbol], [key]: value } }
