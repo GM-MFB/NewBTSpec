@@ -170,8 +170,8 @@ describe('FrontierHoverTooltip', () => {
     const payload = [{ payload: { vol: 12.34, ret: 8.9, weights: [0.003, 0.6, 0.397] } }]
     render(<FrontierHoverTooltip active payload={payload} symbols={['AAPL', 'SPY', 'TLT']} colorMap={colorMap} />)
 
-    expect(screen.getByText(/return 8\.9%/i)).toBeInTheDocument()
-    expect(screen.getByText(/vol 12\.3%/i)).toBeInTheDocument()
+    expect(screen.getByText(/return 8\.90%/i)).toBeInTheDocument()
+    expect(screen.getByText(/vol 12\.34%/i)).toBeInTheDocument()
     expect(screen.queryByText('AAPL')).not.toBeInTheDocument()
     const symbolEls = screen.getAllByText(/^(SPY|TLT)$/)
     expect(symbolEls.map((el) => el.textContent)).toEqual(['SPY', 'TLT'])

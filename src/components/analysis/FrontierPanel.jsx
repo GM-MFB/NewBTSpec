@@ -62,12 +62,12 @@ export function FrontierHoverTooltip({ active, payload, symbols, colorMap }) {
   return (
     <div className="frontier-hover-tooltip">
       {point.label && <p className="frontier-hover-tooltip-title">{point.label}</p>}
-      <p className="frontier-hover-tooltip-stats">Return {point.ret.toFixed(1)}% · Vol {point.vol.toFixed(1)}%</p>
+      <p className="frontier-hover-tooltip-stats">Return {point.ret.toFixed(2)}% · Vol {point.vol.toFixed(2)}%</p>
       <ul className="frontier-hover-tooltip-list">
         {rows.map((r) => (
           <li key={r.symbol}>
             <span className="frontier-hover-tooltip-symbol" style={{ color: colorMap[r.symbol] }}>{r.symbol}</span>
-            <span className="mono">{r.weight.toFixed(1)}%</span>
+            <span className="mono">{r.weight.toFixed(2)}%</span>
           </li>
         ))}
       </ul>
