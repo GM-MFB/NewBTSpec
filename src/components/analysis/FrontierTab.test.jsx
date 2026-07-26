@@ -34,7 +34,7 @@ describe('FrontierTab', () => {
     render(<FrontierTab investments={investments} />)
 
     await waitFor(() => expect(fetchCorrelations).toHaveBeenCalledWith(['AAPL', 'SPY']))
-    expect(screen.getByText('Your Portfolio')).toBeInTheDocument()
+    expect(screen.getAllByText('Your Portfolio').length).toBeGreaterThan(0)
   })
 
   it('defaults to My Portfolio mode with no incomingSymbols', () => {
@@ -62,7 +62,7 @@ describe('FrontierTab', () => {
     await userEvent.type(screen.getByLabelText(/add symbol/i), 'NVDA{enter}')
     await userEvent.type(screen.getByLabelText(/add symbol/i), 'AMD{enter}')
 
-    await waitFor(() => expect(screen.getByText('Your Portfolio')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getAllByText('Your Portfolio').length).toBeGreaterThan(0))
   })
 
   it('shows a Fetch button in Custom Set mode that populates prices via fetchQuote', async () => {

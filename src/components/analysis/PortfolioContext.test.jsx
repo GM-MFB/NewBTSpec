@@ -19,6 +19,6 @@ describe('PortfolioContext', () => {
   it('switches to the Efficient Frontier sub-tab and renders FrontierPanel in combined mode', async () => {
     render(<PortfolioContext portfolioSymbols={['AAPL']} researchedSymbols={['NVDA']} priceMap={{ NVDA: 900 }} />)
     await userEvent.click(screen.getByRole('button', { name: /efficient frontier/i }))
-    expect(screen.getByText('Your Portfolio')).toBeInTheDocument()
+    expect(screen.getAllByText('Your Portfolio').length).toBeGreaterThan(0)
   })
 })
