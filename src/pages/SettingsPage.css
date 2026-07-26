@@ -45,3 +45,25 @@
   font-size: 13px;
   margin: 0;
 }
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.settings-user-id {
+  font-size: 13px;
+  color: var(--text);
+  word-break: break-all;
+}

@@ -5,6 +5,7 @@ const STORAGE_KEY = 'bt_finnhub_key'
 
 export function useUserSettings(userId) {
   const [finnhubKey, setFinnhubKey] = useState(() => localStorage.getItem(STORAGE_KEY) ?? '')
+  const [displayName, setDisplayName] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -14,7 +15,7 @@ export function useUserSettings(userId) {
     setError(null)
     const { data, error: err } = await supabase
       .from('user_settings')
-      .select('finnhub_key')
+      .select('finnhub_key, display_name')
       .eq('user_id', userId)
       .maybeSingle()
 
@@ -26,6 +27,9 @@ export function useUserSettings(userId) {
     if (data?.finnhub_key) {
       setFinnhubKey(data.finnhub_key)
       localStorage.setItem(STORAGE_KEY, data.finnhub_key)
+    }
+    if (data?.display_name) {
+      setDisplayName(data.display_name)
     }
     setLoading(false)
   }, [userId])
@@ -43,5 +47,13 @@ export function useUserSettings(userId) {
     localStorage.setItem(STORAGE_KEY, key)
   }
 
-  return { finnhubKey, loading, error, saveFinnhubKey }
+  async function saveDisplayName(name) {
+    const { error: err } = await supabase
+      .from('user_settings')
+      .upsert({ user_id: userId, display_name: name }, { onConflict: 'user_id' })
+    if (err) throw err
+    setDisplayName(name)
+  }
+
+  return { finnhubKey, displayName, loading, error, saveFinnhubKey, saveDisplayName }
 }

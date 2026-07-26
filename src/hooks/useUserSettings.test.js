@@ -55,4 +55,34 @@ describe('useUserSettings', () => {
     expect(result.current.finnhubKey).toBe('new-key')
     expect(localStorage.getItem('bt_finnhub_key')).toBe('new-key')
   })
+
+  it('loads the display name from user_settings', async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({ data: { finnhub_key: '', display_name: 'Matt' }, error: null })
+    const eq = vi.fn(() => ({ maybeSingle }))
+    const select = vi.fn(() => ({ eq }))
+    supabase.from.mockReturnValue({ select })
+
+    const { result } = renderHook(() => useUserSettings('u1'))
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.displayName).toBe('Matt')
+  })
+
+  it('saveDisplayName upserts user_settings with the new display name', async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+    const eq = vi.fn(() => ({ maybeSingle }))
+    const select = vi.fn(() => ({ eq }))
+    const upsert = vi.fn().mockResolvedValue({ error: null })
+    supabase.from.mockReturnValue({ select, upsert })
+
+    const { result } = renderHook(() => useUserSettings('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await act(async () => {
+      await result.current.saveDisplayName('New Name')
+    })
+
+    expect(upsert).toHaveBeenCalledWith({ user_id: 'u1', display_name: 'New Name' }, { onConflict: 'user_id' })
+    expect(result.current.displayName).toBe('New Name')
+  })
 })
