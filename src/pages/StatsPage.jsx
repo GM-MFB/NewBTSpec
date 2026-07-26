@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import '../pages/InvestmentsPage.css'
 import './StatsPage.css'
 import { useAuth } from '../hooks/useAuth'
@@ -8,6 +8,9 @@ import { computeInvestmentStats } from '../lib/investmentStats'
 import { formatCurrency } from '../lib/format'
 import { STRATEGIES, effectiveStrategyDef } from '../lib/optionStrategies'
 import { isWithinDateRange } from '../lib/dateRange'
+import { buildExportData } from '../lib/exportData'
+import { generatePdfReport } from '../lib/pdfReport'
+import { generateExcelWorkbook } from '../lib/excelExport'
 import Header from '../components/Header'
 import StatsCharts from '../components/StatsCharts'
 import InvestmentRow from '../components/InvestmentRow'
@@ -28,6 +31,7 @@ export default function StatsPage() {
   const [view, setView] = useState('numbers')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const chartsRef = useRef(null)
 
   const filteredInvestments = investments.filter(
     (i) => i.status !== 'closed' || isWithinDateRange(i.sellDate, startDate, endDate)
@@ -36,6 +40,7 @@ export default function StatsPage() {
   const stats = computeInvestmentStats(filteredInvestments)
 
   const closedInvestments = filteredInvestments.filter((i) => i.status === 'closed')
+  const openInvestments = investments.filter((i) => i.status === 'open')
   const closedStocks = closedInvestments.filter((i) => i.assetType === 'Stock')
   const closedOptions = closedInvestments.filter((i) => i.assetType === 'Option')
 
@@ -61,6 +66,16 @@ export default function StatsPage() {
 
   const closedStrategyGroups = [...knownStrategyGroups, ...fallbackGroupsByLabel.values()]
 
+  async function handleExportPdf() {
+    const data = buildExportData({ stats, closedInvestments, openInvestments, accountName: activeAccount?.name ?? '', startDate, endDate })
+    await generatePdfReport(data, chartsRef.current)
+  }
+
+  function handleExportExcel() {
+    const data = buildExportData({ stats, closedInvestments, openInvestments, accountName: activeAccount?.name ?? '', startDate, endDate })
+    generateExcelWorkbook(data)
+  }
+
   return (
     <div data-testid="stats-page">
       <Header
@@ -82,6 +97,11 @@ export default function StatsPage() {
           )}
         </div>
 
+        <div className="export-buttons">
+          <button type="button" onClick={handleExportPdf} disabled={loading}>Export PDF</button>
+          <button type="button" onClick={handleExportExcel} disabled={loading}>Export Excel</button>
+        </div>
+
         <div className="view-toggle">
           <button type="button" aria-pressed={view === 'numbers'} onClick={() => setView('numbers')}>Numbers</button>
           <button type="button" aria-pressed={view === 'charts'} onClick={() => setView('charts')}>Charts</button>
@@ -95,7 +115,11 @@ export default function StatsPage() {
         </div>
       )}
 
-      {!loading && view === 'charts' && <StatsCharts stats={stats} />}
+      {!loading && (
+        <div ref={chartsRef} className={view === 'charts' ? '' : 'stats-charts-hidden'}>
+          <StatsCharts stats={stats} />
+        </div>
+      )}
 
       {!loading && view === 'numbers' && (
         <div className="stats-numbers">

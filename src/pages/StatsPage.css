@@ -46,6 +46,34 @@
   color: var(--red);
 }
 
+.export-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.export-buttons button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.export-buttons button:hover:not(:disabled) {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.export-buttons button:disabled {
+  opacity: 0.5;
+}
+
+.stats-charts-hidden {
+  display: none;
+}
+
 .view-toggle {
   display: flex;
   gap: 4px;

@@ -6,10 +6,16 @@ import StatsPage from './StatsPage'
 import { useAuth } from '../hooks/useAuth'
 import { useAccounts } from '../hooks/useAccounts'
 import { useInvestmentsHistory } from '../hooks/useInvestmentsHistory'
+import { buildExportData } from '../lib/exportData'
+import { generatePdfReport } from '../lib/pdfReport'
+import { generateExcelWorkbook } from '../lib/excelExport'
 
 vi.mock('../hooks/useAuth')
 vi.mock('../hooks/useAccounts')
 vi.mock('../hooks/useInvestmentsHistory')
+vi.mock('../lib/exportData')
+vi.mock('../lib/pdfReport')
+vi.mock('../lib/excelExport')
 
 function mockAccounts() {
   useAuth.mockReturnValue({ user: { id: 'u1' } })
@@ -139,6 +145,51 @@ describe('StatsPage', () => {
 
     expect(screen.getAllByText('AAPL').length).toBeGreaterThan(0)
     expect(screen.getByLabelText(/from/i)).toHaveValue('')
+  })
+
+  it('keeps StatsCharts mounted (hidden) even in Numbers view, for PDF chart capture', () => {
+    mockAccounts()
+    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment: vi.fn() })
+
+    render(<MemoryRouter><StatsPage /></MemoryRouter>)
+
+    expect(screen.getByTestId('stats-charts')).toBeInTheDocument()
+  })
+
+  it('calls buildExportData and generatePdfReport when Export PDF is clicked', async () => {
+    mockAccounts()
+    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment: vi.fn() })
+    buildExportData.mockReturnValue({ meta: {}, closedRows: [], openRows: [] })
+
+    render(<MemoryRouter><StatsPage /></MemoryRouter>)
+
+    await userEvent.click(screen.getByRole('button', { name: /export pdf/i }))
+
+    expect(buildExportData).toHaveBeenCalled()
+    expect(generatePdfReport).toHaveBeenCalled()
+  })
+
+  it('calls buildExportData and generateExcelWorkbook when Export Excel is clicked', async () => {
+    mockAccounts()
+    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment: vi.fn() })
+    buildExportData.mockReturnValue({ meta: {}, closedRows: [], openRows: [] })
+
+    render(<MemoryRouter><StatsPage /></MemoryRouter>)
+
+    await userEvent.click(screen.getByRole('button', { name: /export excel/i }))
+
+    expect(buildExportData).toHaveBeenCalled()
+    expect(generateExcelWorkbook).toHaveBeenCalled()
+  })
+
+  it('disables the export buttons while loading', () => {
+    mockAccounts()
+    useInvestmentsHistory.mockReturnValue({ investments: [], loading: true, error: null, reload: vi.fn(), deleteInvestment: vi.fn() })
+
+    render(<MemoryRouter><StatsPage /></MemoryRouter>)
+
+    expect(screen.getByRole('button', { name: /export pdf/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /export excel/i })).toBeDisabled()
   })
 
   it('shows an error banner with retry when loading fails', async () => {
