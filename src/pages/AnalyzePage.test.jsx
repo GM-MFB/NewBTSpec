@@ -34,10 +34,10 @@ describe('AnalyzePage', () => {
     expect(screen.getByRole('button', { name: /^research$/i })).toHaveAttribute('aria-pressed', 'true')
   })
 
-  it('renders Research first, followed by the other 5 tabs', () => {
+  it('renders Research first, followed by the other 4 tabs', () => {
     mockCommon()
     render(<MemoryRouter><AnalyzePage /></MemoryRouter>)
-    const labels = ['Research', 'Financials', 'DCF', 'Risk', 'Wheel', 'Screener']
+    const labels = ['Research', 'Financials', 'DCF', 'Risk', 'Screener']
     const buttons = screen.getAllByRole('button', { name: new RegExp(`^(${labels.join('|')})$`, 'i') })
     expect(buttons.map((b) => b.textContent)).toEqual(labels)
   })
@@ -45,7 +45,7 @@ describe('AnalyzePage', () => {
   it('shows a Coming soon placeholder for an unbuilt tab', async () => {
     mockCommon()
     render(<MemoryRouter><AnalyzePage /></MemoryRouter>)
-    await userEvent.click(screen.getByRole('button', { name: /^wheel$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^screener$/i }))
     expect(screen.getByText(/coming soon/i)).toBeInTheDocument()
   })
 })

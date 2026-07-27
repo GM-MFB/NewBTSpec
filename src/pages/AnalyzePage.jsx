@@ -14,7 +14,6 @@ const TABS = [
   { key: 'financials', label: 'Financials' },
   { key: 'dcf', label: 'DCF' },
   { key: 'risk', label: 'Risk' },
-  { key: 'wheel', label: 'Wheel' },
   { key: 'screener', label: 'Screener' },
 ]
 
