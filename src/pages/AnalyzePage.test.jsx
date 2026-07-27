@@ -7,11 +7,13 @@ import { useAuth } from '../hooks/useAuth'
 import { useAccounts } from '../hooks/useAccounts'
 import { useInvestments } from '../hooks/useInvestments'
 import { useUserSettings } from '../hooks/useUserSettings'
+import { supabase } from '../utils/supabase'
 
 vi.mock('../hooks/useAuth')
 vi.mock('../hooks/useAccounts')
 vi.mock('../hooks/useInvestments')
 vi.mock('../hooks/useUserSettings')
+vi.mock('../utils/supabase', () => ({ supabase: { from: vi.fn() } }))
 
 function mockCommon() {
   useAuth.mockReturnValue({ user: { id: 'u1' } })
@@ -25,6 +27,9 @@ function mockCommon() {
   })
   useInvestments.mockReturnValue({ investments: [], loading: false, error: null, reload: vi.fn() })
   useUserSettings.mockReturnValue({ finnhubKey: '', avKey: '', loading: false })
+  supabase.from.mockReturnValue({
+    select: () => ({ eq: () => ({ order: () => Promise.resolve({ data: [], error: null }) }) }),
+  })
 }
 
 describe('AnalyzePage', () => {
@@ -42,10 +47,10 @@ describe('AnalyzePage', () => {
     expect(buttons.map((b) => b.textContent)).toEqual(labels)
   })
 
-  it('shows a Coming soon placeholder for an unbuilt tab', async () => {
+  it('renders the Screener tab', async () => {
     mockCommon()
     render(<MemoryRouter><AnalyzePage /></MemoryRouter>)
     await userEvent.click(screen.getByRole('button', { name: /^screener$/i }))
-    expect(screen.getByText(/coming soon/i)).toBeInTheDocument()
+    expect(screen.getByText('https://finviz.com/screener.ashx')).toBeInTheDocument()
   })
 })

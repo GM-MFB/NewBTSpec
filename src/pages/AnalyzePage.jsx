@@ -8,6 +8,7 @@ import FinancialsTab from '../components/analysis/FinancialsTab'
 import ResearchTab from '../components/analysis/ResearchTab'
 import DCFTab from '../components/analysis/DCFTab'
 import RiskTab from '../components/analysis/RiskTab'
+import ScreenerTab from '../components/analysis/ScreenerTab'
 
 const TABS = [
   { key: 'research', label: 'Research' },
@@ -49,7 +50,8 @@ export default function AnalyzePage() {
       {tab === 'research' && <ResearchTab investments={investments} />}
       {tab === 'dcf' && <DCFTab investments={investments} />}
       {tab === 'risk' && <RiskTab investments={investments} />}
-      {!['financials', 'research', 'dcf', 'risk'].includes(tab) && (
+      {tab === 'screener' && <ScreenerTab accountId={activeAccountId} userId={user?.id} />}
+      {!['financials', 'research', 'dcf', 'risk', 'screener'].includes(tab) && (
         <AnalyzeTabPlaceholder label={TABS.find((t) => t.key === tab).label} />
       )}
     </div>
