@@ -66,4 +66,40 @@ describe('ScreenerTab', () => {
       'https://finviz.com/screener.ashx?f=sh_price_u10',
     )
   })
+
+  it('lists saved presets and applies one when Apply is clicked', async () => {
+    supabase.from.mockImplementation(mockScreenerFrom({
+      ownSaves: [{ id: 's1', name: 'Cheap Tech', filters: { price: 'sh_price_u10', sector: 'sec_technology' } }],
+    }))
+    render(<ScreenerTab accountId="a1" userId="u1" />)
+
+    expect(await screen.findByText('Cheap Tech')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: /apply/i }))
+
+    expect(screen.getByLabelText(/^price$/i)).toHaveValue('sh_price_u10')
+    expect(screen.getByLabelText(/^sector$/i)).toHaveValue('sec_technology')
+  })
+
+  it('saves the current filters under the typed preset name', async () => {
+    render(<ScreenerTab accountId="a1" userId="u1" />)
+    await userEvent.selectOptions(screen.getByLabelText(/^price$/i), 'sh_price_u10')
+
+    await userEvent.type(screen.getByLabelText(/preset name/i), 'My Filter')
+    await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+    expect(supabase.from).toHaveBeenCalledWith('screener_saves')
+  })
+
+  it('deletes a preset when Delete is clicked', async () => {
+    supabase.from.mockImplementation(mockScreenerFrom({
+      ownSaves: [{ id: 's1', name: 'Cheap Tech', filters: {} }],
+    }))
+    render(<ScreenerTab accountId="a1" userId="u1" />)
+
+    expect(await screen.findByText('Cheap Tech')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /delete/i }))
+
+    expect(supabase.from).toHaveBeenCalledWith('screener_saves')
+  })
 })
