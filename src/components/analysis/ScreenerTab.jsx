@@ -4,6 +4,9 @@ import { FILTER_GROUPS } from '../../lib/finvizFilters'
 import { buildFinvizUrl } from '../../lib/finvizUrl'
 import { useScreenerSaves } from '../../hooks/useScreenerSaves'
 
+const CATEGORY_ORDER = ['descriptive', 'fundamental', 'technical']
+const CATEGORY_LABELS = { descriptive: 'Descriptive', fundamental: 'Fundamental', technical: 'Technical' }
+
 export default function ScreenerTab({ accountId, userId }) {
   const [filters, setFilters] = useState({})
   const { saves, savePreset, deletePreset } = useScreenerSaves(accountId, userId)
@@ -27,22 +30,27 @@ export default function ScreenerTab({ accountId, userId }) {
 
   return (
     <div className="screener-tab">
-      <div className="screener-filter-grid">
-        {FILTER_GROUPS.map((group) => (
-          <label key={group.key} htmlFor={`screener-${group.key}`}>
-            {group.label}
-            <select
-              id={`screener-${group.key}`}
-              value={filters[group.key] ?? ''}
-              onChange={(e) => setFilter(group.key, e.target.value)}
-            >
-              {group.options.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </label>
-        ))}
-      </div>
+      {CATEGORY_ORDER.map((cat) => (
+        <details key={cat} open className="screener-category">
+          <summary>{CATEGORY_LABELS[cat]}</summary>
+          <div className="screener-filter-grid">
+            {FILTER_GROUPS.filter((g) => g.category === cat).map((group) => (
+              <label key={group.key} htmlFor={`screener-${group.key}`}>
+                {group.label}
+                <select
+                  id={`screener-${group.key}`}
+                  value={filters[group.key] ?? ''}
+                  onChange={(e) => setFilter(group.key, e.target.value)}
+                >
+                  {group.options.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </label>
+            ))}
+          </div>
+        </details>
+      ))}
 
       <div className="screener-url-bar">
         <span className="screener-url mono">{url}</span>

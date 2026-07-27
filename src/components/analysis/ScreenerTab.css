@@ -5,6 +5,26 @@
   gap: 24px;
 }
 
+.screener-category {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0 16px 16px;
+}
+
+.screener-category summary {
+  cursor: pointer;
+  padding: 12px 0;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+}
+
+.screener-category .screener-filter-grid {
+  padding-top: 4px;
+}
+
 .screener-filter-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

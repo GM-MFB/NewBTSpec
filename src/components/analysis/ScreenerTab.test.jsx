@@ -102,4 +102,26 @@ describe('ScreenerTab', () => {
 
     expect(supabase.from).toHaveBeenCalledWith('screener_saves')
   })
+
+  it('renders three category sections with the right headings', () => {
+    render(<ScreenerTab accountId="a1" userId="u1" />)
+    expect(screen.getByText('Descriptive')).toBeInTheDocument()
+    expect(screen.getByText('Fundamental')).toBeInTheDocument()
+    expect(screen.getByText('Technical')).toBeInTheDocument()
+  })
+
+  it('places a newly-added filter under its own category section', () => {
+    render(<ScreenerTab accountId="a1" userId="u1" />)
+    const technicalSection = screen.getByText('Technical').closest('details')
+    expect(technicalSection).toContainElement(screen.getByLabelText(/^rsi/i))
+
+    const fundamentalSection = screen.getByText('Fundamental').closest('details')
+    expect(fundamentalSection).toContainElement(screen.getByLabelText(/return on equity/i))
+  })
+
+  it('selecting a newly-added filter updates the built URL', async () => {
+    render(<ScreenerTab accountId="a1" userId="u1" />)
+    await userEvent.selectOptions(screen.getByLabelText(/^rsi/i), 'ta_rsi_os30')
+    expect(screen.getByText('https://finviz.com/screener.ashx?f=ta_rsi_os30')).toBeInTheDocument()
+  })
 })
