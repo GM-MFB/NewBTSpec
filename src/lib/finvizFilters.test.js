@@ -29,4 +29,18 @@ describe('FILTER_GROUPS', () => {
       expect(validCategories).toContain(group.category)
     }
   })
+
+  it('has at least 38 filter categories after the expansion', () => {
+    expect(FILTER_GROUPS.length).toBeGreaterThanOrEqual(38)
+  })
+
+  it('includes the new fundamental and technical groups', () => {
+    const keys = FILTER_GROUPS.map((g) => g.key)
+    expect(keys).toEqual(expect.arrayContaining([
+      'epsGrowthThisYear', 'epsGrowthNextYear', 'salesGrowth5y', 'roe', 'roa',
+      'debtEquity', 'grossMargin', 'operatingMargin', 'netMargin',
+      'priceBook', 'priceSales', 'priceCashFlow', 'insiderOwn', 'instOwn',
+      'rsi', 'sma20', 'sma50', 'sma200', 'highLow50d', 'changeToday', 'relVolume',
+    ]))
+  })
 })
