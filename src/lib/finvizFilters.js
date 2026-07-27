@@ -1,5 +1,5 @@
 export const FILTER_GROUPS = [
-  { key: 'price', label: 'Price', options: [
+  { key: 'price', label: 'Price', category: 'descriptive', options: [
     { value: '', label: 'Any' },
     { value: 'sh_price_u5', label: 'Under $5' },
     { value: 'sh_price_u10', label: 'Under $10' },
@@ -11,7 +11,7 @@ export const FILTER_GROUPS = [
     { value: 'sh_price_o50', label: 'Over $50' },
     { value: 'sh_price_o100', label: 'Over $100' },
   ] },
-  { key: 'marketCap', label: 'Market Cap', options: [
+  { key: 'marketCap', label: 'Market Cap', category: 'descriptive', options: [
     { value: '', label: 'Any' },
     { value: 'cap_mega', label: 'Mega ($200B+)' },
     { value: 'cap_large', label: 'Large ($10B-$200B)' },
@@ -20,7 +20,7 @@ export const FILTER_GROUPS = [
     { value: 'cap_micro', label: 'Micro ($50M-$300M)' },
     { value: 'cap_nano', label: 'Nano (under $50M)' },
   ] },
-  { key: 'pe', label: 'P/E', options: [
+  { key: 'pe', label: 'P/E', category: 'fundamental', options: [
     { value: '', label: 'Any' },
     { value: 'fa_pe_profitable', label: 'Profitable (P/E > 0)' },
     { value: 'fa_pe_u15', label: 'Under 15' },
@@ -29,20 +29,20 @@ export const FILTER_GROUPS = [
     { value: 'fa_pe_o15', label: 'Over 15' },
     { value: 'fa_pe_o30', label: 'Over 30' },
   ] },
-  { key: 'forwardPE', label: 'Forward P/E', options: [
+  { key: 'forwardPE', label: 'Forward P/E', category: 'fundamental', options: [
     { value: '', label: 'Any' },
     { value: 'fa_fpe_u15', label: 'Under 15' },
     { value: 'fa_fpe_u20', label: 'Under 20' },
     { value: 'fa_fpe_o15', label: 'Over 15' },
     { value: 'fa_fpe_o30', label: 'Over 30' },
   ] },
-  { key: 'peg', label: 'PEG', options: [
+  { key: 'peg', label: 'PEG', category: 'fundamental', options: [
     { value: '', label: 'Any' },
     { value: 'fa_peg_u1', label: 'Under 1' },
     { value: 'fa_peg_u2', label: 'Under 2' },
     { value: 'fa_peg_o1', label: 'Over 1' },
   ] },
-  { key: 'dividendYield', label: 'Dividend Yield', options: [
+  { key: 'dividendYield', label: 'Dividend Yield', category: 'fundamental', options: [
     { value: '', label: 'Any' },
     { value: 'fa_div_none', label: 'None (0%)' },
     { value: 'fa_div_pos', label: 'Positive (>0%)' },
@@ -50,13 +50,13 @@ export const FILTER_GROUPS = [
     { value: 'fa_div_o5', label: 'Over 5%' },
     { value: 'fa_div_high', label: 'Very High (>5%)' },
   ] },
-  { key: 'payoutRatio', label: 'Payout Ratio', options: [
+  { key: 'payoutRatio', label: 'Payout Ratio', category: 'fundamental', options: [
     { value: '', label: 'Any' },
     { value: 'fa_payoutratio_none', label: 'None (0%)' },
     { value: 'fa_payoutratio_u50', label: 'Under 50%' },
     { value: 'fa_payoutratio_o50', label: 'Over 50%' },
   ] },
-  { key: 'beta', label: 'Beta', options: [
+  { key: 'beta', label: 'Beta', category: 'technical', options: [
     { value: '', label: 'Any' },
     { value: 'sh_beta_u0.5', label: 'Under 0.5' },
     { value: 'sh_beta_u1', label: 'Under 1' },
@@ -64,47 +64,47 @@ export const FILTER_GROUPS = [
     { value: 'sh_beta_o1.5', label: 'Over 1.5' },
     { value: 'sh_beta_o2', label: 'Over 2' },
   ] },
-  { key: 'avgVolume', label: 'Avg Volume', options: [
+  { key: 'avgVolume', label: 'Avg Volume', category: 'descriptive', options: [
     { value: '', label: 'Any' },
     { value: 'sh_avgvol_u100', label: 'Under 100K' },
     { value: 'sh_avgvol_o100', label: 'Over 100K' },
     { value: 'sh_avgvol_o500', label: 'Over 500K' },
     { value: 'sh_avgvol_o1000', label: 'Over 1M' },
   ] },
-  { key: 'shortInterest', label: 'Short Interest', options: [
+  { key: 'shortInterest', label: 'Short Interest', category: 'descriptive', options: [
     { value: '', label: 'Any' },
     { value: 'sh_short_low', label: 'Low (<5%)' },
     { value: 'sh_short_o5', label: 'Over 5%' },
     { value: 'sh_short_o20', label: 'Over 20%' },
     { value: 'sh_short_high', label: 'High (>20%)' },
   ] },
-  { key: 'perf52w', label: '52-Week Performance', options: [
+  { key: 'perf52w', label: '52-Week Performance', category: 'technical', options: [
     { value: '', label: 'Any' },
     { value: 'ta_highlow52w_nh', label: 'New High' },
     { value: 'ta_highlow52w_nl', label: 'New Low' },
     { value: 'ta_perf_52wup', label: 'Up over past year' },
     { value: 'ta_perf_52wdown', label: 'Down over past year' },
   ] },
-  { key: 'perfYtd', label: 'YTD Performance', options: [
+  { key: 'perfYtd', label: 'YTD Performance', category: 'technical', options: [
     { value: '', label: 'Any' },
     { value: 'ta_perf_ytdup', label: 'Positive YTD' },
     { value: 'ta_perf_ytddown', label: 'Negative YTD' },
   ] },
-  { key: 'analystRecom', label: 'Analyst Recom.', options: [
+  { key: 'analystRecom', label: 'Analyst Recom.', category: 'descriptive', options: [
     { value: '', label: 'Any' },
     { value: 'an_recom_strongbuy', label: 'Strong Buy' },
     { value: 'an_recom_buybetter', label: 'Buy or better' },
     { value: 'an_recom_hold', label: 'Hold' },
   ] },
-  { key: 'optionable', label: 'Optionable', options: [
+  { key: 'optionable', label: 'Optionable', category: 'descriptive', options: [
     { value: '', label: 'Any' },
     { value: 'sh_opt_option', label: 'Optionable' },
   ] },
-  { key: 'shortable', label: 'Shortable', options: [
+  { key: 'shortable', label: 'Shortable', category: 'descriptive', options: [
     { value: '', label: 'Any' },
     { value: 'sh_short_shortable', label: 'Shortable' },
   ] },
-  { key: 'sector', label: 'Sector', options: [
+  { key: 'sector', label: 'Sector', category: 'descriptive', options: [
     { value: '', label: 'Any' },
     { value: 'sec_technology', label: 'Technology' },
     { value: 'sec_healthcare', label: 'Healthcare' },
@@ -118,20 +118,20 @@ export const FILTER_GROUPS = [
     { value: 'sec_communicationservices', label: 'Communication Services' },
     { value: 'sec_utilities', label: 'Utilities' },
   ] },
-  { key: 'country', label: 'Geography', options: [
+  { key: 'country', label: 'Geography', category: 'descriptive', options: [
     { value: '', label: 'Any' },
     { value: 'geo_usa', label: 'USA' },
     { value: 'geo_notusa', label: 'Not USA (foreign)' },
     { value: 'geo_china', label: 'China' },
     { value: 'geo_europe', label: 'Europe' },
   ] },
-  { key: 'exchange', label: 'Exchange', options: [
+  { key: 'exchange', label: 'Exchange', category: 'descriptive', options: [
     { value: '', label: 'Any' },
     { value: 'exch_nyse', label: 'NYSE' },
     { value: 'exch_nasd', label: 'NASDAQ' },
     { value: 'exch_amex', label: 'AMEX' },
   ] },
-  { key: 'index', label: 'Index', options: [
+  { key: 'index', label: 'Index', category: 'descriptive', options: [
     { value: '', label: 'Any' },
     { value: 'idx_sp500', label: 'S&P 500' },
     { value: 'idx_dji', label: 'Dow Jones' },

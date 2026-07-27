@@ -22,4 +22,11 @@ describe('FILTER_GROUPS', () => {
       }
     }
   })
+
+  it('every group has a valid category', () => {
+    const validCategories = ['descriptive', 'fundamental', 'technical']
+    for (const group of FILTER_GROUPS) {
+      expect(validCategories).toContain(group.category)
+    }
+  })
 })
