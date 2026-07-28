@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import './InvestmentRow.css'
 import { effectiveStrategyDef } from '../lib/optionStrategies'
 import { formatCurrency, formatCurrencyWhole, formatCurrencyAuto } from '../lib/format'
@@ -57,6 +59,7 @@ function StrikeMeta({ investment, strategyDef, strikeDisplay }) {
 }
 
 export default function InvestmentRow({ investment, onClosePosition, onDelete, onEdit, coveredShares }) {
+  const [expanded, setExpanded] = useState(false)
   const isOption = investment.assetType === 'Option'
   const isClosed = investment.status === 'closed'
   const strategyDef = effectiveStrategyDef(investment)
@@ -89,63 +92,89 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, o
 
   return (
     <li className={`investment-row${isClosed ? ' investment-row--closed' : ''}`} data-testid="investment-row">
-      <div className="investment-row-top">
-        <span className="mono investment-symbol">{investment.symbol}</span>
-        {investment.chartLink && (
-          <a
-            className="investment-chart-link"
-            href={normalizeUrl(investment.chartLink)}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {abbreviateUrl(investment.chartLink)} ↗
-          </a>
-        )}
+      <div
+        className="investment-row-clickable"
+        data-testid="investment-row-clickable"
+        role="button"
+        tabIndex={0}
+        onClick={() => setExpanded((v) => !v)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            setExpanded((v) => !v)
+          }
+        }}
+      >
+        <div className="investment-row-top">
+          <span className="mono investment-symbol">{investment.symbol}</span>
+        </div>
+        <div className="investment-row-meta mono">
+          {isOption ? (
+            <>
+              <MetaItem field="contracts" label="Contracts" value={investment.shares} />
+              <StrikeMeta investment={investment} strategyDef={strategyDef} strikeDisplay={strikeDisplay} />
+              <MetaItem field="expires" label="Expires" value={investment.expiry} />
+              {!isClosed && <MetaItem field="days-left" label="Days Left" value={daysLeftLabel(investment.expiry)} />}
+              <MetaItem field="avg-price" label="Avg Price" value={formatCurrency(investment.avgCost)} />
+              {isClosed ? (
+                <>
+                  <MetaItem field="sell-price" label="Sell Price" value={formatCurrency(investment.sellPrice)} />
+                  <MetaItem field="realized-pnl" label="Realized P&L" value={formatCurrency(realizedPnlRaw)} colorClass={realizedPnlClass} />
+                </>
+              ) : (
+                <>
+                  <MetaItem field="collateral" label="Collateral" value={collateral} />
+                  <MetaItem field="pnl" label="P&L" value={potentialPnl} />
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              <MetaItem field="shares" label="Shares" value={sharesDisplay} />
+              <MetaItem field="market-value" label="Market Value" value={marketValue} />
+              <MetaItem field="avg-cost" label="Avg Cost" value={formatCurrency(investment.avgCost)} />
+              {isClosed ? (
+                <>
+                  <MetaItem field="sell-price" label="Sell Price" value={formatCurrency(investment.sellPrice)} />
+                  <MetaItem field="realized-pnl" label="Realized P&L" value={formatCurrency(realizedPnlRaw)} colorClass={realizedPnlClass} />
+                </>
+              ) : (
+                <>
+                  <MetaItem field="current-price" label="Current Price" value={formatCurrency(investment.currentPrice)} colorClass={currentPriceClass} />
+                  <MetaItem field="unrealized-pnl" label="Unrealized P&L" value={formatCurrency(unrealizedPnlRaw)} colorClass={unrealizedPnlClass} />
+                </>
+              )}
+            </>
+          )}
+        </div>
       </div>
-      <div className="investment-row-meta mono">
-        {isOption ? (
-          <>
-            <MetaItem field="contracts" label="Contracts" value={investment.shares} />
-            <StrikeMeta investment={investment} strategyDef={strategyDef} strikeDisplay={strikeDisplay} />
-            <MetaItem field="expires" label="Expires" value={investment.expiry} />
-            {!isClosed && <MetaItem field="days-left" label="Days Left" value={daysLeftLabel(investment.expiry)} />}
-            <MetaItem field="avg-price" label="Avg Price" value={formatCurrency(investment.avgCost)} />
-            {isClosed ? (
-              <>
-                <MetaItem field="sell-price" label="Sell Price" value={formatCurrency(investment.sellPrice)} />
-                <MetaItem field="realized-pnl" label="Realized P&L" value={formatCurrency(realizedPnlRaw)} colorClass={realizedPnlClass} />
-              </>
-            ) : (
-              <>
-                <MetaItem field="collateral" label="Collateral" value={collateral} />
-                <MetaItem field="pnl" label="P&L" value={potentialPnl} />
-              </>
-            )}
-          </>
-        ) : (
-          <>
-            <MetaItem field="shares" label="Shares" value={sharesDisplay} />
-            <MetaItem field="market-value" label="Market Value" value={marketValue} />
-            <MetaItem field="avg-cost" label="Avg Cost" value={formatCurrency(investment.avgCost)} />
-            {isClosed ? (
-              <>
-                <MetaItem field="sell-price" label="Sell Price" value={formatCurrency(investment.sellPrice)} />
-                <MetaItem field="realized-pnl" label="Realized P&L" value={formatCurrency(realizedPnlRaw)} colorClass={realizedPnlClass} />
-              </>
-            ) : (
-              <>
-                <MetaItem field="current-price" label="Current Price" value={formatCurrency(investment.currentPrice)} colorClass={currentPriceClass} />
-                <MetaItem field="unrealized-pnl" label="Unrealized P&L" value={formatCurrency(unrealizedPnlRaw)} colorClass={unrealizedPnlClass} />
-              </>
-            )}
-          </>
-        )}
+
+      <div className="investment-row-actions">
+        {onEdit && <button type="button" onClick={() => onEdit(investment)}>Edit</button>}
+        <Link className="investment-chart-btn" to={`/charts?symbol=${encodeURIComponent(investment.symbol)}`}>Chart</Link>
+        {onClosePosition && <button type="button" onClick={() => onClosePosition(investment.id)}>Close</button>}
+        {onDelete && <button type="button" className="danger" onClick={handleDelete}>Delete</button>}
       </div>
-      {(onClosePosition || onEdit || onDelete) && (
-        <div className="investment-row-actions">
-          {onEdit && <button type="button" onClick={() => onEdit(investment)}>Edit</button>}
-          {onClosePosition && <button type="button" onClick={() => onClosePosition(investment.id)}>Close</button>}
-          {onDelete && <button type="button" className="danger" onClick={handleDelete}>Delete</button>}
+
+      {expanded && (
+        <div className="investment-row-details">
+          {investment.chartLink ? (
+            <a
+              className="investment-chart-link"
+              href={normalizeUrl(investment.chartLink)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {abbreviateUrl(investment.chartLink)} ↗
+            </a>
+          ) : (
+            <span className="investment-row-details-empty">No chart link added.</span>
+          )}
+          {investment.notes ? (
+            <p className="investment-row-notes">{investment.notes}</p>
+          ) : (
+            <span className="investment-row-details-empty">No notes added.</span>
+          )}
         </div>
       )}
     </li>

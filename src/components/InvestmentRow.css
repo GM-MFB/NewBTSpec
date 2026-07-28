@@ -36,6 +36,16 @@
   color: var(--text-dim);
 }
 
+.investment-row-clickable {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
 .investment-row-top {
   display: flex;
   align-items: center;
@@ -113,6 +123,46 @@
 .investment-row-actions button.danger:hover {
   border-color: var(--red);
   color: var(--red);
+}
+
+.investment-chart-btn {
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.investment-chart-btn:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.investment-row-details {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 12.5px;
+}
+
+.investment-row-details-empty {
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.investment-row-notes {
+  margin: 0;
+  color: var(--text);
+  white-space: pre-wrap;
 }
 
 .meta-separator {
