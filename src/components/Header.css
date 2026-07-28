@@ -10,6 +10,22 @@
 
 .account-switcher {
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.account-switcher > .rename-account-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1;
+  padding: 4px;
+}
+
+.account-switcher > .rename-account-btn:hover {
+  color: var(--text);
 }
 
 .account-name {
@@ -86,16 +102,26 @@
   width: auto;
 }
 
-.delete-account-btn {
+.account-row .rename-account-btn,
+.account-row .delete-account-btn {
   width: auto !important;
   flex-shrink: 0;
   color: var(--text-dim);
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1;
   padding: 8px 10px !important;
 }
 
-.delete-account-btn:hover {
+.account-row .rename-account-btn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.account-row .delete-account-btn {
+  font-size: 16px;
+}
+
+.account-row .delete-account-btn:hover {
   color: #ef4444;
   background: rgba(239, 68, 68, 0.12) !important;
 }

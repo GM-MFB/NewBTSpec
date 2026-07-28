@@ -8,6 +8,7 @@ export default function Header({
     switchAccount,
     createAccount,
     deleteAccount,
+    renameAccount,
     onSignOut,
     onAddTrade,
     addLabel = "+ Add Trade",
@@ -27,6 +28,22 @@ export default function Header({
                 >
                     {activeAccount?.name ?? "Account"}
                 </button>
+                {renameAccount && activeAccount && activeAccount.name !== "Matt Cap" && (
+                    <button
+                        type="button"
+                        className="rename-account-btn"
+                        aria-label={`Rename ${activeAccount.name}`}
+                        onClick={() => {
+                            const name = window.prompt(
+                                "Rename account",
+                                activeAccount.name
+                            );
+                            if (name) renameAccount(activeAccount.id, name);
+                        }}
+                    >
+                        ✎
+                    </button>
+                )}
                 {open && (
                     <ul className="account-dropdown">
                         {accounts
@@ -42,6 +59,23 @@ export default function Header({
                                     >
                                         {a.name}
                                     </button>
+                                    {renameAccount && a.name !== 'Matt Cap' && (
+                                        <button
+                                            type="button"
+                                            className="rename-account-btn"
+                                            aria-label={`Rename ${a.name}`}
+                                            onClick={() => {
+                                                const name = window.prompt(
+                                                    "Rename account",
+                                                    a.name
+                                                );
+                                                if (name) renameAccount(a.id, name);
+                                                setOpen(false);
+                                            }}
+                                        >
+                                            ✎
+                                        </button>
+                                    )}
                                     {deleteAccount && a.name !== 'Matt Cap' && (
                                         <button
                                             type="button"

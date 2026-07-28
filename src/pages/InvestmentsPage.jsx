@@ -19,7 +19,7 @@ import ClosePositionModal from '../components/ClosePositionModal'
 
 export default function InvestmentsPage() {
   const { user, signOut } = useAuth()
-  const { accounts, activeAccount, activeAccountId, switchAccount, createAccount, deleteAccount } = useAccounts(user?.id)
+  const { accounts, activeAccount, activeAccountId, switchAccount, createAccount, deleteAccount, renameAccount } = useAccounts(user?.id)
   const { investments, error, reload, addInvestment, closeInvestment, updateInvestment, deleteInvestment } = useInvestments(activeAccountId)
   const { finnhubKey } = useUserSettings(user?.id)
   const [addOpen, setAddOpen] = useState(false)
@@ -75,6 +75,7 @@ export default function InvestmentsPage() {
         switchAccount={switchAccount}
         createAccount={createAccount}
         deleteAccount={deleteAccount}
+        renameAccount={renameAccount}
         onSignOut={signOut}
         onAddTrade={() => setAddOpen(true)}
         addLabel="+ Add Investment"

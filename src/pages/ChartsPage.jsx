@@ -11,7 +11,7 @@ const STORAGE_KEY = 'bt_charts_symbol'
 
 export default function ChartsPage() {
   const { user, signOut } = useAuth()
-  const { accounts, activeAccount, switchAccount, createAccount, deleteAccount } = useAccounts(user?.id)
+  const { accounts, activeAccount, switchAccount, createAccount, deleteAccount, renameAccount } = useAccounts(user?.id)
   const { entries } = useWatchlist(user?.id)
 
   const [symbol, setSymbol] = useState(() => localStorage.getItem(STORAGE_KEY) || 'AAPL')
@@ -31,6 +31,7 @@ export default function ChartsPage() {
         switchAccount={switchAccount}
         createAccount={createAccount}
         deleteAccount={deleteAccount}
+        renameAccount={renameAccount}
         onSignOut={signOut}
         showAddButton={false}
       />

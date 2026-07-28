@@ -10,7 +10,7 @@ import TradeDetailModal from '../components/TradeDetailModal'
 
 export default function TradesPage() {
   const { user, signOut } = useAuth()
-  const { accounts, activeAccount, activeAccountId, switchAccount, createAccount, deleteAccount } = useAccounts(user?.id)
+  const { accounts, activeAccount, activeAccountId, switchAccount, createAccount, deleteAccount, renameAccount } = useAccounts(user?.id)
   const { trades, error, reload, addTrade, updateTrade, closeTrade, deleteTrade } = useTrades(activeAccountId)
   const [addOpen, setAddOpen] = useState(false)
   const [selectedTradeId, setSelectedTradeId] = useState(null)
@@ -25,6 +25,7 @@ export default function TradesPage() {
         switchAccount={switchAccount}
         createAccount={createAccount}
         deleteAccount={deleteAccount}
+        renameAccount={renameAccount}
         onSignOut={signOut}
         onAddTrade={() => setAddOpen(true)}
       />
