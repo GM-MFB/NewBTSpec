@@ -3,6 +3,7 @@ import { effectiveStrategyDef } from '../lib/optionStrategies'
 import { formatCurrency, formatCurrencyWhole, formatCurrencyAuto } from '../lib/format'
 import { collateralFor, potentialPnlFor } from '../lib/optionMath'
 import { realizedPnlFor, unrealizedPnlFor } from '../lib/investmentStats'
+import { abbreviateUrl, normalizeUrl } from '../lib/url'
 
 function daysLeftLabel(expiry) {
   if (!expiry) return ''
@@ -55,7 +56,7 @@ function StrikeMeta({ investment, strategyDef, strikeDisplay }) {
   )
 }
 
-export default function InvestmentRow({ investment, onClosePosition, onDelete, coveredShares }) {
+export default function InvestmentRow({ investment, onClosePosition, onDelete, onEdit, coveredShares }) {
   const isOption = investment.assetType === 'Option'
   const isClosed = investment.status === 'closed'
   const strategyDef = effectiveStrategyDef(investment)
@@ -90,6 +91,16 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, c
     <li className={`investment-row${isClosed ? ' investment-row--closed' : ''}`} data-testid="investment-row">
       <div className="investment-row-top">
         <span className="mono investment-symbol">{investment.symbol}</span>
+        {investment.chartLink && (
+          <a
+            className="investment-chart-link"
+            href={normalizeUrl(investment.chartLink)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {abbreviateUrl(investment.chartLink)} ↗
+          </a>
+        )}
       </div>
       <div className="investment-row-meta mono">
         {isOption ? (
@@ -130,8 +141,9 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, c
           </>
         )}
       </div>
-      {(onClosePosition || onDelete) && (
+      {(onClosePosition || onEdit || onDelete) && (
         <div className="investment-row-actions">
+          {onEdit && <button type="button" onClick={() => onEdit(investment)}>Edit</button>}
           {onClosePosition && <button type="button" onClick={() => onClosePosition(investment.id)}>Close</button>}
           {onDelete && <button type="button" className="danger" onClick={handleDelete}>Delete</button>}
         </div>

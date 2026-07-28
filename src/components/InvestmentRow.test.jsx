@@ -270,6 +270,38 @@ describe('InvestmentRow', () => {
     expect(screen.queryByRole('button', { name: /^delete$/i })).not.toBeInTheDocument()
   })
 
+  it('shows an abbreviated chart link when chartLink is set', () => {
+    const investment = {
+      id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150,
+      strategy: '', strike: '', expiry: '', chartLink: 'https://www.tradingview.com/chart/XYZ',
+    }
+    render(<InvestmentRow investment={investment} />)
+    const link = screen.getByRole('link', { name: /tradingview\.com/i })
+    expect(link).toHaveAttribute('href', 'https://www.tradingview.com/chart/XYZ')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'))
+  })
+
+  it('does not show a chart link when chartLink is blank', () => {
+    const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, strategy: '', strike: '', expiry: '' }
+    render(<InvestmentRow investment={investment} />)
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
+  })
+
+  it('calls onEdit with the investment when Edit is clicked', async () => {
+    const onEdit = vi.fn()
+    const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, strategy: '', strike: '', expiry: '' }
+    render(<InvestmentRow investment={investment} onEdit={onEdit} />)
+    await userEvent.click(screen.getByRole('button', { name: /^edit$/i }))
+    expect(onEdit).toHaveBeenCalledWith(investment)
+  })
+
+  it('hides Edit when no onEdit handler is provided', () => {
+    const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, strategy: '', strike: '', expiry: '' }
+    render(<InvestmentRow investment={investment} />)
+    expect(screen.queryByRole('button', { name: /^edit$/i })).not.toBeInTheDocument()
+  })
+
   it('shows Sell Price and Realized P&L instead of Current Price/Unrealized P&L for a closed stock', () => {
     const investment = {
       id: 'i1', symbol: 'AAPL', assetType: 'Stock', status: 'closed',
