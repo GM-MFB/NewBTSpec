@@ -47,13 +47,20 @@ export default function Header({
                                             type="button"
                                             className="delete-account-btn"
                                             aria-label={`Delete ${a.name}`}
-                                            onClick={() => {
+                                            onClick={async () => {
                                                 if (
                                                     window.confirm(
                                                         `Delete ${a.name}? This cannot be undone.`
                                                     )
                                                 ) {
-                                                    deleteAccount(a.id);
+                                                    try {
+                                                        await deleteAccount(a.id);
+                                                    } catch (err) {
+                                                        window.alert(
+                                                            `Couldn't delete ${a.name}: ${err.message}`
+                                                        );
+                                                        return;
+                                                    }
                                                 }
                                                 setOpen(false);
                                             }}
