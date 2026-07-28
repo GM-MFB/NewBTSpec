@@ -17,3 +17,15 @@ export function potentialPnlFor(investment, strategyDef) {
   if (!strategyDef || strategyDef.optionDirection !== 'short' || !contracts || !price) return ''
   return contracts * price * 100
 }
+
+export function optionsCapitalAtRisk(investment, strategyDef) {
+  if (!strategyDef) return 0
+  if (strategyDef.optionDirection === 'short') {
+    if (strategyDef.value === 'covered_call') return 0
+    return Number(collateralFor(investment, strategyDef)) || 0
+  }
+  const contracts = Number(investment.shares)
+  const price = Number(investment.avgCost)
+  if (!contracts || !price) return 0
+  return contracts * price * 100
+}
