@@ -41,13 +41,26 @@ export default function TradeRow({ trade, onEdit, onDelete }) {
         </div>
         <div className="trade-row-meta mono">
           <span className="meta-item"><span className="meta-label">Qty:</span><span className="meta-value">{trade.quantity}</span></span>
-          <span className="meta-item"><span className="meta-label">Entry:</span><span className="meta-value">{formatCurrency(trade.entryPrice)}</span></span>
-          {isOpen ? (
-            <span className="trade-open-badge">Open</span>
+          {trade.type === 'futures' ? (
+            <>
+              <span className="meta-item"><span className="meta-label">Ticks:</span><span className="meta-value">{trade.ticks}</span></span>
+              {isOpen ? (
+                <span className="trade-open-badge">Open</span>
+              ) : (
+                <span className="meta-item"><span className="meta-label">P&L:</span><span className={`meta-value ${pnlClass}`}>{formatCurrency(pnl)}</span></span>
+              )}
+            </>
           ) : (
             <>
-              <span className="meta-item"><span className="meta-label">Exit:</span><span className="meta-value">{formatCurrency(trade.exitPrice)}</span></span>
-              <span className="meta-item"><span className="meta-label">P&L:</span><span className={`meta-value ${pnlClass}`}>{formatCurrency(pnl)}</span></span>
+              <span className="meta-item"><span className="meta-label">Entry:</span><span className="meta-value">{formatCurrency(trade.entryPrice)}</span></span>
+              {isOpen ? (
+                <span className="trade-open-badge">Open</span>
+              ) : (
+                <>
+                  <span className="meta-item"><span className="meta-label">Exit:</span><span className="meta-value">{formatCurrency(trade.exitPrice)}</span></span>
+                  <span className="meta-item"><span className="meta-label">P&L:</span><span className={`meta-value ${pnlClass}`}>{formatCurrency(pnl)}</span></span>
+                </>
+              )}
             </>
           )}
         </div>

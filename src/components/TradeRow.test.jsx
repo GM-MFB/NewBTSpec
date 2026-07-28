@@ -42,6 +42,20 @@ describe('TradeRow', () => {
     expect(screen.getByText('Open')).toBeInTheDocument()
   })
 
+  it('shows Qty, Ticks, and P&L for a futures trade, without Entry/Exit', () => {
+    const futuresTrade = {
+      id: 't3', symbol: 'MES', type: 'futures', direction: 'long',
+      quantity: 3, ticks: -8, tickValue: 1.25, exitDate: '2026-07-14', fees: 3,
+    }
+    renderRow(<TradeRow trade={futuresTrade} />)
+    expect(screen.getByText('Qty:')).toBeInTheDocument()
+    expect(screen.getByText('Ticks:')).toBeInTheDocument()
+    expect(screen.getByText('-8')).toBeInTheDocument()
+    expect(screen.getByText('P&L:')).toBeInTheDocument()
+    expect(screen.queryByText('Entry:')).not.toBeInTheDocument()
+    expect(screen.queryByText('Exit:')).not.toBeInTheDocument()
+  })
+
   it('shows a Chart button linking to the Charts tab for this symbol', () => {
     renderRow(<TradeRow trade={closedTrade} />)
     const link = screen.getByRole('link', { name: /^chart$/i })
