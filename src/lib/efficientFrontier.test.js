@@ -235,6 +235,26 @@ describe('getPortfolioRiskMetrics', () => {
     const metrics = getPortfolioRiskMetrics(withOption)
     expect(metrics.stopCoveragePct).toBe(50)
   })
+
+  it('includes option positions in HHI, beta and totalMV rather than ignoring them', () => {
+    const stockOnly = [
+      { symbol: 'AAPL', weight: 0.6, marketValue: 6000, currentPrice: 200, stopLoss: 180, shares: 30 },
+      { symbol: 'SPY', weight: 0.4, marketValue: 4000, currentPrice: 500, stopLoss: null, shares: 8 },
+    ]
+    const withOption = [
+      { symbol: 'AAPL', weight: 0.4, marketValue: 6000, currentPrice: 200, stopLoss: 180, shares: 30 },
+      { symbol: 'SPY', weight: 0.27, marketValue: 4000, currentPrice: 500, stopLoss: null, shares: 8 },
+      { symbol: 'TSLA', assetType: 'Option', weight: 0.33, marketValue: 5000, currentPrice: undefined, stopLoss: null, shares: undefined },
+    ]
+
+    const stockMetrics = getPortfolioRiskMetrics(stockOnly)
+    const optionMetrics = getPortfolioRiskMetrics(withOption)
+
+    expect(optionMetrics.totalMV).toBe(15000)
+    expect(optionMetrics.totalMV).not.toBe(stockMetrics.totalMV)
+    expect(optionMetrics.hhi).not.toBeCloseTo(stockMetrics.hhi, 6)
+    expect(optionMetrics.beta).not.toBeCloseTo(stockMetrics.beta, 6)
+  })
 })
 
 describe('getRiskContribution', () => {

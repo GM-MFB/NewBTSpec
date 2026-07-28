@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import RiskTab from './RiskTab'
 import { setComputedParams, setRealCorrelations } from '../../lib/efficientFrontier'
@@ -49,6 +49,26 @@ describe('RiskTab', () => {
     expect(screen.getByText(/options have a defined max loss/i)).toBeInTheDocument()
   })
 
+  it('shows a caption framing stress tests as a simplified bound, not a priced options model', () => {
+    render(<RiskTab investments={investments} />)
+    expect(screen.getByText(/simplified bound, not a priced options model/i)).toBeInTheDocument()
+  })
+
+  it('renders distinct risk contribution rows without duplicate keys when a stock and an option share a symbol', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const withSharedSymbol = [
+      ...investments,
+      { symbol: 'AAPL', assetType: 'Option', shares: 2, avgCost: 3.5, strategy: 'cash_secured_put', strike: 130 },
+    ]
+    render(<RiskTab investments={withSharedSymbol} />)
+
+    const contributionTable = screen.getByText('Risk Contribution').closest('section').querySelector('table')
+    const aaplRows = within(contributionTable).getAllByText('AAPL')
+    expect(aaplRows).toHaveLength(2)
+    expect(errorSpy.mock.calls.flat().join(' ')).not.toMatch(/same key/i)
+    errorSpy.mockRestore()
+  })
+
   it('shows a "No open option positions" note when there are no option positions', () => {
     render(<RiskTab investments={investments} />)
     expect(screen.getByText(/no open option positions/i)).toBeInTheDocument()
@@ -63,6 +83,25 @@ describe('RiskTab', () => {
     expect(screen.getByText('Cash Secured Put')).toBeInTheDocument()
     expect(screen.getByText('$26,000.00')).toBeInTheDocument()
     expect(screen.getByTestId('options-total-risk')).toHaveTextContent('$26,000.00')
+  })
+
+  it('labels a covered call as Covered based on its strategy, not its numeric capital at risk', () => {
+    const withCoveredCall = [
+      ...investments,
+      { symbol: 'AAPL', assetType: 'Option', shares: 1, strategy: 'covered_call', strike: 200 },
+    ]
+    render(<RiskTab investments={withCoveredCall} />)
+    expect(screen.getByText('Covered Call')).toBeInTheDocument()
+    expect(screen.getByText('Covered')).toBeInTheDocument()
+  })
+
+  it('does not label a long call with a missing cost basis as Covered', () => {
+    const withBadLongCall = [
+      ...investments,
+      { symbol: 'MSFT', assetType: 'Option', shares: 1, strategy: 'call', strike: 400 },
+    ]
+    render(<RiskTab investments={withBadLongCall} />)
+    expect(screen.queryByText('Covered')).not.toBeInTheDocument()
   })
 
   it('includes an option position in an expanded stress scenario with a bounded impact', async () => {

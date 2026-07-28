@@ -118,7 +118,7 @@ export default function RiskTab({ investments }) {
                     <th scope="row">{p.symbol}</th>
                     <td className="mono">{p.strategyLabel}</td>
                     <td className="mono">{p.contracts}</td>
-                    <td className="mono">{p.capitalAtRisk > 0 ? formatCurrency(p.capitalAtRisk) : 'Covered'}</td>
+                    <td className="mono">{p.strategyLabel === 'Covered Call' ? 'Covered' : formatCurrency(p.capitalAtRisk)}</td>
                     <td className="mono">{(metrics.totalMV > 0 ? (p.capitalAtRisk / metrics.totalMV) * 100 : 0).toFixed(1)}%</td>
                   </tr>
                 ))}
@@ -134,6 +134,7 @@ export default function RiskTab({ investments }) {
 
       <section className="risk-stress">
         <h2>Stress Tests</h2>
+        <p className="risk-caption">Stock impacts are beta-scaled; option impacts show full max loss in the adverse direction only — a simplified bound, not a priced options model.</p>
         {stressTests.map((scenario) => (
           <div key={scenario.name} className="risk-stress-row">
             <button type="button" onClick={() => setExpandedScenario(expandedScenario === scenario.name ? null : scenario.name)}>
@@ -163,8 +164,8 @@ export default function RiskTab({ investments }) {
         <table className="risk-table">
           <thead><tr><th>Symbol</th><th>Weight %</th><th>Risk %</th><th>Flag</th></tr></thead>
           <tbody>
-            {riskContributions.map((c) => (
-              <tr key={c.symbol}>
+            {riskContributions.map((c, idx) => (
+              <tr key={`${c.symbol}-${idx}`}>
                 <th scope="row">{c.symbol}</th>
                 <td className="mono">{c.weightPct.toFixed(1)}%</td>
                 <td className="mono">{c.riskPct.toFixed(1)}%</td>
