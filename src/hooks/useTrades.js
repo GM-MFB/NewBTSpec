@@ -15,7 +15,6 @@ export function useTrades(accountId) {
       .from('trades')
       .select('*')
       .eq('account_id', accountId)
-      .eq('status', 'open')
       .order('created_at', { ascending: false })
 
     if (err) {
@@ -34,7 +33,7 @@ export function useTrades(accountId) {
   async function addTrade(trade, userId) {
     const { data, error: err } = await supabase
       .from('trades')
-      .insert({ account_id: accountId, user_id: userId, ...toRow({ ...trade, status: 'open' }) })
+      .insert({ account_id: accountId, user_id: userId, ...toRow({ ...trade, status: 'closed' }) })
       .select()
       .single()
     if (err) throw err
@@ -49,21 +48,11 @@ export function useTrades(accountId) {
     await load()
   }
 
-  async function closeTrade(id, { exitPrice, exitDate }) {
-    const current = trades.find((t) => t.id === id)
-    const { error: err } = await supabase
-      .from('trades')
-      .update(toRow({ ...current, status: 'closed', exitPrice, exitDate }))
-      .eq('id', id)
-    if (err) throw err
-    await load()
-  }
-
   async function deleteTrade(id) {
     const { error: err } = await supabase.from('trades').delete().eq('id', id)
     if (err) throw err
     await load()
   }
 
-  return { trades, loading, error, reload: load, addTrade, updateTrade, closeTrade, deleteTrade }
+  return { trades, loading, error, reload: load, addTrade, updateTrade, deleteTrade }
 }

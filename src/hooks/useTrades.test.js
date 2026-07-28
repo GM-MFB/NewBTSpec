@@ -7,21 +7,20 @@ vi.mock('../utils/supabase', () => ({ supabase: { from: vi.fn() } }))
 
 function mockSelectChain(data) {
   const order = vi.fn().mockResolvedValue({ data, error: null })
-  const eq2 = vi.fn(() => ({ order }))
-  const eq1 = vi.fn(() => ({ eq: eq2 }))
-  return { select: vi.fn(() => ({ eq: eq1 })) }
+  const eq = vi.fn(() => ({ order }))
+  return { select: vi.fn(() => ({ eq })) }
 }
 
 describe('useTrades', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('loads only open trades for the account, mapped to camelCase', async () => {
+  it('loads all trades for the account regardless of status, mapped to camelCase', async () => {
     const rows = [{
       id: 't1', account_id: 'a1', user_id: 'u1', created_at: '2026-01-01',
       type: 'futures', symbol: 'ES', option_type: null, strike: null,
       expiry: null, direction: 'long', quantity: 1, entry_price: 4500,
-      exit_price: null, entry_date: '2026-01-01', exit_date: null,
-      status: 'open', fees: 0, notes: null, chart_link: null,
+      exit_price: 4550, entry_date: '2026-01-01', exit_date: '2026-01-01',
+      status: 'closed', fees: 0, notes: null, chart_link: null, point_value: 50,
     }]
     supabase.from.mockReturnValue(mockSelectChain(rows))
 
@@ -34,17 +33,17 @@ describe('useTrades', () => {
     expect(supabase.from).toHaveBeenCalledWith('trades')
   })
 
-  it('addTrade inserts a row with status open and refreshes the list', async () => {
+  it('addTrade inserts a row with status closed and the exit fields, then refreshes', async () => {
     supabase.from.mockReturnValue(mockSelectChain([]))
     const { result } = renderHook(() => useTrades('a1'))
     await waitFor(() => expect(result.current.loading).toBe(false))
 
     const insertedRow = {
       id: 't2', account_id: 'a1', user_id: 'u1', created_at: '2026-01-02',
-      type: 'futures', symbol: 'NQ', option_type: null, strike: null,
-      expiry: null, direction: 'long', quantity: 1, entry_price: 15000,
-      exit_price: null, entry_date: '2026-01-02', exit_date: null,
-      status: 'open', fees: 0, notes: null, chart_link: null,
+      type: 'stock', symbol: 'AAPL', option_type: null, strike: null,
+      expiry: null, direction: 'long', quantity: 10, entry_price: 100,
+      exit_price: 110, entry_date: '2026-01-02', exit_date: '2026-01-02',
+      status: 'closed', fees: 0, notes: null, chart_link: null, point_value: null,
     }
     const single = vi.fn().mockResolvedValue({ data: insertedRow, error: null })
     const select = vi.fn(() => ({ single }))
@@ -53,8 +52,8 @@ describe('useTrades', () => {
 
     await act(async () => {
       await result.current.addTrade({
-        type: 'futures', symbol: 'NQ', direction: 'long', quantity: 1,
-        entryPrice: 15000, entryDate: '2026-01-02', status: 'open',
+        type: 'stock', symbol: 'AAPL', direction: 'long', quantity: 10,
+        entryPrice: 100, entryDate: '2026-01-02', exitPrice: 110, exitDate: '2026-01-02',
       }, 'u1')
     })
 
@@ -62,16 +61,17 @@ describe('useTrades', () => {
     const insertArg = insert.mock.calls[0][0]
     expect(insertArg.account_id).toBe('a1')
     expect(insertArg.user_id).toBe('u1')
-    expect(insertArg.symbol).toBe('NQ')
+    expect(insertArg.status).toBe('closed')
+    expect(insertArg.exit_price).toBe(110)
   })
 
-  it('closeTrade preserves existing fields not included in the close payload', async () => {
+  it('updateTrade merges the patch over the current trade and writes it', async () => {
     const rows = [{
       id: 't1', account_id: 'a1', user_id: 'u1', created_at: '2026-01-01',
-      type: 'futures', symbol: 'ES', option_type: null, strike: null,
-      expiry: null, direction: 'long', quantity: 1, entry_price: 4500,
-      exit_price: null, entry_date: '2026-01-01', exit_date: null,
-      status: 'open', fees: 0, notes: null, chart_link: null,
+      type: 'stock', symbol: 'AAPL', option_type: null, strike: null,
+      expiry: null, direction: 'long', quantity: 10, entry_price: 100,
+      exit_price: 110, entry_date: '2026-01-01', exit_date: '2026-01-01',
+      status: 'closed', fees: 0, notes: null, chart_link: null, point_value: null,
     }]
     const update = vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) }))
     supabase.from.mockReturnValue({ ...mockSelectChain(rows), update })
@@ -80,13 +80,34 @@ describe('useTrades', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
 
     await act(async () => {
-      await result.current.closeTrade('t1', { exitPrice: '4600', exitDate: '2026-01-05' })
+      await result.current.updateTrade('t1', { exitPrice: 120 })
     })
 
     const updateArg = update.mock.calls[0][0]
-    expect(updateArg.symbol).toBe('ES')
-    expect(updateArg.quantity).toBe(1)
-    expect(updateArg.status).toBe('closed')
-    expect(updateArg.exit_price).toBe('4600')
+    expect(updateArg.symbol).toBe('AAPL')
+    expect(updateArg.exit_price).toBe(120)
+  })
+
+  it('deleteTrade removes the row and refreshes', async () => {
+    const deleteEq = vi.fn().mockResolvedValue({ error: null })
+    const del = vi.fn(() => ({ eq: deleteEq }))
+    supabase.from.mockReturnValue({ ...mockSelectChain([]), delete: del })
+
+    const { result } = renderHook(() => useTrades('a1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await act(async () => {
+      await result.current.deleteTrade('t1')
+    })
+
+    expect(del).toHaveBeenCalled()
+    expect(deleteEq).toHaveBeenCalledWith('id', 't1')
+  })
+
+  it('does not expose closeTrade', async () => {
+    supabase.from.mockReturnValue(mockSelectChain([]))
+    const { result } = renderHook(() => useTrades('a1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.closeTrade).toBeUndefined()
   })
 })
