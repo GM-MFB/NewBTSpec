@@ -3,7 +3,7 @@ import { renderHook, waitFor, act } from '@testing-library/react'
 import { useAccounts } from './useAccounts'
 import { supabase } from '../utils/supabase'
 
-function mockFrom({ ownAccounts = [], mattCapAccounts = [], inserted = null }) {
+function mockFrom({ ownAccounts = [], mattCapAccounts = [], inserted = null, deleteError = null }) {
   return {
     select: () => ({
       eq: (col, val) => ({
@@ -15,6 +15,9 @@ function mockFrom({ ownAccounts = [], mattCapAccounts = [], inserted = null }) {
     }),
     insert: () => ({
       select: () => ({ single: () => Promise.resolve({ data: inserted, error: null }) }),
+    }),
+    delete: () => ({
+      eq: () => Promise.resolve({ error: deleteError }),
     }),
   }
 }
@@ -92,5 +95,42 @@ describe('useAccounts', () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.accounts.map((a) => a.id)).toEqual(['a1', 'mc1'])
+  })
+
+  it('deleteAccount removes the account from the list', async () => {
+    const accounts = [{ id: 'a1', name: 'Main' }, { id: 'a2', name: 'Second' }]
+    supabase.from.mockReturnValue(mockFrom({ ownAccounts: accounts }))
+
+    const { result } = renderHook(() => useAccounts('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await act(() => result.current.deleteAccount('a2'))
+
+    expect(result.current.accounts.map((a) => a.id)).toEqual(['a1'])
+  })
+
+  it('deleteAccount switches the active account if the active one was deleted', async () => {
+    const accounts = [{ id: 'a1', name: 'Main' }, { id: 'a2', name: 'Second' }]
+    supabase.from.mockReturnValue(mockFrom({ ownAccounts: accounts }))
+
+    const { result } = renderHook(() => useAccounts('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    act(() => result.current.switchAccount('a2'))
+
+    await act(() => result.current.deleteAccount('a2'))
+
+    expect(result.current.activeAccountId).toBe('a1')
+    expect(localStorage.getItem('bt_active_account')).toBe('a1')
+  })
+
+  it('deleteAccount throws and leaves accounts unchanged when the delete fails', async () => {
+    const accounts = [{ id: 'a1', name: 'Main' }, { id: 'a2', name: 'Second' }]
+    supabase.from.mockReturnValue(mockFrom({ ownAccounts: accounts, deleteError: new Error('nope') }))
+
+    const { result } = renderHook(() => useAccounts('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await expect(act(() => result.current.deleteAccount('a2'))).rejects.toThrow('nope')
+    expect(result.current.accounts.map((a) => a.id)).toEqual(['a1', 'a2'])
   })
 })

@@ -71,6 +71,19 @@ export function useAccounts(userId) {
     return data
   }
 
+  async function deleteAccount(id) {
+    const { error } = await supabase.from('accounts').delete().eq('id', id)
+    if (error) throw error
+
+    setAccounts((prev) => {
+      const remaining = prev.filter((a) => a.id !== id)
+      if (id === activeAccountId && remaining.length > 0) {
+        switchAccount(remaining[0].id)
+      }
+      return remaining
+    })
+  }
+
   return {
     accounts,
     activeAccountId,
@@ -78,5 +91,6 @@ export function useAccounts(userId) {
     loading,
     switchAccount,
     createAccount,
+    deleteAccount,
   }
 }
