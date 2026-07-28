@@ -76,6 +76,40 @@
   border-top: 1px solid var(--border);
 }
 
+.rename-form {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 0;
+}
+
+.rename-form input {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.rename-form button {
+  width: auto !important;
+  flex-shrink: 0;
+  padding: 6px 8px !important;
+  font-size: 12px !important;
+  font-weight: 600;
+}
+
+.account-switcher .rename-form button {
+  color: var(--text-dim);
+}
+
+.account-switcher .rename-form button:hover {
+  color: var(--text);
+}
+
 .account-dropdown button {
   width: 100%;
   text-align: left;

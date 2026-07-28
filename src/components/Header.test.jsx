@@ -48,6 +48,29 @@ describe('Header', () => {
     expect(screen.queryByRole('button', { name: /sign out/i })).not.toBeInTheDocument()
   })
 
+  it('creates a new account via an inline field after clicking + New account', async () => {
+    const createAccount = vi.fn()
+    setup({ createAccount })
+    await userEvent.click(screen.getByText('Main Account'))
+    await userEvent.click(screen.getByRole('button', { name: /\+ new account/i }))
+
+    const input = screen.getByLabelText(/new account name/i)
+    await userEvent.type(input, 'Retirement')
+    await userEvent.click(screen.getByRole('button', { name: /^create$/i }))
+
+    expect(createAccount).toHaveBeenCalledWith('Retirement')
+  })
+
+  it('does not create an account when the new-account field is cancelled', async () => {
+    const createAccount = vi.fn()
+    setup({ createAccount })
+    await userEvent.click(screen.getByText('Main Account'))
+    await userEvent.click(screen.getByRole('button', { name: /\+ new account/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^cancel$/i }))
+
+    expect(createAccount).not.toHaveBeenCalled()
+  })
+
   it('deletes an account after the user confirms the prompt', async () => {
     const deleteAccount = vi.fn()
     vi.spyOn(window, 'confirm').mockReturnValue(true)
@@ -82,33 +105,40 @@ describe('Header', () => {
     expect(screen.queryByRole('button', { name: /delete matt cap/i })).not.toBeInTheDocument()
   })
 
-  it('renames the active account via the pencil button next to the title', async () => {
+  it('renames the active account via an inline field after clicking the pencil', async () => {
     const renameAccount = vi.fn()
-    vi.spyOn(window, 'prompt').mockReturnValue('New Name')
     setup({ renameAccount })
     await userEvent.click(screen.getByRole('button', { name: /rename main account/i }))
 
-    expect(window.prompt).toHaveBeenCalledWith('Rename account', 'Main Account')
+    const input = screen.getByDisplayValue('Main Account')
+    await userEvent.clear(input)
+    await userEvent.type(input, 'New Name')
+    await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
     expect(renameAccount).toHaveBeenCalledWith('a1', 'New Name')
   })
 
-  it('does not rename the active account when the prompt is cancelled', async () => {
+  it('does not rename the active account when the inline edit is cancelled', async () => {
     const renameAccount = vi.fn()
-    vi.spyOn(window, 'prompt').mockReturnValue(null)
     setup({ renameAccount })
     await userEvent.click(screen.getByRole('button', { name: /rename main account/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^cancel$/i }))
 
     expect(renameAccount).not.toHaveBeenCalled()
+    expect(screen.getByText('Main Account')).toBeInTheDocument()
   })
 
-  it('renames a non-active account from the dropdown', async () => {
+  it('renames a non-active account from the dropdown via an inline field', async () => {
     const renameAccount = vi.fn()
-    vi.spyOn(window, 'prompt').mockReturnValue('Swing Trades')
     setup({ renameAccount })
     await userEvent.click(screen.getByText('Main Account'))
     await userEvent.click(screen.getByRole('button', { name: /rename swing/i }))
 
-    expect(window.prompt).toHaveBeenCalledWith('Rename account', 'Swing')
+    const input = screen.getByDisplayValue('Swing')
+    await userEvent.clear(input)
+    await userEvent.type(input, 'Swing Trades')
+    await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
     expect(renameAccount).toHaveBeenCalledWith('a2', 'Swing Trades')
   })
 
