@@ -206,9 +206,10 @@ export function getPortfolioRiskMetrics(positions) {
   const hhi = positions.reduce((sum, p) => sum + p.weight ** 2, 0)
   const diversificationScore = Math.round((1 - hhi) * 100)
 
-  const withStop = positions.filter((p) => p.stopLoss)
-  const stopCoveragePct = positions.length > 0 ? (withStop.length / positions.length) * 100 : 0
-  const dollarAtRisk = positions.reduce((sum, p) => {
+  const stopEligible = positions.filter((p) => p.assetType !== 'Option')
+  const withStop = stopEligible.filter((p) => p.stopLoss)
+  const stopCoveragePct = stopEligible.length > 0 ? (withStop.length / stopEligible.length) * 100 : 0
+  const dollarAtRisk = stopEligible.reduce((sum, p) => {
     if (!p.stopLoss || p.stopLoss >= p.currentPrice) return sum
     return sum + Math.max(0, p.currentPrice - p.stopLoss) * p.shares
   }, 0)

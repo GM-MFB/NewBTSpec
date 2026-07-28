@@ -226,6 +226,15 @@ describe('getPortfolioRiskMetrics', () => {
     const metrics = getPortfolioRiskMetrics(positions)
     expect(metrics.totalMV).toBe(10000)
   })
+
+  it('excludes option positions from the stop-coverage denominator', () => {
+    const withOption = [
+      ...positions,
+      { symbol: 'MSFT', assetType: 'Option', weight: 0, marketValue: 0, currentPrice: undefined, stopLoss: null, shares: undefined },
+    ]
+    const metrics = getPortfolioRiskMetrics(withOption)
+    expect(metrics.stopCoveragePct).toBe(50)
+  })
 })
 
 describe('getRiskContribution', () => {
