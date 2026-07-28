@@ -282,6 +282,14 @@ describe('InvestmentRow', () => {
     expect(link).toHaveAttribute('href', '/charts?symbol=AAPL')
   })
 
+  it('shows Chart as the first action button, before Edit, Close, and Delete', () => {
+    const investment = { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, strategy: '', strike: '', expiry: '' }
+    renderRow(<InvestmentRow investment={investment} onEdit={vi.fn()} onClosePosition={vi.fn()} onDelete={vi.fn()} />)
+    const actions = screen.getByRole('link', { name: /^chart$/i }).closest('.investment-row-actions')
+    const labels = [...actions.children].map((el) => el.textContent)
+    expect(labels).toEqual(['Chart', 'Edit', 'Close', 'Delete'])
+  })
+
   it('does not show the chart link/notes details panel until the row is clicked', () => {
     const investment = {
       id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150,

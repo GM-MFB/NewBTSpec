@@ -150,8 +150,8 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, o
       </div>
 
       <div className="investment-row-actions">
-        {onEdit && <button type="button" onClick={() => onEdit(investment)}>Edit</button>}
         <Link className="investment-chart-btn" to={`/charts?symbol=${encodeURIComponent(investment.symbol)}`}>Chart</Link>
+        {onEdit && <button type="button" onClick={() => onEdit(investment)}>Edit</button>}
         {onClosePosition && <button type="button" onClick={() => onClosePosition(investment.id)}>Close</button>}
         {onDelete && <button type="button" className="danger" onClick={handleDelete}>Delete</button>}
       </div>
