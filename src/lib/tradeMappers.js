@@ -19,6 +19,7 @@ export function fromRow(row) {
     fees: row.fees ?? '',
     notes: row.notes ?? '',
     chartLink: row.chart_link ?? '',
+    pointValue: row.point_value ?? '',
   }
 }
 
@@ -43,5 +44,6 @@ export function toRow(trade) {
     fees: blankToNull(trade.fees),
     notes: blankToNull(trade.notes),
     chart_link: blankToNull(trade.chartLink),
+    point_value: blankToNull(trade.pointValue),
   }
 }
