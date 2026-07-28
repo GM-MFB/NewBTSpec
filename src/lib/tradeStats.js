@@ -7,21 +7,19 @@ function isBlank(value) {
 }
 
 export function pnlFor(trade) {
+  const quantity = toNum(trade.quantity)
+  const fees = toNum(trade.fees)
+
+  if (trade.type === 'futures') {
+    if (isBlank(trade.ticks)) return null
+    return toNum(trade.ticks) * toNum(trade.tickValue) * quantity - fees
+  }
+
   if (isBlank(trade.exitPrice) || isBlank(trade.entryPrice)) return null
 
   const sign = trade.direction === 'short' ? -1 : 1
   const rawMove = (toNum(trade.exitPrice) - toNum(trade.entryPrice)) * sign
-  const quantity = toNum(trade.quantity)
-  const fees = toNum(trade.fees)
-
-  let gross
-  if (trade.type === 'option') {
-    gross = rawMove * quantity * 100
-  } else if (trade.type === 'futures') {
-    gross = rawMove * quantity * toNum(trade.pointValue)
-  } else {
-    gross = rawMove * quantity
-  }
+  const gross = trade.type === 'option' ? rawMove * quantity * 100 : rawMove * quantity
 
   return gross - fees
 }

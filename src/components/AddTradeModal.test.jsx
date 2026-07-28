@@ -37,20 +37,40 @@ describe('AddTradeModal', () => {
     expect(screen.getByLabelText(/expiry/i)).toBeInTheDocument()
   })
 
-  it('auto-fills the $ per Point field for a recognized futures symbol', async () => {
+  it('auto-fills the $ per Tick field for a recognized futures symbol', async () => {
     render(<AddTradeModal onClose={vi.fn()} onSubmit={vi.fn()} />)
     await userEvent.click(screen.getByRole('button', { name: /^futures$/i }))
-    await userEvent.type(screen.getByLabelText(/symbol/i), 'ES')
-    expect(screen.getByLabelText(/\$ per point/i)).toHaveValue(50)
+    await userEvent.type(screen.getByLabelText(/symbol/i), 'MES')
+    expect(screen.getByLabelText(/\$ per tick/i)).toHaveValue(1.25)
   })
 
-  it('leaves $ per Point blank and editable for an unrecognized futures symbol', async () => {
+  it('leaves $ per Tick blank and editable for an unrecognized futures symbol', async () => {
     render(<AddTradeModal onClose={vi.fn()} onSubmit={vi.fn()} />)
     await userEvent.click(screen.getByRole('button', { name: /^futures$/i }))
     await userEvent.type(screen.getByLabelText(/symbol/i), 'ZZZZ')
-    expect(screen.getByLabelText(/\$ per point/i)).toHaveValue(null)
-    await userEvent.type(screen.getByLabelText(/\$ per point/i), '25')
-    expect(screen.getByLabelText(/\$ per point/i)).toHaveValue(25)
+    expect(screen.getByLabelText(/\$ per tick/i)).toHaveValue(null)
+    await userEvent.type(screen.getByLabelText(/\$ per tick/i), '2.5')
+    expect(screen.getByLabelText(/\$ per tick/i)).toHaveValue(2.5)
+  })
+
+  it('shows a Ticks field instead of Entry/Exit Price for a futures trade, and submits it', async () => {
+    const onSubmit = vi.fn()
+    render(<AddTradeModal onClose={vi.fn()} onSubmit={onSubmit} />)
+
+    await userEvent.click(screen.getByRole('button', { name: /^futures$/i }))
+    expect(screen.queryByLabelText(/entry price/i)).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/exit price/i)).not.toBeInTheDocument()
+
+    await userEvent.type(screen.getByLabelText(/symbol/i), 'MES')
+    await userEvent.type(screen.getByLabelText(/ticks/i), '-6')
+    await userEvent.type(screen.getByLabelText(/quantity/i), '2')
+    await userEvent.type(screen.getByLabelText(/entry date/i), '2026-01-01')
+    await userEvent.type(screen.getByLabelText(/exit date/i), '2026-01-01')
+    await userEvent.click(screen.getByRole('button', { name: /save/i }))
+
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'futures', symbol: 'MES', ticks: '-6', tickValue: 1.25, quantity: '2',
+    }))
   })
 
   it('pre-fills fields and locks the type toggle in edit mode', () => {

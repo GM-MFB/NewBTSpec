@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import '../styles/modal.css'
-import { lookupPointValue } from '../lib/futuresContracts'
+import { lookupTickValue } from '../lib/futuresContracts'
 
 const initial = {
   type: '', symbol: '', direction: 'long', quantity: '',
   entryPrice: '', entryDate: '', exitPrice: '', exitDate: '',
   fees: '', notes: '', chartLink: '',
-  optionType: '', strike: '', expiry: '', pointValue: '',
+  optionType: '', strike: '', expiry: '', tickValue: '', ticks: '',
 }
 
 export default function AddTradeModal({ onClose, onSubmit, initialValues }) {
@@ -22,9 +22,9 @@ export default function AddTradeModal({ onClose, onSubmit, initialValues }) {
     const upper = value.toUpperCase()
     setFields((f) => {
       const next = { ...f, symbol: upper }
-      if (f.type === 'futures' && !f.pointValue) {
-        const looked = lookupPointValue(upper)
-        if (looked !== undefined) next.pointValue = looked
+      if (f.type === 'futures' && !f.tickValue) {
+        const looked = lookupTickValue(upper)
+        if (looked !== undefined) next.tickValue = looked
       }
       return next
     })
@@ -79,22 +79,33 @@ export default function AddTradeModal({ onClose, onSubmit, initialValues }) {
 
             {fields.type === 'futures' && (
               <>
-                <label htmlFor="pointValue">$ per Point</label>
-                <input id="pointValue" type="number" step="0.01" value={fields.pointValue} onChange={(e) => set('pointValue', e.target.value)} required />
+                <label htmlFor="ticks">Ticks</label>
+                <input id="ticks" type="number" step="1" value={fields.ticks} onChange={(e) => set('ticks', e.target.value)} required />
+
+                <label htmlFor="tickValue">$ per Tick</label>
+                <input id="tickValue" type="number" step="0.01" value={fields.tickValue} onChange={(e) => set('tickValue', e.target.value)} required />
               </>
             )}
 
             <label htmlFor="quantity">Quantity</label>
             <input id="quantity" type="number" value={fields.quantity} onChange={(e) => set('quantity', e.target.value)} required />
 
-            <label htmlFor="entryPrice">Entry Price</label>
-            <input id="entryPrice" type="number" step="0.01" value={fields.entryPrice} onChange={(e) => set('entryPrice', e.target.value)} required />
+            {fields.type !== 'futures' && (
+              <>
+                <label htmlFor="entryPrice">Entry Price</label>
+                <input id="entryPrice" type="number" step="0.01" value={fields.entryPrice} onChange={(e) => set('entryPrice', e.target.value)} required />
+              </>
+            )}
 
             <label htmlFor="entryDate">Entry Date</label>
             <input id="entryDate" type="date" value={fields.entryDate} onChange={(e) => set('entryDate', e.target.value)} required />
 
-            <label htmlFor="exitPrice">Exit Price</label>
-            <input id="exitPrice" type="number" step="0.01" value={fields.exitPrice} onChange={(e) => set('exitPrice', e.target.value)} required />
+            {fields.type !== 'futures' && (
+              <>
+                <label htmlFor="exitPrice">Exit Price</label>
+                <input id="exitPrice" type="number" step="0.01" value={fields.exitPrice} onChange={(e) => set('exitPrice', e.target.value)} required />
+              </>
+            )}
 
             <label htmlFor="exitDate">Exit Date</label>
             <input id="exitDate" type="date" value={fields.exitDate} onChange={(e) => set('exitDate', e.target.value)} required />

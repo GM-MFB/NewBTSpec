@@ -22,9 +22,19 @@ describe('pnlFor', () => {
     expect(pnlFor(trade)).toBe(98) // (2.0-1.5)*2*100 - 2
   })
 
-  it('computes futures P&L using pointValue', () => {
-    const trade = { type: 'futures', direction: 'long', quantity: 1, entryPrice: 4500, exitPrice: 4510, pointValue: 50, fees: 4 }
-    expect(pnlFor(trade)).toBe(496) // (4510-4500)*1*50 - 4
+  it('computes futures P&L from ticks*tickValue*quantity - fees', () => {
+    const trade = { type: 'futures', direction: 'long', quantity: 2, ticks: 8, tickValue: 1.25, fees: 4 }
+    expect(pnlFor(trade)).toBe(16) // 8*1.25*2 - 4
+  })
+
+  it('allows a negative ticks value to represent a losing futures trade', () => {
+    const trade = { type: 'futures', direction: 'long', quantity: 1, ticks: -6, tickValue: 1.25, fees: 0 }
+    expect(pnlFor(trade)).toBe(-7.5)
+  })
+
+  it('returns null for a futures trade with no ticks entered (legacy open trade)', () => {
+    const trade = { type: 'futures', direction: 'long', quantity: 1, ticks: '', tickValue: 1.25, fees: 0 }
+    expect(pnlFor(trade)).toBeNull()
   })
 
   it('treats a blank fees as zero', () => {

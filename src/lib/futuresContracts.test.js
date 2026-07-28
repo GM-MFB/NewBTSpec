@@ -1,23 +1,23 @@
 import { describe, it, expect } from 'vitest'
-import { lookupPointValue } from './futuresContracts'
+import { lookupTickValue } from './futuresContracts'
 
-describe('lookupPointValue', () => {
-  it('returns the point value for a known contract', () => {
-    expect(lookupPointValue('ES')).toBe(50)
-    expect(lookupPointValue('MES')).toBe(5)
-    expect(lookupPointValue('CL')).toBe(1000)
+describe('lookupTickValue', () => {
+  it('returns the tick value for a known contract', () => {
+    expect(lookupTickValue('ES')).toBe(12.5)
+    expect(lookupTickValue('MES')).toBe(1.25)
+    expect(lookupTickValue('CL')).toBe(10)
   })
 
   it('is case-insensitive', () => {
-    expect(lookupPointValue('es')).toBe(50)
+    expect(lookupTickValue('es')).toBe(12.5)
   })
 
   it('returns undefined for an unknown symbol', () => {
-    expect(lookupPointValue('ZZZZ')).toBeUndefined()
+    expect(lookupTickValue('ZZZZ')).toBeUndefined()
   })
 
   it('returns undefined for blank input', () => {
-    expect(lookupPointValue('')).toBeUndefined()
-    expect(lookupPointValue(undefined)).toBeUndefined()
+    expect(lookupTickValue('')).toBeUndefined()
+    expect(lookupTickValue(undefined)).toBeUndefined()
   })
 })
