@@ -48,4 +48,20 @@ describe('RiskTab', () => {
     render(<RiskTab investments={investments} />)
     expect(screen.getByText(/options have a defined max loss/i)).toBeInTheDocument()
   })
+
+  it('shows a "No open option positions" note when there are no option positions', () => {
+    render(<RiskTab investments={investments} />)
+    expect(screen.getByText(/no open option positions/i)).toBeInTheDocument()
+  })
+
+  it('renders an Options Risk row with capital at risk for a short cash secured put', () => {
+    const withOption = [
+      ...investments,
+      { symbol: 'MSFT', assetType: 'Option', shares: 2, avgCost: 3.5, strategy: 'cash_secured_put', strike: 130 },
+    ]
+    render(<RiskTab investments={withOption} />)
+    expect(screen.getByText('Cash Secured Put')).toBeInTheDocument()
+    expect(screen.getByText('$26,000.00')).toBeInTheDocument()
+    expect(screen.getByTestId('options-total-risk')).toHaveTextContent('$26,000.00')
+  })
 })

@@ -40,7 +40,7 @@
 .risk-tile.risk-red .risk-tile-value { color: var(--red); }
 .risk-tile.risk-yellow .risk-tile-value { color: #eab308; }
 
-.risk-concentration h2, .risk-stoploss h2 {
+.risk-concentration h2, .risk-stoploss h2, .risk-options h2 {
   font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;

@@ -99,6 +99,36 @@ export default function RiskTab({ investments }) {
         <p className="risk-caption">Options have a defined max loss instead of a stop — see Options Risk below.</p>
       </section>
 
+      <section className="risk-options">
+        <h2>Options Risk</h2>
+        {optionPositions.length === 0 ? (
+          <p>No open option positions.</p>
+        ) : (
+          <>
+            <table className="risk-table">
+              <thead>
+                <tr><th>Symbol</th><th>Strategy</th><th>Contracts</th><th>Capital at Risk</th><th>% of Portfolio</th></tr>
+              </thead>
+              <tbody>
+                {optionPositions.map((p, idx) => (
+                  <tr key={`${p.symbol}-${idx}`}>
+                    <th scope="row">{p.symbol}</th>
+                    <td className="mono">{p.strategyLabel}</td>
+                    <td className="mono">{p.contracts}</td>
+                    <td className="mono">{p.capitalAtRisk > 0 ? formatCurrency(p.capitalAtRisk) : 'Covered'}</td>
+                    <td className="mono">{(metrics.totalMV > 0 ? (p.capitalAtRisk / metrics.totalMV) * 100 : 0).toFixed(1)}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p data-testid="options-total-risk">
+              Total Options Capital at Risk: {formatCurrency(optionPositions.reduce((sum, p) => sum + p.capitalAtRisk, 0))}
+              {' '}({(metrics.totalMV > 0 ? (optionPositions.reduce((sum, p) => sum + p.capitalAtRisk, 0) / metrics.totalMV) * 100 : 0).toFixed(1)}% of portfolio)
+            </p>
+          </>
+        )}
+      </section>
+
       <section className="risk-stress">
         <h2>Stress Tests</h2>
         {stressTests.map((scenario) => (
