@@ -137,6 +137,14 @@ describe('generateCombinedFrontierData', () => {
     const result = generateCombinedFrontierData(['AAPL', 'SPY'], [0.5, 0.5], ['AAPL'], { nSim: 200 })
     expect(result.symbols).toEqual(['AAPL', 'SPY'])
   })
+
+  it('pads the current point with a 0 weight for CASH when cashOptions.amount > 0', () => {
+    const result = generateCombinedFrontierData(['AAPL', 'SPY'], [0.6, 0.4], ['TLT'], {
+      nSim: 200, cashOptions: { amount: 5000, rate: 0.03 },
+    })
+    expect(result.symbols).toEqual(['AAPL', 'SPY', 'TLT', 'CASH'])
+    expect(result.current.weights).toEqual([0.6, 0.4, 0, 0])
+  })
 })
 
 describe('runBackwardElimination', () => {

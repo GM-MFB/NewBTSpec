@@ -144,8 +144,9 @@ export function generateCombinedFrontierData(portfolioSymbols, portfolioWeights,
   const allSymbols = [...portfolioSymbols, ...newSymbols]
   const currentWeights = [...portfolioWeights, ...newSymbols.map(() => 0)]
   const simData = generateEfficientFrontierData(allSymbols, options)
-  const current = portfolioStats(allSymbols, currentWeights)
-  return { ...simData, current: { ...current, weights: currentWeights } }
+  const paddedWeights = [...currentWeights, ...simData.symbols.slice(allSymbols.length).map(() => 0)]
+  const current = portfolioStats(simData.symbols, paddedWeights)
+  return { ...simData, current: { ...current, weights: paddedWeights } }
 }
 
 export function getMaxSharpeForSubset(symbols, nSim, options = {}) {
