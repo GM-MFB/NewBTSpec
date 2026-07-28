@@ -37,7 +37,7 @@ export default function DCFTab({ investments }) {
   const [loadingSymbol, setLoadingSymbol] = useState(null)
   const [overrides, setOverrides] = useState({})
 
-  const stockSymbols = [...new Set(investments.filter((i) => i.assetType === 'Stock').map((i) => i.symbol))]
+  const stockSymbols = [...new Set(investments.filter((i) => i.assetType === 'Stock' || i.assetType === 'Option').map((i) => i.symbol))]
 
   async function research(rawSymbol) {
     const symbol = rawSymbol.trim().toUpperCase()

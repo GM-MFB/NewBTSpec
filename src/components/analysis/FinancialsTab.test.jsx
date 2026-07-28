@@ -64,6 +64,17 @@ describe('FinancialsTab', () => {
     expect(screen.getByRole('button', { name: 'AAPL' })).toBeInTheDocument()
   })
 
+  it('shows a symbol chip for an open option position too, deduped against a stock chip for the same symbol', () => {
+    useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
+    const withOption = [
+      ...investments,
+      { id: 'i2', assetType: 'Option', symbol: 'SPY', shares: 2, avgCost: 3.5, strategy: 'cash_secured_put', strike: 480, expiry: '2026-08-01' },
+    ]
+    render(<MemoryRouter><FinancialsTab investments={withOption} /></MemoryRouter>)
+    expect(screen.getByRole('button', { name: 'AAPL' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'SPY' })).toBeInTheDocument()
+  })
+
   it('shows the active symbol prominently at the top once researched, and highlights its chip', async () => {
     useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
     fetchFinancials.mockResolvedValue(sampleData)
