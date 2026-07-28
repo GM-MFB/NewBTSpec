@@ -38,4 +38,50 @@ describe('ClosePositionModal', () => {
 
     expect(await screen.findByText(/close failed/i)).toBeInTheDocument()
   })
+
+  it('does not show a Roll toggle for a stock position', () => {
+    render(<ClosePositionModal investment={{ assetType: 'Stock' }} onClose={vi.fn()} onConfirm={vi.fn()} />)
+    expect(screen.queryByRole('button', { name: /^roll$/i })).not.toBeInTheDocument()
+  })
+
+  it('shows a Close/Roll toggle for an option position', () => {
+    render(<ClosePositionModal investment={{ assetType: 'Option' }} onClose={vi.fn()} onConfirm={vi.fn()} />)
+    expect(screen.getByRole('button', { name: /^close$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^roll$/i })).toBeInTheDocument()
+  })
+
+  it('switches to the roll form and submits it via onRoll', async () => {
+    const onRoll = vi.fn()
+    render(<ClosePositionModal investment={{ assetType: 'Option' }} onClose={vi.fn()} onConfirm={vi.fn()} onRoll={onRoll} />)
+
+    await userEvent.click(screen.getByRole('button', { name: /^roll$/i }))
+
+    await userEvent.type(screen.getByLabelText(/close price/i), '1.10')
+    await userEvent.type(screen.getByLabelText(/close date/i), '2026-07-10')
+    await userEvent.type(screen.getByLabelText(/new credit received/i), '2.40')
+    await userEvent.type(screen.getByLabelText(/new strike/i), '570')
+    await userEvent.type(screen.getByLabelText(/new expiry/i), '2026-08-15')
+    await userEvent.click(screen.getByRole('button', { name: /confirm roll/i }))
+
+    expect(onRoll).toHaveBeenCalledWith({
+      closePrice: '1.1', closeDate: '2026-07-10',
+      newCredit: '2.4', newStrike: '570', newExpiry: '2026-08-15',
+    })
+  })
+
+  it('shows an inline error and keeps entered values when onRoll rejects', async () => {
+    const onRoll = vi.fn().mockRejectedValue(new Error('roll failed'))
+    render(<ClosePositionModal investment={{ assetType: 'Option' }} onClose={vi.fn()} onConfirm={vi.fn()} onRoll={onRoll} />)
+
+    await userEvent.click(screen.getByRole('button', { name: /^roll$/i }))
+    await userEvent.type(screen.getByLabelText(/close price/i), '1.10')
+    await userEvent.type(screen.getByLabelText(/close date/i), '2026-07-10')
+    await userEvent.type(screen.getByLabelText(/new credit received/i), '2.40')
+    await userEvent.type(screen.getByLabelText(/new strike/i), '570')
+    await userEvent.type(screen.getByLabelText(/new expiry/i), '2026-08-15')
+    await userEvent.click(screen.getByRole('button', { name: /confirm roll/i }))
+
+    expect(await screen.findByText(/roll failed/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/new strike/i)).toHaveValue(570)
+  })
 })
