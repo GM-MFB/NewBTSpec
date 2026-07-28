@@ -14,6 +14,7 @@ import { generateExcelWorkbook } from '../lib/excelExport'
 import Header from '../components/Header'
 import StatsCharts from '../components/StatsCharts'
 import InvestmentRow from '../components/InvestmentRow'
+import AddInvestmentModal from '../components/AddInvestmentModal'
 
 function StatTile({ label, value, tone }) {
   return (
@@ -27,10 +28,11 @@ function StatTile({ label, value, tone }) {
 export default function StatsPage() {
   const { user, signOut } = useAuth()
   const { accounts, activeAccount, activeAccountId, switchAccount, createAccount, deleteAccount, renameAccount } = useAccounts(user?.id)
-  const { investments, loading, error, reload, deleteInvestment } = useInvestmentsHistory(activeAccountId)
+  const { investments, loading, error, reload, deleteInvestment, updateInvestment } = useInvestmentsHistory(activeAccountId)
   const [view, setView] = useState('numbers')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [editing, setEditing] = useState(null)
   const chartsRef = useRef(null)
 
   const filteredInvestments = investments.filter((i) =>
@@ -213,7 +215,7 @@ export default function StatsPage() {
                 <summary className="group-title">Stock<span className="group-count">{closedStocks.length}</span></summary>
                 <ul className="investment-list">
                   {closedStocks.map((investment) => (
-                    <InvestmentRow key={investment.id} investment={investment} onDelete={deleteInvestment} />
+                    <InvestmentRow key={investment.id} investment={investment} onEdit={setEditing} onDelete={deleteInvestment} />
                   ))}
                 </ul>
               </details>
@@ -227,7 +229,7 @@ export default function StatsPage() {
                     <summary className="strategy-title">{group.label}<span className="group-count">{group.items.length}</span></summary>
                     <ul className="investment-list">
                       {group.items.map((investment) => (
-                        <InvestmentRow key={investment.id} investment={investment} onDelete={deleteInvestment} />
+                        <InvestmentRow key={investment.id} investment={investment} onEdit={setEditing} onDelete={deleteInvestment} />
                       ))}
                     </ul>
                   </details>
@@ -240,13 +242,24 @@ export default function StatsPage() {
                 <summary className="group-title">Other<span className="group-count">{closedOtherInvestments.length}</span></summary>
                 <ul className="investment-list">
                   {closedOtherInvestments.map((investment) => (
-                    <InvestmentRow key={investment.id} investment={investment} onDelete={deleteInvestment} />
+                    <InvestmentRow key={investment.id} investment={investment} onEdit={setEditing} onDelete={deleteInvestment} />
                   ))}
                 </ul>
               </details>
             )}
           </div>
         </div>
+      )}
+
+      {editing && (
+        <AddInvestmentModal
+          initialValues={editing}
+          onClose={() => setEditing(null)}
+          onSubmit={async (fields) => {
+            await updateInvestment(editing.id, fields)
+            setEditing(null)
+          }}
+        />
       )}
     </div>
   )

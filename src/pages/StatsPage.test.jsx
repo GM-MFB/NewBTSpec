@@ -30,7 +30,7 @@ function mockAccounts() {
 }
 
 const investments = [
-  { id: 'i1', status: 'closed', assetType: 'Stock', symbol: 'AAPL', shares: 10, avgCost: 100, sellPrice: 150, sellDate: '2026-01-10', strategy: '', strike: '', expiry: '' },
+  { id: 'i1', status: 'closed', assetType: 'Stock', symbol: 'AAPL', shares: 10, avgCost: 100, buyDate: '2025-12-01', sellPrice: 150, sellDate: '2026-01-10', strategy: '', strike: '', expiry: '' },
   { id: 'i2', status: 'open', assetType: 'Stock', symbol: 'MSFT', shares: 3, avgCost: 400, sellPrice: '', sellDate: '', buyDate: '2026-01-05', strategy: '', strike: '', expiry: '' },
   { id: 'i3', status: 'closed', assetType: 'Option', symbol: 'QQQ', shares: 2, avgCost: 1.5, sellPrice: 0.5, sellDate: '2026-01-12', strategy: 'cash_secured_put', strike: 380, expiry: '2026-01-17' },
 ]
@@ -113,6 +113,24 @@ describe('StatsPage', () => {
 
     await userEvent.click(screen.getAllByRole('button', { name: /^delete$/i })[0])
     expect(deleteInvestment).toHaveBeenCalledWith('i1')
+  })
+
+  it('opens the edit modal pre-filled and calls updateInvestment on save for a closed investment', async () => {
+    mockAccounts()
+    const updateInvestment = vi.fn()
+    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment: vi.fn(), updateInvestment })
+
+    render(<MemoryRouter><StatsPage /></MemoryRouter>)
+
+    await userEvent.click(screen.getAllByRole('button', { name: /^edit$/i })[0])
+    expect(screen.getByLabelText(/symbol/i)).toHaveValue('AAPL')
+
+    const sharesInput = screen.getByLabelText(/shares/i)
+    await userEvent.clear(sharesInput)
+    await userEvent.type(sharesInput, '20')
+    await userEvent.click(screen.getByRole('button', { name: /save/i }))
+
+    expect(updateInvestment).toHaveBeenCalledWith('i1', expect.objectContaining({ shares: '20' }))
   })
 
   it('groups a closed option with no strategy under a category derived from option_type/option_direction, not Other', () => {

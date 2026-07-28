@@ -114,6 +114,30 @@ describe('InvestmentsPage', () => {
     expect(closeInvestment).toHaveBeenCalledWith('i1', { sellPrice: '180', sellDate: '2026-02-01' })
   })
 
+  it('opens the edit modal pre-filled and calls updateInvestment on save', async () => {
+    mockAccounts()
+    const updateInvestment = vi.fn()
+    useInvestments.mockReturnValue({
+      investments: [
+        { id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150, buyDate: '2026-01-01', strategy: '', strike: '', expiry: '' },
+      ],
+      loading: false, error: null, reload: vi.fn(),
+      addInvestment: vi.fn(), closeInvestment: vi.fn(), updateInvestment, deleteInvestment: vi.fn(),
+    })
+
+    render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
+
+    await userEvent.click(screen.getByRole('button', { name: /^edit$/i }))
+    expect(screen.getByLabelText(/symbol/i)).toHaveValue('AAPL')
+
+    const sharesInput = screen.getByLabelText(/shares/i)
+    await userEvent.clear(sharesInput)
+    await userEvent.type(sharesInput, '20')
+    await userEvent.click(screen.getByRole('button', { name: /save/i }))
+
+    expect(updateInvestment).toHaveBeenCalledWith('i1', expect.objectContaining({ shares: '20' }))
+  })
+
   it('shows Shares as owned/required on the stock row for a matching covered call', () => {
     mockAccounts()
     useInvestments.mockReturnValue({

@@ -24,6 +24,7 @@ export default function InvestmentsPage() {
   const { finnhubKey } = useUserSettings(user?.id)
   const [addOpen, setAddOpen] = useState(false)
   const [closingId, setClosingId] = useState(null)
+  const [editing, setEditing] = useState(null)
   const [refreshing, setRefreshing] = useState(false)
   const [missingKey, setMissingKey] = useState(false)
   const [refreshFailedSymbols, setRefreshFailedSymbols] = useState([])
@@ -142,6 +143,7 @@ export default function InvestmentsPage() {
                     key={investment.id}
                     investment={investment}
                     onClosePosition={setClosingId}
+                    onEdit={setEditing}
                     onDelete={deleteInvestment}
                     coveredShares={coveredSharesFor(investment, investments)}
                   />
@@ -162,6 +164,7 @@ export default function InvestmentsPage() {
                         key={investment.id}
                         investment={investment}
                         onClosePosition={setClosingId}
+                        onEdit={setEditing}
                         onDelete={deleteInvestment}
                       />
                     ))}
@@ -176,12 +179,23 @@ export default function InvestmentsPage() {
               <h2 className="group-title">Other</h2>
               <ul className="investment-list">
                 {otherInvestments.map((investment) => (
-                  <InvestmentRow key={investment.id} investment={investment} onClosePosition={setClosingId} onDelete={deleteInvestment} />
+                  <InvestmentRow key={investment.id} investment={investment} onClosePosition={setClosingId} onEdit={setEditing} onDelete={deleteInvestment} />
                 ))}
               </ul>
             </section>
           )}
         </div>
+      )}
+
+      {editing && (
+        <AddInvestmentModal
+          initialValues={editing}
+          onClose={() => setEditing(null)}
+          onSubmit={async (fields) => {
+            await updateInvestment(editing.id, fields)
+            setEditing(null)
+          }}
+        />
       )}
 
       {addOpen && (
