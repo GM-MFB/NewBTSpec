@@ -114,6 +114,35 @@ describe('InvestmentsPage', () => {
     expect(closeInvestment).toHaveBeenCalledWith('i1', { sellPrice: '180', sellDate: '2026-02-01' })
   })
 
+  it('rolls an option position via the close modal', async () => {
+    mockAccounts()
+    const rollInvestment = vi.fn()
+    useInvestments.mockReturnValue({
+      investments: [
+        { id: 'i1', symbol: 'SPY', assetType: 'Option', shares: 2, avgCost: 3.5, strategy: 'covered_call', strike: 560, expiry: '2026-07-18' },
+      ],
+      loading: false, error: null, reload: vi.fn(),
+      addInvestment: vi.fn(), closeInvestment: vi.fn(), updateInvestment: vi.fn(), rollInvestment, deleteInvestment: vi.fn(),
+    })
+
+    render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
+
+    await userEvent.click(screen.getByRole('button', { name: /^close$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^roll$/i }))
+
+    await userEvent.type(screen.getByLabelText(/close price/i), '1.10')
+    await userEvent.type(screen.getByLabelText(/close date/i), '2026-07-10')
+    await userEvent.type(screen.getByLabelText(/new credit received/i), '2.40')
+    await userEvent.type(screen.getByLabelText(/new strike/i), '570')
+    await userEvent.type(screen.getByLabelText(/new expiry/i), '2026-08-15')
+    await userEvent.click(screen.getByRole('button', { name: /confirm roll/i }))
+
+    expect(rollInvestment).toHaveBeenCalledWith('i1', {
+      closePrice: '1.1', closeDate: '2026-07-10',
+      newCredit: '2.4', newStrike: '570', newExpiry: '2026-08-15',
+    }, 'u1')
+  })
+
   it('opens the edit modal pre-filled and calls updateInvestment on save', async () => {
     mockAccounts()
     const updateInvestment = vi.fn()

@@ -20,7 +20,7 @@ import ClosePositionModal from '../components/ClosePositionModal'
 export default function InvestmentsPage() {
   const { user, signOut } = useAuth()
   const { accounts, activeAccount, activeAccountId, switchAccount, createAccount, deleteAccount, renameAccount } = useAccounts(user?.id)
-  const { investments, error, reload, addInvestment, closeInvestment, updateInvestment, deleteInvestment } = useInvestments(activeAccountId)
+  const { investments, error, reload, addInvestment, closeInvestment, updateInvestment, rollInvestment, deleteInvestment } = useInvestments(activeAccountId)
   const { finnhubKey } = useUserSettings(user?.id)
   const [addOpen, setAddOpen] = useState(false)
   const [closingId, setClosingId] = useState(null)
@@ -210,9 +210,14 @@ export default function InvestmentsPage() {
 
       {closingId && (
         <ClosePositionModal
+          investment={investments.find((i) => i.id === closingId)}
           onClose={() => setClosingId(null)}
           onConfirm={async (closeFields) => {
             await closeInvestment(closingId, closeFields)
+            setClosingId(null)
+          }}
+          onRoll={async (rollFields) => {
+            await rollInvestment(closingId, rollFields, user.id)
             setClosingId(null)
           }}
         />
