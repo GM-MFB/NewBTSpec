@@ -24,7 +24,7 @@ function AnalyzeTabPlaceholder({ label }) {
 
 export default function AnalyzePage() {
   const { user, signOut } = useAuth()
-  const { accounts, activeAccount, activeAccountId, switchAccount, createAccount } = useAccounts(user?.id)
+  const { accounts, activeAccount, activeAccountId, switchAccount, createAccount, deleteAccount } = useAccounts(user?.id)
   const { investments } = useInvestments(activeAccountId)
   const [tab, setTab] = useState('research')
 
@@ -35,6 +35,7 @@ export default function AnalyzePage() {
         activeAccount={activeAccount}
         switchAccount={switchAccount}
         createAccount={createAccount}
+        deleteAccount={deleteAccount}
         onSignOut={signOut}
         showAddButton={false}
       />

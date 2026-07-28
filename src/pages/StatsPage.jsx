@@ -26,7 +26,7 @@ function StatTile({ label, value, tone }) {
 
 export default function StatsPage() {
   const { user, signOut } = useAuth()
-  const { accounts, activeAccount, activeAccountId, switchAccount, createAccount } = useAccounts(user?.id)
+  const { accounts, activeAccount, activeAccountId, switchAccount, createAccount, deleteAccount } = useAccounts(user?.id)
   const { investments, loading, error, reload, deleteInvestment } = useInvestmentsHistory(activeAccountId)
   const [view, setView] = useState('numbers')
   const [startDate, setStartDate] = useState('')
@@ -85,6 +85,7 @@ export default function StatsPage() {
         activeAccount={activeAccount}
         switchAccount={switchAccount}
         createAccount={createAccount}
+        deleteAccount={deleteAccount}
         onSignOut={signOut}
         showAddButton={false}
       />

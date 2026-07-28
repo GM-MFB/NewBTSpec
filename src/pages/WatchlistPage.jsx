@@ -12,7 +12,7 @@ import Header from '../components/Header'
 
 export default function WatchlistPage() {
   const { user, signOut } = useAuth()
-  const { accounts, activeAccount, switchAccount, createAccount } = useAccounts(user?.id)
+  const { accounts, activeAccount, switchAccount, createAccount, deleteAccount } = useAccounts(user?.id)
   const { finnhubKey, displayName } = useUserSettings(user?.id)
   const { entries, addEntry, removeEntry } = useWatchlist(user?.id)
   const [symbolInput, setSymbolInput] = useState('')
@@ -93,6 +93,7 @@ export default function WatchlistPage() {
         activeAccount={activeAccount}
         switchAccount={switchAccount}
         createAccount={createAccount}
+        deleteAccount={deleteAccount}
         onSignOut={signOut}
         showAddButton={false}
       />
