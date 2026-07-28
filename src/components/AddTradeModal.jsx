@@ -30,6 +30,10 @@ export default function AddTradeModal({ onClose, onSubmit, initialValues }) {
     })
   }
 
+  function setDate(value) {
+    setFields((f) => ({ ...f, entryDate: value, exitDate: value }))
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
@@ -94,21 +98,14 @@ export default function AddTradeModal({ onClose, onSubmit, initialValues }) {
               <>
                 <label htmlFor="entryPrice">Entry Price</label>
                 <input id="entryPrice" type="number" step="0.01" value={fields.entryPrice} onChange={(e) => set('entryPrice', e.target.value)} required />
-              </>
-            )}
 
-            <label htmlFor="entryDate">Entry Date</label>
-            <input id="entryDate" type="date" value={fields.entryDate} onChange={(e) => set('entryDate', e.target.value)} required />
-
-            {fields.type !== 'futures' && (
-              <>
                 <label htmlFor="exitPrice">Exit Price</label>
                 <input id="exitPrice" type="number" step="0.01" value={fields.exitPrice} onChange={(e) => set('exitPrice', e.target.value)} required />
               </>
             )}
 
-            <label htmlFor="exitDate">Exit Date</label>
-            <input id="exitDate" type="date" value={fields.exitDate} onChange={(e) => set('exitDate', e.target.value)} required />
+            <label htmlFor="date">Date</label>
+            <input id="date" type="date" value={fields.entryDate} onChange={(e) => setDate(e.target.value)} required />
 
             <label htmlFor="fees">Fees</label>
             <input id="fees" type="number" step="0.01" value={fields.fees} onChange={(e) => set('fees', e.target.value)} />

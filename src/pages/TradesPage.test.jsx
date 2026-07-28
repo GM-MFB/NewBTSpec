@@ -95,9 +95,8 @@ describe('TradesPage', () => {
     await userEvent.type(screen.getByLabelText(/symbol/i), 'AAPL')
     await userEvent.type(screen.getByLabelText(/quantity/i), '10')
     await userEvent.type(screen.getByLabelText(/entry price/i), '100')
-    await userEvent.type(screen.getByLabelText(/entry date/i), '2026-01-01')
     await userEvent.type(screen.getByLabelText(/exit price/i), '110')
-    await userEvent.type(screen.getByLabelText(/exit date/i), '2026-01-02')
+    await userEvent.type(screen.getByLabelText(/^date$/i), '2026-01-01')
     await userEvent.click(screen.getByRole('button', { name: /save/i }))
 
     expect(addTrade).toHaveBeenCalledWith(expect.objectContaining({ symbol: 'AAPL' }), 'u1')
