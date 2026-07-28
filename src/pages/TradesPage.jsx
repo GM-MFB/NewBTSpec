@@ -1,21 +1,44 @@
 import { useState } from 'react'
 import './TradesPage.css'
+import '../pages/StatsPage.css'
 import { useAuth } from '../hooks/useAuth'
 import { useAccounts } from '../hooks/useAccounts'
 import { useTrades } from '../hooks/useTrades'
+import { computeTradeStats } from '../lib/tradeStatsSummary'
+import { isWithinDateRange } from '../lib/dateRange'
+import { formatCurrency } from '../lib/format'
 import Header from '../components/Header'
 import TradeRow from '../components/TradeRow'
 import AddTradeModal from '../components/AddTradeModal'
-import TradeDetailModal from '../components/TradeDetailModal'
+import TradeCalendar from '../components/TradeCalendar'
+import TradeStatsCharts from '../components/TradeStatsCharts'
+
+const TABS = [
+  { key: 'calendar', label: 'Calendar' },
+  { key: 'stats', label: 'Stats' },
+]
+
+function StatTile({ label, value, tone }) {
+  return (
+    <div className="stat-tile">
+      <span className="stat-tile-label">{label}</span>
+      <span className={`stat-tile-value mono ${tone ? `stat-tile-value--${tone}` : ''}`}>{value}</span>
+    </div>
+  )
+}
 
 export default function TradesPage() {
   const { user, signOut } = useAuth()
   const { accounts, activeAccount, activeAccountId, switchAccount, createAccount, deleteAccount, renameAccount } = useAccounts(user?.id)
-  const { trades, error, reload, addTrade, updateTrade, closeTrade, deleteTrade } = useTrades(activeAccountId)
+  const { trades, error, reload, addTrade, updateTrade, deleteTrade } = useTrades(activeAccountId)
+  const [tab, setTab] = useState('calendar')
   const [addOpen, setAddOpen] = useState(false)
-  const [selectedTradeId, setSelectedTradeId] = useState(null)
+  const [editing, setEditing] = useState(null)
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
 
-  const selectedTrade = trades.find((t) => t.id === selectedTradeId) ?? null
+  const filteredTrades = trades.filter((t) => isWithinDateRange(t.exitDate, startDate, endDate))
+  const stats = computeTradeStats(filteredTrades)
 
   return (
     <div data-testid="trades-page">
@@ -30,6 +53,14 @@ export default function TradesPage() {
         onAddTrade={() => setAddOpen(true)}
       />
 
+      <div className="trades-tabs">
+        {TABS.map((t) => (
+          <button key={t.key} type="button" aria-pressed={tab === t.key} onClick={() => setTab(t.key)}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
       {error && (
         <div className="error-banner">
           <span>Couldn't load trades.</span>
@@ -37,14 +68,51 @@ export default function TradesPage() {
         </div>
       )}
 
-      {trades.length === 0 ? (
-        <p className="empty-state">No open trades — add one to get started</p>
-      ) : (
-        <ul className="trade-list">
-          {trades.map((trade) => (
-            <TradeRow key={trade.id} trade={trade} onClick={setSelectedTradeId} onDelete={deleteTrade} />
-          ))}
-        </ul>
+      {tab === 'calendar' && (
+        <>
+          <TradeCalendar trades={trades} />
+
+          {trades.length === 0 ? (
+            <p className="empty-state">No trades yet — add one to get started</p>
+          ) : (
+            <ul className="trade-list">
+              {trades.map((trade) => (
+                <TradeRow key={trade.id} trade={trade} onEdit={setEditing} onDelete={deleteTrade} />
+              ))}
+            </ul>
+          )}
+        </>
+      )}
+
+      {tab === 'stats' && (
+        <div className="stats-numbers">
+          <div className="stats-toolbar">
+            <div className="date-range-filter">
+              <label htmlFor="tradesStartDate">From</label>
+              <input id="tradesStartDate" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+              <label htmlFor="tradesEndDate">To</label>
+              <input id="tradesEndDate" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+              {(startDate || endDate) && (
+                <button type="button" onClick={() => { setStartDate(''); setEndDate('') }}>Clear</button>
+              )}
+            </div>
+          </div>
+
+          <section className="stats-section">
+            <h2 className="stats-section-title">Overview</h2>
+            <div className="stat-tile-grid">
+              <StatTile label="Total Realized P&L" value={formatCurrency(stats.totalRealizedPnl)} tone={stats.totalRealizedPnl >= 0 ? 'positive' : 'negative'} />
+              <StatTile label="Win Rate" value={`${stats.winRate.toFixed(1)}%`} />
+              <StatTile label="Total Trades" value={stats.totalClosed} />
+              <StatTile label="Avg Win" value={formatCurrency(stats.avgWin)} tone="positive" />
+              <StatTile label="Avg Loss" value={formatCurrency(stats.avgLoss)} tone="negative" />
+              <StatTile label="Best Trade" value={stats.bestTrade ? stats.bestTrade.symbol : '—'} tone="positive" />
+              <StatTile label="Worst Trade" value={stats.worstTrade ? stats.worstTrade.symbol : '—'} tone="negative" />
+            </div>
+          </section>
+
+          <TradeStatsCharts stats={stats} />
+        </div>
       )}
 
       {addOpen && (
@@ -57,21 +125,13 @@ export default function TradesPage() {
         />
       )}
 
-      {selectedTrade && (
-        <TradeDetailModal
-          trade={selectedTrade}
-          onClose={() => setSelectedTradeId(null)}
-          onUpdate={async (patch) => {
-            await updateTrade(selectedTrade.id, patch)
-            setSelectedTradeId(null)
-          }}
-          onCloseTrade={async (closeFields) => {
-            await closeTrade(selectedTrade.id, closeFields)
-            setSelectedTradeId(null)
-          }}
-          onDelete={async () => {
-            await deleteTrade(selectedTrade.id)
-            setSelectedTradeId(null)
+      {editing && (
+        <AddTradeModal
+          initialValues={editing}
+          onClose={() => setEditing(null)}
+          onSubmit={async (fields) => {
+            await updateTrade(editing.id, fields)
+            setEditing(null)
           }}
         />
       )}
