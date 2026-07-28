@@ -44,6 +44,14 @@ describe('ChartsPage', () => {
     expect(screen.getByTestId('tv-widget')).toHaveTextContent('MSFT')
   })
 
+  it('uses the ?symbol= query param when present, overriding localStorage', () => {
+    localStorage.setItem('bt_charts_symbol', 'MSFT')
+    mockCommon()
+    render(<MemoryRouter initialEntries={['/charts?symbol=nvda']}><ChartsPage /></MemoryRouter>)
+    expect(screen.getByTestId('tv-widget')).toHaveTextContent('NVDA')
+    expect(localStorage.getItem('bt_charts_symbol')).toBe('NVDA')
+  })
+
   it('shows watchlist symbols ranked by watch count in the sidebar', () => {
     mockCommon({
       entries: [

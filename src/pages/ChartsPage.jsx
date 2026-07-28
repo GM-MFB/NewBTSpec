@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import './ChartsPage.css'
 import { useAuth } from '../hooks/useAuth'
 import { useAccounts } from '../hooks/useAccounts'
@@ -13,10 +14,22 @@ export default function ChartsPage() {
   const { user, signOut } = useAuth()
   const { accounts, activeAccount, switchAccount, createAccount, deleteAccount, renameAccount } = useAccounts(user?.id)
   const { entries } = useWatchlist(user?.id)
+  const [searchParams] = useSearchParams()
 
-  const [symbol, setSymbol] = useState(() => localStorage.getItem(STORAGE_KEY) || 'AAPL')
+  const paramSymbol = searchParams.get('symbol')
+  const [symbol, setSymbol] = useState(() => {
+    const initial = paramSymbol || localStorage.getItem(STORAGE_KEY) || 'AAPL'
+    return initial.toUpperCase()
+  })
 
   const leaderboard = buildLeaderboard(entries)
+
+  useEffect(() => {
+    if (paramSymbol) {
+      setActiveSymbol(paramSymbol.toUpperCase())
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paramSymbol])
 
   function setActiveSymbol(next) {
     setSymbol(next)
