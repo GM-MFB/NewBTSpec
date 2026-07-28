@@ -54,3 +54,36 @@
   border-color: var(--green);
   color: var(--green);
 }
+
+.trade-day-groups {
+  padding: 12px 32px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.trade-day-group .trade-list {
+  padding: 0;
+}
+
+.trade-day-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.trade-day-heading span:first-child {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.trade-day-heading span:last-child {
+  font-size: 14px;
+}

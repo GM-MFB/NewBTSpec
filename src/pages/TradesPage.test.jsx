@@ -43,6 +43,33 @@ describe('TradesPage', () => {
     expect(screen.getByText('AAPL')).toBeInTheDocument()
   })
 
+  it('sections the trade list by day, most recent day first', () => {
+    const tradeDay1a = { ...closedTrade, id: 't1', symbol: 'AAPL', exitDate: '2026-07-27', entryDate: '2026-07-27' }
+    const tradeDay1b = { ...closedTrade, id: 't2', symbol: 'MSFT', exitDate: '2026-07-27', entryDate: '2026-07-27' }
+    const tradeDay2 = { ...closedTrade, id: 't3', symbol: 'TSLA', exitDate: '2026-07-20', entryDate: '2026-07-20' }
+    mockCommon({ trades: [tradeDay1a, tradeDay1b, tradeDay2] })
+    render(<MemoryRouter><TradesPage /></MemoryRouter>)
+
+    const headings = screen.getAllByTestId('trade-day-heading')
+    expect(headings).toHaveLength(2)
+    expect(headings[0]).toHaveTextContent('July 27, 2026')
+    expect(headings[1]).toHaveTextContent('July 20, 2026')
+
+    const firstSection = headings[0].closest('section')
+    expect(firstSection).toHaveTextContent('AAPL')
+    expect(firstSection).toHaveTextContent('MSFT')
+    expect(firstSection).not.toHaveTextContent('TSLA')
+  })
+
+  it('shows the day\'s total P&L next to the day heading', () => {
+    const win = { ...closedTrade, id: 't1', exitDate: '2026-07-27', entryDate: '2026-07-27', entryPrice: 100, exitPrice: 110, quantity: 10 }
+    mockCommon({ trades: [win] })
+    render(<MemoryRouter><TradesPage /></MemoryRouter>)
+
+    const heading = screen.getByTestId('trade-day-heading')
+    expect(heading).toHaveTextContent('$100.00')
+  })
+
   it('shows the empty state on the Calendar tab when there are no trades', () => {
     mockCommon({ trades: [] })
     render(<MemoryRouter><TradesPage /></MemoryRouter>)

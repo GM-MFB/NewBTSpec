@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useAccounts } from '../hooks/useAccounts'
 import { useTrades } from '../hooks/useTrades'
 import { computeTradeStats } from '../lib/tradeStatsSummary'
+import { groupTradesByDay } from '../lib/groupTradesByDay'
 import { isWithinDateRange } from '../lib/dateRange'
 import { formatCurrency } from '../lib/format'
 import Header from '../components/Header'
@@ -17,6 +18,14 @@ const TABS = [
   { key: 'calendar', label: 'Calendar' },
   { key: 'stats', label: 'Stats' },
 ]
+
+function formatDayHeading(dateStr) {
+  if (dateStr === 'No Date') return dateStr
+  const [year, month, day] = dateStr.split('-').map(Number)
+  return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+    month: 'long', day: 'numeric', year: 'numeric',
+  })
+}
 
 function StatTile({ label, value, tone }) {
   return (
@@ -75,11 +84,25 @@ export default function TradesPage() {
           {trades.length === 0 ? (
             <p className="empty-state">No trades yet — add one to get started</p>
           ) : (
-            <ul className="trade-list">
-              {trades.map((trade) => (
-                <TradeRow key={trade.id} trade={trade} onEdit={setEditing} onDelete={deleteTrade} />
+            <div className="trade-day-groups">
+              {groupTradesByDay(trades).map((group) => (
+                <section key={group.date} className="trade-day-group">
+                  <h2 className="trade-day-heading" data-testid="trade-day-heading">
+                    <span>{formatDayHeading(group.date)}</span>
+                    {group.totalPnl !== null && (
+                      <span className={`mono ${group.totalPnl >= 0 ? 'price-favorable' : 'price-unfavorable'}`}>
+                        {formatCurrency(group.totalPnl)}
+                      </span>
+                    )}
+                  </h2>
+                  <ul className="trade-list">
+                    {group.trades.map((trade) => (
+                      <TradeRow key={trade.id} trade={trade} onEdit={setEditing} onDelete={deleteTrade} />
+                    ))}
+                  </ul>
+                </section>
               ))}
-            </ul>
+            </div>
           )}
         </>
       )}
