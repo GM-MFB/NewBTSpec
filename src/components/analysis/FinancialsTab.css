@@ -194,6 +194,13 @@
   color: var(--text-dim);
 }
 
+.fin-info-icon {
+  margin-left: 6px;
+  font-size: 11px;
+  color: var(--text-dim);
+  cursor: help;
+}
+
 .fin-badge {
   margin-left: 6px;
   font-size: 10px;

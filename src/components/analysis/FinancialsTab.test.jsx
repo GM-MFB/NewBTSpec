@@ -155,6 +155,20 @@ describe('FinancialsTab', () => {
     expect(screen.queryByText('Income Statement')).not.toBeInTheDocument()
   })
 
+  it('shows an info icon with a tooltip describing each metric', async () => {
+    useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
+    fetchFinancials.mockResolvedValue(sampleData)
+
+    render(<MemoryRouter><FinancialsTab investments={investments} /></MemoryRouter>)
+    await userEvent.click(screen.getByRole('button', { name: 'AAPL' }))
+    await waitFor(() => expect(screen.getByText('Income Statement')).toBeInTheDocument())
+
+    expect(screen.getByTitle(/total sales generated/i)).toBeInTheDocument()
+    expect(screen.getByTitle(/direct costs of producing/i)).toBeInTheDocument()
+    expect(screen.getByTitle(/owners' stake in the company/i)).toBeInTheDocument()
+    expect(screen.getByTitle(/cash left over after maintaining/i)).toBeInTheDocument()
+  })
+
   it('fetches EPS data on demand from the charts view and passes it through', async () => {
     useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
     fetchFinancials.mockResolvedValue(sampleData)
