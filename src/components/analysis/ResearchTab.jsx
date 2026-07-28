@@ -25,7 +25,13 @@ export default function ResearchTab({ investments }) {
   const [showSectorBrowser, setShowSectorBrowser] = useState(false)
 
   const stockSymbols = [...new Set(investments.filter((i) => i.assetType === 'Stock').map((i) => i.symbol))]
+  const portfolioSymbols = [...new Set(investments.filter((i) => i.assetType === 'Stock' || i.assetType === 'Option').map((i) => i.symbol))]
   const researchedSymbols = Object.keys(data)
+
+  function positionPrice(symbol) {
+    const position = investments.find((i) => i.assetType === 'Stock' && i.symbol === symbol)
+    return Number(position?.currentPrice) || Number(position?.avgCost) || null
+  }
 
   async function fetchSymbol(symbol) {
     if (data[symbol] || KNOWN_ETFS.has(symbol)) return
@@ -173,11 +179,15 @@ export default function ResearchTab({ investments }) {
         <CompareView symbols={compareSymbols} data={data} onRemove={handleRemoveFromCompare} />
       )}
 
-      {view === 'single' && researchedSymbols.length > 0 && stockSymbols.length > 0 && (
+      {view === 'single' && researchedSymbols.length > 0 && portfolioSymbols.length > 0 && (
         <PortfolioContext
-          portfolioSymbols={stockSymbols}
+          portfolioSymbols={portfolioSymbols}
           researchedSymbols={researchedSymbols}
-          priceMap={Object.fromEntries(researchedSymbols.map((s) => [s, data[s]?.quote?.c]).filter(([, price]) => price))}
+          investments={investments}
+          priceMap={{
+            ...Object.fromEntries(stockSymbols.map((s) => [s, positionPrice(s)]).filter(([, price]) => price)),
+            ...Object.fromEntries(researchedSymbols.map((s) => [s, data[s]?.quote?.c]).filter(([, price]) => price)),
+          }}
         />
       )}
     </div>

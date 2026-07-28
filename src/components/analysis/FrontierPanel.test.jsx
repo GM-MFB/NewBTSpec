@@ -143,6 +143,87 @@ describe('FrontierPanel', () => {
     render(<FrontierPanel symbols={['AAPL', 'SPY']} weights={[0.6, 0.4]} storageKey="test_ef_params_hover" nSim={300} />)
     expect(screen.getAllByText('Your Portfolio').length).toBeGreaterThan(0)
   })
+
+  it('uses number inputs instead of sliders for return/volatility overrides', () => {
+    render(<FrontierPanel symbols={['AAPL', 'SPY']} weights={[0.6, 0.4]} storageKey="test_ef_params_numinput" nSim={300} />)
+    const returnInput = screen.getByLabelText(/aapl.*return/i)
+    const volInput = screen.getByLabelText(/aapl.*volatility/i)
+    expect(returnInput).toHaveAttribute('type', 'number')
+    expect(volInput).toHaveAttribute('type', 'number')
+  })
+
+  it('shows the total portfolio value header based on portfolioValue alone, not cash', () => {
+    render(
+      <FrontierPanel
+        symbols={['AAPL']} weights={[1]} storageKey="test_ef_params_tmv1"
+        priceMap={{ AAPL: 100 }} portfolioValue={1000} cash={500} nSim={300}
+      />,
+    )
+    expect(screen.getByText(/based on total portfolio value of/i)).toHaveTextContent('$1,000.00')
+  })
+
+  it('does not dilute a stock\'s Current % by the cash amount', () => {
+    render(
+      <FrontierPanel
+        symbols={['AAPL']} weights={[1]} storageKey="test_ef_params_tmv2"
+        priceMap={{ AAPL: 100 }} portfolioValue={1000} cash={500} nSim={300}
+      />,
+    )
+    const aaplRow = screen.getByRole('rowheader', { name: /aapl/i }).closest('tr')
+    expect(aaplRow).toHaveTextContent('100.00%')
+  })
+
+  it('sizes Buy suggestions against the cash amount only, never suggesting a Sell', () => {
+    render(
+      <FrontierPanel
+        symbols={['AAPL']} weights={[1]} storageKey="test_ef_params_tmv3"
+        priceMap={{ AAPL: 100 }} portfolioValue={1000} cash={500} nSim={300}
+      />,
+    )
+    expect(screen.queryByText(/sell/i)).not.toBeInTheDocument()
+  })
+
+  it('shows "—" for the buy action when no cash amount has been entered', () => {
+    render(
+      <FrontierPanel
+        symbols={['AAPL']} weights={[1]} storageKey="test_ef_params_tmv4"
+        priceMap={{ AAPL: 100 }} portfolioValue={1000} nSim={300}
+      />,
+    )
+    const aaplRow = screen.getByRole('rowheader', { name: /aapl/i }).closest('tr')
+    expect(aaplRow).toHaveTextContent('—')
+  })
+
+  it('shows a CASH row in the rebalancing table once a cash amount is set, with no buy action of its own', () => {
+    render(
+      <FrontierPanel
+        symbols={['AAPL']} weights={[1]} storageKey="test_ef_params_tmv5"
+        priceMap={{ AAPL: 100 }} portfolioValue={1000} cash={500} nSim={300}
+      />,
+    )
+    const cashRow = screen.getByRole('rowheader', { name: /^cash/i }).closest('tr')
+    expect(cashRow).toHaveTextContent('—')
+  })
+
+  it('shows a Cash to include ($) input in the assumptions section, defaulting to 0', () => {
+    render(<FrontierPanel symbols={['AAPL', 'SPY']} weights={[0.6, 0.4]} storageKey="test_ef_params_cash1" nSim={300} />)
+    const cashInput = screen.getByLabelText(/cash to include/i)
+    expect(cashInput).toHaveValue(0)
+  })
+
+  it('does not show the cash rate input until a cash amount is entered', async () => {
+    render(<FrontierPanel symbols={['AAPL', 'SPY']} weights={[0.6, 0.4]} storageKey="test_ef_params_cash2" nSim={300} />)
+    expect(screen.queryByLabelText(/cash annual return rate/i)).not.toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText(/cash to include/i), { target: { value: '5000' } })
+    expect(screen.getByLabelText(/cash annual return rate/i)).toBeInTheDocument()
+  })
+
+  it('persists the cash amount to localStorage and includes CASH in the simulation', () => {
+    render(<FrontierPanel symbols={['AAPL', 'SPY']} weights={[0.6, 0.4]} storageKey="test_ef_params_cash3" nSim={300} />)
+    fireEvent.change(screen.getByLabelText(/cash to include/i), { target: { value: '5000' } })
+    expect(localStorage.getItem('test_ef_params_cash3_cash_amount')).toBe('5000')
+  })
 })
 
 describe('FrontierHoverTooltip', () => {
