@@ -1,0 +1,124 @@
+.watchlist-page {
+  padding: 20px 32px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.watchlist-add-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.watchlist-add-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+}
+
+.watchlist-add-form input {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.watchlist-leaderboard h2, .watchlist-by-person h2 {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.watchlist-leaderboard ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.watchlist-leaderboard li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.watchlist-rank {
+  color: var(--text-dim);
+  font-weight: 700;
+  width: 28px;
+}
+
+.watchlist-symbol {
+  font-weight: 700;
+  color: var(--text);
+  min-width: 60px;
+}
+
+.watchlist-quote {
+  display: flex;
+  gap: 8px;
+  min-width: 120px;
+}
+
+.watchlist-change-up { color: var(--green); }
+.watchlist-change-down { color: var(--red); }
+.watchlist-quote-empty { color: var(--text-dim); min-width: 120px; }
+
+.watchlist-count {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.watchlist-person-group {
+  margin-bottom: 20px;
+}
+
+.watchlist-person-group h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.watchlist-person-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.watchlist-person-group li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.watchlist-note {
+  color: var(--text-dim);
+  font-size: 12px;
+  flex: 1;
+}
