@@ -50,7 +50,7 @@ export default function Header({
                                             onClick={async () => {
                                                 if (
                                                     window.confirm(
-                                                        `Delete ${a.name}? This cannot be undone.`
+                                                        `Delete ${a.name}? This will also delete all of its trades and investments. This cannot be undone.`
                                                     )
                                                 ) {
                                                     try {

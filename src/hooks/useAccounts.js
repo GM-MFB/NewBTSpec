@@ -72,6 +72,12 @@ export function useAccounts(userId) {
   }
 
   async function deleteAccount(id) {
+    const { error: tradesError } = await supabase.from('trades').delete().eq('account_id', id)
+    if (tradesError) throw tradesError
+
+    const { error: investmentsError } = await supabase.from('investments').delete().eq('account_id', id)
+    if (investmentsError) throw investmentsError
+
     const { error } = await supabase.from('accounts').delete().eq('id', id)
     if (error) throw error
 
