@@ -56,7 +56,10 @@ export default function RiskTab({ investments }) {
 
   const metrics = getPortfolioRiskMetrics(withWeights)
   const largestWeight = Math.max(...withWeights.map((p) => p.weight), 0)
-  const stressTests = getStressTests(withWeights)
+  const stressTests = getStressTests(
+    withWeights.filter((p) => p.assetType !== 'Option'),
+    withWeights.filter((p) => p.assetType === 'Option'),
+  )
   const riskContributions = getRiskContribution(withWeights)
 
   return (
@@ -134,17 +137,17 @@ export default function RiskTab({ investments }) {
         {stressTests.map((scenario) => (
           <div key={scenario.name} className="risk-stress-row">
             <button type="button" onClick={() => setExpandedScenario(expandedScenario === scenario.name ? null : scenario.name)}>
-              {scenario.name} ({(scenario.portfolioMove * 100).toFixed(1)}%, {formatCurrency(scenario.portfolioMove * metrics.totalMV)})
+              {scenario.name} ({(scenario.portfolioMove * 100).toFixed(1)}%, {formatCurrency(scenario.totalImpact)})
             </button>
             {expandedScenario === scenario.name && (
-              <table className="risk-table">
+              <table className="risk-table" data-testid="stress-scenario-table">
                 <thead><tr><th>Symbol</th><th>Beta</th><th>Move %</th><th>$ Impact</th></tr></thead>
                 <tbody>
-                  {scenario.perPosition.map((p) => (
-                    <tr key={p.symbol}>
+                  {scenario.perPosition.map((p, idx) => (
+                    <tr key={`${p.symbol}-${idx}`}>
                       <th scope="row">{p.symbol}</th>
-                      <td className="mono">{p.beta.toFixed(2)}</td>
-                      <td className="mono">{(p.move * 100).toFixed(1)}%</td>
+                      <td className="mono">{p.beta === null ? '—' : p.beta.toFixed(2)}</td>
+                      <td className="mono">{p.move === null ? '—' : `${(p.move * 100).toFixed(1)}%`}</td>
                       <td className="mono">{formatCurrency(p.impact)}</td>
                     </tr>
                   ))}

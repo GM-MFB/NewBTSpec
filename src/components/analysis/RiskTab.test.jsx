@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import RiskTab from './RiskTab'
 import { setComputedParams, setRealCorrelations } from '../../lib/efficientFrontier'
 
@@ -63,5 +63,23 @@ describe('RiskTab', () => {
     expect(screen.getByText('Cash Secured Put')).toBeInTheDocument()
     expect(screen.getByText('$26,000.00')).toBeInTheDocument()
     expect(screen.getByTestId('options-total-risk')).toHaveTextContent('$26,000.00')
+  })
+
+  it('includes an option position in an expanded stress scenario with a bounded impact', async () => {
+    const userEvent = (await import('@testing-library/user-event')).default
+    const withOption = [
+      ...investments,
+      { symbol: 'MSFT', assetType: 'Option', shares: 2, avgCost: 3.5, strategy: 'cash_secured_put', strike: 130 },
+    ]
+    render(<RiskTab investments={withOption} />)
+
+    await userEvent.click(screen.getByText(/^Bear Market/))
+
+    // MSFT also appears in the always-rendered Options Risk table, so scope
+    // the query to the expanded stress scenario's own table.
+    const table = screen.getByTestId('stress-scenario-table')
+    const msftRow = within(table).getByText('MSFT').closest('tr')
+    expect(msftRow).toHaveTextContent('-$26,000.00')
+    expect(msftRow).toHaveTextContent('—')
   })
 })
