@@ -95,6 +95,23 @@ export function useAccounts(userId) {
     })
   }
 
+  async function renameAccount(id, name) {
+    const target = accounts.find((a) => a.id === id)
+    if (target?.name === 'Matt Cap') {
+      throw new Error('Matt Cap is a shared account and cannot be renamed')
+    }
+
+    const trimmed = name.trim()
+    if (!trimmed) {
+      throw new Error('Account name cannot be empty')
+    }
+
+    const { error } = await supabase.from('accounts').update({ name: trimmed }).eq('id', id)
+    if (error) throw error
+
+    setAccounts((prev) => prev.map((a) => (a.id === id ? { ...a, name: trimmed } : a)))
+  }
+
   return {
     accounts,
     activeAccountId,
@@ -103,5 +120,6 @@ export function useAccounts(userId) {
     switchAccount,
     createAccount,
     deleteAccount,
+    renameAccount,
   }
 }

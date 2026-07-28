@@ -11,6 +11,8 @@ function mockFrom({
   tradesDeleteError = null,
   investmentsDeleteError = null,
   deleteCalls = [],
+  updateError = null,
+  updateCalls = [],
 }) {
   return (table) => ({
     select: () => ({
@@ -30,6 +32,12 @@ function mockFrom({
         if (table === 'trades') return Promise.resolve({ error: tradesDeleteError })
         if (table === 'investments') return Promise.resolve({ error: investmentsDeleteError })
         return Promise.resolve({ error: deleteError })
+      },
+    }),
+    update: (fields) => ({
+      eq: (col, val) => {
+        updateCalls.push({ table, fields, col, val })
+        return Promise.resolve({ error: updateError })
       },
     }),
   })
@@ -190,5 +198,69 @@ describe('useAccounts', () => {
     await expect(act(() => result.current.deleteAccount('mc1'))).rejects.toThrow(/matt cap/i)
     expect(deleteCalls).toEqual([])
     expect(result.current.accounts.map((a) => a.id)).toEqual(['a1', 'mc1'])
+  })
+
+  it('renameAccount updates the name in the DB and local list', async () => {
+    const accounts = [{ id: 'a1', name: 'Main' }, { id: 'a2', name: 'Second' }]
+    const updateCalls = []
+    supabase.from.mockImplementation(mockFrom({ ownAccounts: accounts, updateCalls }))
+
+    const { result } = renderHook(() => useAccounts('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await act(() => result.current.renameAccount('a2', 'Swing Trades'))
+
+    expect(updateCalls).toEqual([
+      { table: 'accounts', fields: { name: 'Swing Trades' }, col: 'id', val: 'a2' },
+    ])
+    expect(result.current.accounts).toEqual([{ id: 'a1', name: 'Main' }, { id: 'a2', name: 'Swing Trades' }])
+  })
+
+  it('renameAccount trims whitespace from the new name', async () => {
+    const accounts = [{ id: 'a1', name: 'Main' }]
+    const updateCalls = []
+    supabase.from.mockImplementation(mockFrom({ ownAccounts: accounts, updateCalls }))
+
+    const { result } = renderHook(() => useAccounts('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await act(() => result.current.renameAccount('a1', '  Retirement  '))
+
+    expect(updateCalls[0].fields).toEqual({ name: 'Retirement' })
+  })
+
+  it('renameAccount rejects an empty name', async () => {
+    const accounts = [{ id: 'a1', name: 'Main' }]
+    const updateCalls = []
+    supabase.from.mockImplementation(mockFrom({ ownAccounts: accounts, updateCalls }))
+
+    const { result } = renderHook(() => useAccounts('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await expect(act(() => result.current.renameAccount('a1', '   '))).rejects.toThrow(/name/i)
+    expect(updateCalls).toEqual([])
+  })
+
+  it('renameAccount throws and leaves the list unchanged when the update fails', async () => {
+    const accounts = [{ id: 'a1', name: 'Main' }]
+    supabase.from.mockImplementation(mockFrom({ ownAccounts: accounts, updateError: new Error('nope') }))
+
+    const { result } = renderHook(() => useAccounts('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await expect(act(() => result.current.renameAccount('a1', 'New Name'))).rejects.toThrow('nope')
+    expect(result.current.accounts).toEqual([{ id: 'a1', name: 'Main' }])
+  })
+
+  it('refuses to rename the shared Matt Cap account', async () => {
+    const accounts = [{ id: 'a1', name: 'Main' }, { id: 'mc1', name: 'Matt Cap' }]
+    const updateCalls = []
+    supabase.from.mockImplementation(mockFrom({ ownAccounts: accounts, updateCalls }))
+
+    const { result } = renderHook(() => useAccounts('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await expect(act(() => result.current.renameAccount('mc1', 'My Fund'))).rejects.toThrow(/matt cap/i)
+    expect(updateCalls).toEqual([])
   })
 })
