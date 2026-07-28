@@ -135,8 +135,8 @@ export default function FrontierPanel({
       <ResponsiveContainer width="100%" height={320}>
         <ComposedChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
           <CartesianGrid stroke="#262626" strokeDasharray="0" />
-          <XAxis dataKey="vol" name="Volatility %" tick={{ fill: '#888', fontSize: 11 }} axisLine={{ stroke: '#262626' }} tickLine={false} />
-          <YAxis dataKey="ret" name="Return %" tick={{ fill: '#888', fontSize: 11 }} axisLine={{ stroke: '#262626' }} tickLine={false} />
+          <XAxis type="number" dataKey="vol" name="Volatility %" domain={['auto', 'auto']} tick={{ fill: '#888', fontSize: 11 }} axisLine={{ stroke: '#262626' }} tickLine={false} />
+          <YAxis type="number" dataKey="ret" name="Return %" domain={['auto', 'auto']} tick={{ fill: '#888', fontSize: 11 }} axisLine={{ stroke: '#262626' }} tickLine={false} />
           <Tooltip content={(props) => <FrontierHoverTooltip {...props} symbols={allSymbols} colorMap={colorMap} />} />
           <Legend wrapperStyle={{ fontSize: 11, color: '#888' }} />
           <Line type="monotone" dataKey="ret" data={chartData} name="Efficient Frontier" stroke="#898781" strokeWidth={2} dot={{ r: 2, fill: '#898781' }} />
