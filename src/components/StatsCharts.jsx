@@ -33,9 +33,9 @@ function EmptyState() {
   return <div className="chart-empty">No closed trades yet — this chart will fill in once you close a position.</div>
 }
 
-function ChartCard({ title, isEmpty, children }) {
+function ChartCard({ title, isEmpty, wide, children }) {
   return (
-    <div className="chart-card">
+    <div className={`chart-card${wide ? ' chart-card--wide' : ''}`}>
       <h3 className="chart-card-title">{title}</h3>
       {isEmpty ? <EmptyState /> : children}
     </div>
@@ -108,12 +108,12 @@ export default function StatsCharts({ stats }) {
         </ResponsiveContainer>
       </ChartCard>
 
-      <ChartCard title="P&L by Symbol" isEmpty={topSymbols.length === 0}>
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={topSymbols} layout="vertical" margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+      <ChartCard title="P&L by Symbol" isEmpty={topSymbols.length === 0} wide>
+        <ResponsiveContainer width="100%" height={Math.max(260, topSymbols.length * 40)}>
+          <BarChart data={topSymbols} layout="vertical" margin={{ top: 8, right: 60, left: 16, bottom: 0 }} barCategoryGap="30%">
             <CartesianGrid stroke={GRID} strokeDasharray="0" horizontal={false} />
             <XAxis type="number" tick={{ fill: AXIS_TEXT, fontSize: 11 }} axisLine={{ stroke: GRID }} tickLine={false} tickFormatter={(v) => formatCurrency(v)} />
-            <YAxis type="category" dataKey="symbol" tick={{ fill: AXIS_TEXT, fontSize: 11 }} axisLine={{ stroke: GRID }} tickLine={false} width={60} />
+            <YAxis type="category" dataKey="symbol" tick={{ fill: AXIS_TEXT, fontSize: 11 }} axisLine={{ stroke: GRID }} tickLine={false} width={70} />
             <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => formatCurrency(v)} />
             <Bar dataKey="totalPnl" name="Total P&L" radius={[0, 4, 4, 0]} maxBarSize={20}>
               {topSymbols.map((row) => (

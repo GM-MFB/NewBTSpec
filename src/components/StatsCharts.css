@@ -12,6 +12,10 @@
   padding: 16px 16px 8px;
 }
 
+.chart-card--wide {
+  grid-column: 1 / -1;
+}
+
 .chart-card-title {
   font-size: 13px;
   font-weight: 700;
