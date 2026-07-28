@@ -12,6 +12,7 @@ function setup(props = {}) {
     activeAccount: accounts[0],
     switchAccount: vi.fn(),
     createAccount: vi.fn(),
+    deleteAccount: vi.fn(),
     onAddTrade: vi.fn(),
   }
   return render(<MemoryRouter><Header {...defaults} {...props} /></MemoryRouter>)
@@ -44,6 +45,33 @@ describe('Header', () => {
     setup()
     await userEvent.click(screen.getByText('Main Account'))
     expect(screen.queryByRole('button', { name: /sign out/i })).not.toBeInTheDocument()
+  })
+
+  it('deletes an account after the user confirms the prompt', async () => {
+    const deleteAccount = vi.fn()
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    setup({ deleteAccount })
+    await userEvent.click(screen.getByText('Main Account'))
+    await userEvent.click(screen.getByRole('button', { name: /delete swing/i }))
+
+    expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('Swing'))
+    expect(deleteAccount).toHaveBeenCalledWith('a2')
+  })
+
+  it('does not delete an account when the user cancels the prompt', async () => {
+    const deleteAccount = vi.fn()
+    vi.spyOn(window, 'confirm').mockReturnValue(false)
+    setup({ deleteAccount })
+    await userEvent.click(screen.getByText('Main Account'))
+    await userEvent.click(screen.getByRole('button', { name: /delete swing/i }))
+
+    expect(deleteAccount).not.toHaveBeenCalled()
+  })
+
+  it('does not show a delete button for the active account', async () => {
+    setup()
+    await userEvent.click(screen.getByText('Main Account'))
+    expect(screen.queryByRole('button', { name: /delete main account/i })).not.toBeInTheDocument()
   })
 
   it('renders Sign Out in the dropdown and calls onSignOut when clicked', async () => {

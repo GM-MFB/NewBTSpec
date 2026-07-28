@@ -7,6 +7,7 @@ export default function Header({
     activeAccount,
     switchAccount,
     createAccount,
+    deleteAccount,
     onSignOut,
     onAddTrade,
     addLabel = "+ Add Trade",
@@ -31,7 +32,7 @@ export default function Header({
                         {accounts
                             .filter((a) => a.id !== activeAccount?.id)
                             .map((a) => (
-                                <li key={a.id}>
+                                <li key={a.id} className="account-row">
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -41,6 +42,25 @@ export default function Header({
                                     >
                                         {a.name}
                                     </button>
+                                    {deleteAccount && (
+                                        <button
+                                            type="button"
+                                            className="delete-account-btn"
+                                            aria-label={`Delete ${a.name}`}
+                                            onClick={() => {
+                                                if (
+                                                    window.confirm(
+                                                        `Delete ${a.name}? This cannot be undone.`
+                                                    )
+                                                ) {
+                                                    deleteAccount(a.id);
+                                                }
+                                                setOpen(false);
+                                            }}
+                                        >
+                                            ×
+                                        </button>
+                                    )}
                                 </li>
                             ))}
                         <li className="account-dropdown-divider" role="separator">
