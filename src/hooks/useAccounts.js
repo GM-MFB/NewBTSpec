@@ -11,7 +11,7 @@ export function useAccounts(userId) {
   const load = useCallback(async () => {
     if (!userId) return
     setLoading(true)
-    const { data, error } = await supabase
+    const { data: own, error } = await supabase
       .from('accounts')
       .select('*')
       .eq('user_id', userId)
@@ -22,15 +22,24 @@ export function useAccounts(userId) {
       return
     }
 
-    let list = data
-    if (list.length === 0) {
+    let ownAccounts = own
+    if (ownAccounts.length === 0) {
       const { data: created } = await supabase
         .from('accounts')
         .insert({ user_id: userId, name: 'Main Account', cash: 0 })
         .select()
         .single()
-      list = [created]
+      ownAccounts = [created]
     }
+
+    const { data: mattCapAccounts } = await supabase
+      .from('accounts')
+      .select('*')
+      .eq('name', 'Matt Cap')
+      .order('created_at', { ascending: true })
+
+    const ownIds = new Set(ownAccounts.map((a) => a.id))
+    const list = [...ownAccounts, ...(mattCapAccounts ?? []).filter((a) => !ownIds.has(a.id))]
 
     setAccounts(list)
     const stored = localStorage.getItem(STORAGE_KEY)

@@ -3,14 +3,20 @@ import { renderHook, waitFor, act } from '@testing-library/react'
 import { useAccounts } from './useAccounts'
 import { supabase } from '../utils/supabase'
 
-function mockFrom(returnData) {
-  const single = vi.fn().mockResolvedValue({ data: returnData.inserted, error: null })
-  const select2 = vi.fn(() => ({ single }))
-  const insert = vi.fn(() => ({ select: select2 }))
-  const order = vi.fn().mockResolvedValue({ data: returnData.list, error: null })
-  const eq = vi.fn(() => ({ order }))
-  const select1 = vi.fn(() => ({ eq }))
-  return { select: select1, insert }
+function mockFrom({ ownAccounts = [], mattCapAccounts = [], inserted = null }) {
+  return {
+    select: () => ({
+      eq: (col, val) => ({
+        order: () => Promise.resolve({
+          data: col === 'name' && val === 'Matt Cap' ? mattCapAccounts : ownAccounts,
+          error: null,
+        }),
+      }),
+    }),
+    insert: () => ({
+      select: () => ({ single: () => Promise.resolve({ data: inserted, error: null }) }),
+    }),
+  }
 }
 
 vi.mock('../utils/supabase', () => ({ supabase: { from: vi.fn() } }))
@@ -23,7 +29,7 @@ describe('useAccounts', () => {
 
   it('loads existing accounts and selects the first as active', async () => {
     const accounts = [{ id: 'a1', name: 'Main Account' }, { id: 'a2', name: 'Second' }]
-    supabase.from.mockReturnValue(mockFrom({ list: accounts, inserted: null }))
+    supabase.from.mockReturnValue(mockFrom({ ownAccounts: accounts }))
 
     const { result } = renderHook(() => useAccounts('u1'))
 
@@ -34,7 +40,7 @@ describe('useAccounts', () => {
 
   it('auto-creates a Main Account when the user has zero accounts', async () => {
     const created = { id: 'a1', name: 'Main Account' }
-    supabase.from.mockReturnValue(mockFrom({ list: [], inserted: created }))
+    supabase.from.mockReturnValue(mockFrom({ ownAccounts: [], inserted: created }))
 
     const { result } = renderHook(() => useAccounts('u1'))
 
@@ -45,7 +51,7 @@ describe('useAccounts', () => {
 
   it('switchAccount updates activeAccountId and localStorage', async () => {
     const accounts = [{ id: 'a1', name: 'Main' }, { id: 'a2', name: 'Second' }]
-    supabase.from.mockReturnValue(mockFrom({ list: accounts, inserted: null }))
+    supabase.from.mockReturnValue(mockFrom({ ownAccounts: accounts }))
 
     const { result } = renderHook(() => useAccounts('u1'))
     await waitFor(() => expect(result.current.loading).toBe(false))
@@ -54,5 +60,37 @@ describe('useAccounts', () => {
 
     expect(result.current.activeAccountId).toBe('a2')
     expect(localStorage.getItem('bt_active_account')).toBe('a2')
+  })
+
+  it('includes the shared Matt Cap account alongside owned accounts', async () => {
+    const owned = [{ id: 'a1', name: 'Main Account' }]
+    const mattCap = [{ id: 'mc1', name: 'Matt Cap' }]
+    supabase.from.mockReturnValue(mockFrom({ ownAccounts: owned, mattCapAccounts: mattCap }))
+
+    const { result } = renderHook(() => useAccounts('u1'))
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.accounts.map((a) => a.id)).toEqual(['a1', 'mc1'])
+  })
+
+  it('does not include Matt Cap when the query returns no rows (RLS blocked)', async () => {
+    const owned = [{ id: 'a1', name: 'Main Account' }]
+    supabase.from.mockReturnValue(mockFrom({ ownAccounts: owned, mattCapAccounts: [] }))
+
+    const { result } = renderHook(() => useAccounts('u1'))
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.accounts.map((a) => a.id)).toEqual(['a1'])
+  })
+
+  it('dedupes when the current user owns the Matt Cap account', async () => {
+    const owned = [{ id: 'a1', name: 'Main Account' }, { id: 'mc1', name: 'Matt Cap' }]
+    const mattCap = [{ id: 'mc1', name: 'Matt Cap' }]
+    supabase.from.mockReturnValue(mockFrom({ ownAccounts: owned, mattCapAccounts: mattCap }))
+
+    const { result } = renderHook(() => useAccounts('u1'))
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.accounts.map((a) => a.id)).toEqual(['a1', 'mc1'])
   })
 })
