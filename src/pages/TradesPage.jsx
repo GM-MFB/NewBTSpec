@@ -6,6 +6,7 @@ import { useAccounts } from '../hooks/useAccounts'
 import { useTrades } from '../hooks/useTrades'
 import { computeTradeStats } from '../lib/tradeStatsSummary'
 import { groupTradesByDay } from '../lib/groupTradesByDay'
+import { generateTradeExcelWorkbook } from '../lib/tradeExcelExport'
 import { isWithinDateRange } from '../lib/dateRange'
 import { formatCurrency } from '../lib/format'
 import Header from '../components/Header'
@@ -68,6 +69,13 @@ export default function TradesPage() {
             {t.label}
           </button>
         ))}
+        <button
+          type="button"
+          className="trades-export-btn"
+          onClick={() => generateTradeExcelWorkbook(trades)}
+        >
+          Export Excel
+        </button>
       </div>
 
       {error && (

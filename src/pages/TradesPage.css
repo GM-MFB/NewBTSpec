@@ -55,6 +55,10 @@
   color: var(--green);
 }
 
+.trades-export-btn {
+  margin-left: auto;
+}
+
 .trade-day-groups {
   padding: 12px 32px 40px;
   display: flex;

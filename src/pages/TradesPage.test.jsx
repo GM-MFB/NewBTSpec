@@ -6,10 +6,12 @@ import TradesPage from './TradesPage'
 import { useAuth } from '../hooks/useAuth'
 import { useAccounts } from '../hooks/useAccounts'
 import { useTrades } from '../hooks/useTrades'
+import { generateTradeExcelWorkbook } from '../lib/tradeExcelExport'
 
 vi.mock('../hooks/useAuth')
 vi.mock('../hooks/useAccounts')
 vi.mock('../hooks/useTrades')
+vi.mock('../lib/tradeExcelExport')
 
 function mockCommon({ trades = [] } = {}) {
   useAuth.mockReturnValue({ user: { id: 'u1' } })
@@ -68,6 +70,15 @@ describe('TradesPage', () => {
 
     const heading = screen.getByTestId('trade-day-heading')
     expect(heading).toHaveTextContent('$100.00')
+  })
+
+  it('exports all trades to Excel when Export Excel is clicked, regardless of tab', async () => {
+    mockCommon({ trades: [closedTrade] })
+    render(<MemoryRouter><TradesPage /></MemoryRouter>)
+
+    await userEvent.click(screen.getByRole('button', { name: /export excel/i }))
+
+    expect(generateTradeExcelWorkbook).toHaveBeenCalledWith([closedTrade])
   })
 
   it('shows the empty state on the Calendar tab when there are no trades', () => {
