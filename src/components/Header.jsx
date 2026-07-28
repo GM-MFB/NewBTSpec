@@ -7,6 +7,7 @@ export default function Header({
     activeAccount,
     switchAccount,
     createAccount,
+    onSignOut,
     onAddTrade,
     addLabel = "+ Add Trade",
     onRefresh,
@@ -55,6 +56,20 @@ export default function Header({
                                 + New account
                             </button>
                         </li>
+                        {onSignOut && (
+                            <li>
+                                <button
+                                    type="button"
+                                    className="sign-out-btn"
+                                    onClick={() => {
+                                        onSignOut();
+                                        setOpen(false);
+                                    }}
+                                >
+                                    Sign Out
+                                </button>
+                            </li>
+                        )}
                     </ul>
                 )}
             </div>
@@ -92,14 +107,6 @@ export default function Header({
                     }
                 >
                     Analyze
-                </NavLink>
-                <NavLink
-                    to="/matt-cap"
-                    className={({ isActive }) =>
-                        isActive ? "active" : undefined
-                    }
-                >
-                    Matt Cap
                 </NavLink>
             </nav>
 

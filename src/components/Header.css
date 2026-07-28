@@ -69,6 +69,13 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
+.sign-out-btn {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  color: #ef4444;
+}
+
 .app-nav {
   display: flex;
   gap: 6px;

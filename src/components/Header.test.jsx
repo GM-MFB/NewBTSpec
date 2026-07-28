@@ -31,14 +31,27 @@ describe('Header', () => {
     expect(switchAccount).toHaveBeenCalledWith('a2')
   })
 
-  it('renders Home, Day Trading, Stats, Analyze, Matt Cap nav links and an Add button', () => {
+  it('renders Home, Day Trading, Stats, Analyze nav links and an Add button', () => {
     setup()
     expect(screen.getByRole('link', { name: /^home$/i })).toHaveAttribute('href', '/')
     expect(screen.getByRole('link', { name: /day trading/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /stats/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /analyze/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /matt cap/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /add trade/i })).toBeInTheDocument()
+  })
+
+  it('does not render Sign Out when onSignOut is not provided', async () => {
+    setup()
+    await userEvent.click(screen.getByText('Main Account'))
+    expect(screen.queryByRole('button', { name: /sign out/i })).not.toBeInTheDocument()
+  })
+
+  it('renders Sign Out in the dropdown and calls onSignOut when clicked', async () => {
+    const onSignOut = vi.fn()
+    setup({ onSignOut })
+    await userEvent.click(screen.getByText('Main Account'))
+    await userEvent.click(screen.getByRole('button', { name: /sign out/i }))
+    expect(onSignOut).toHaveBeenCalled()
   })
 
   it('calls onAddTrade when the Add button is clicked', async () => {

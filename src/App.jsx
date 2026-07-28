@@ -6,7 +6,6 @@ import TradesPage from "./pages/TradesPage";
 import SettingsPage from "./pages/SettingsPage";
 import StatsPage from "./pages/StatsPage";
 import AnalyzePage from "./pages/AnalyzePage";
-import PlaceholderPage from "./pages/PlaceholderPage";
 
 function RequireAuth({ user, children }) {
     if (!user) return <Navigate to="/login" replace />;
@@ -61,14 +60,6 @@ export default function App() {
                 element={
                     <RequireAuth user={user}>
                         <AnalyzePage />
-                    </RequireAuth>
-                }
-            />
-            <Route
-                path="/matt-cap"
-                element={
-                    <RequireAuth user={user}>
-                        <PlaceholderPage title="Matt Cap" />
                     </RequireAuth>
                 }
             />
