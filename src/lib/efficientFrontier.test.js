@@ -293,4 +293,59 @@ describe('getStressTests', () => {
     const bearMarket = results.find((r) => r.name === 'Bear Market')
     expect(bearMarket.perPosition[0].impact).toBeLessThanOrEqual(bearMarket.perPosition[1].impact)
   })
+
+  describe('with option positions', () => {
+    const stockPositions = [{ symbol: 'SPY', weight: 1, marketValue: 10000 }]
+
+    it('shows full capital-at-risk impact for a long call in down-move scenarios, $0 in Bull Run', () => {
+      const optionPositions = [{ symbol: 'AAPL', optionType: 'call', optionDirection: 'long', capitalAtRisk: 500 }]
+      const results = getStressTests(stockPositions, optionPositions)
+      const bullRun = results.find((r) => r.name === 'Bull Run')
+      const correction = results.find((r) => r.name === 'Correction')
+      expect(bullRun.perPosition.find((p) => p.symbol === 'AAPL').impact).toBe(0)
+      expect(correction.perPosition.find((p) => p.symbol === 'AAPL').impact).toBe(-500)
+    })
+
+    it('shows full capital-at-risk impact for a long put in Bull Run, $0 in down-move scenarios', () => {
+      const optionPositions = [{ symbol: 'AAPL', optionType: 'put', optionDirection: 'long', capitalAtRisk: 400 }]
+      const results = getStressTests(stockPositions, optionPositions)
+      const bullRun = results.find((r) => r.name === 'Bull Run')
+      const crash = results.find((r) => r.name === 'Crash')
+      expect(bullRun.perPosition.find((p) => p.symbol === 'AAPL').impact).toBe(-400)
+      expect(crash.perPosition.find((p) => p.symbol === 'AAPL').impact).toBe(0)
+    })
+
+    it('shows full capital-at-risk impact for a short cash secured put in down-move scenarios', () => {
+      const optionPositions = [{ symbol: 'AAPL', optionType: 'put', optionDirection: 'short', capitalAtRisk: 38000 }]
+      const results = getStressTests(stockPositions, optionPositions)
+      const bearMarket = results.find((r) => r.name === 'Bear Market')
+      expect(bearMarket.perPosition.find((p) => p.symbol === 'AAPL').impact).toBe(-38000)
+    })
+
+    it('shows full capital-at-risk impact for a call credit spread in Bull Run', () => {
+      const optionPositions = [{ symbol: 'AAPL', optionType: 'call', optionDirection: 'short', capitalAtRisk: 100 }]
+      const results = getStressTests(stockPositions, optionPositions)
+      const bullRun = results.find((r) => r.name === 'Bull Run')
+      const correction = results.find((r) => r.name === 'Correction')
+      expect(bullRun.perPosition.find((p) => p.symbol === 'AAPL').impact).toBe(-100)
+      expect(correction.perPosition.find((p) => p.symbol === 'AAPL').impact).toBe(0)
+    })
+
+    it('shows $0 impact for a covered call in every scenario', () => {
+      const optionPositions = [{ symbol: 'AAPL', optionType: 'call', optionDirection: 'short', capitalAtRisk: 0 }]
+      const results = getStressTests(stockPositions, optionPositions)
+      for (const scenario of results) {
+        expect(scenario.perPosition.find((p) => p.symbol === 'AAPL').impact).toBe(0)
+      }
+    })
+
+    it('sets totalImpact to the sum of all perPosition impacts including options', () => {
+      const optionPositions = [{ symbol: 'AAPL', optionType: 'call', optionDirection: 'long', capitalAtRisk: 500 }]
+      const results = getStressTests(stockPositions, optionPositions)
+      for (const scenario of results) {
+        const expectedTotal = scenario.perPosition.reduce((sum, p) => sum + p.impact, 0)
+        expect(scenario.totalImpact).toBeCloseTo(expectedTotal, 6)
+      }
+    })
+  })
 })

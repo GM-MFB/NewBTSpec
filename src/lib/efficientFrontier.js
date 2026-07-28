@@ -261,7 +261,12 @@ const STRESS_SCENARIOS = [
   { name: '2008-Level', move: -0.50 },
 ]
 
-export function getStressTests(positions) {
+function optionAdverseSign(optionType, optionDirection) {
+  if (optionType === 'call') return optionDirection === 'long' ? -1 : 1
+  return optionDirection === 'long' ? 1 : -1
+}
+
+export function getStressTests(positions, optionPositions = []) {
   return STRESS_SCENARIOS.map((scenario) => {
     const perPosition = positions.map((p) => {
       const params = getAssetParams(p.symbol)
@@ -270,9 +275,16 @@ export function getStressTests(positions) {
       const impact = move * p.marketValue
       return { symbol: p.symbol, beta, move, impact }
     })
+    const optionImpacts = optionPositions.map((p) => {
+      const hurt = Math.sign(scenario.move) === optionAdverseSign(p.optionType, p.optionDirection)
+      const impact = hurt ? -p.capitalAtRisk : 0
+      return { symbol: p.symbol, beta: null, move: null, impact: impact + 0 } // Force +0, avoiding -0
+    })
+    const combined = [...perPosition, ...optionImpacts]
     const totalMV = positions.reduce((sum, p) => sum + p.marketValue, 0)
     const weightedBeta = positions.reduce((sum, p, i) => sum + (p.marketValue / totalMV) * perPosition[i].beta, 0)
     const portfolioMove = weightedBeta * scenario.move
-    return { name: scenario.name, marketMove: scenario.move, portfolioMove, perPosition: perPosition.sort((a, b) => a.impact - b.impact) }
+    const totalImpact = combined.reduce((sum, p) => sum + p.impact, 0)
+    return { name: scenario.name, marketMove: scenario.move, portfolioMove, totalImpact, perPosition: combined.sort((a, b) => a.impact - b.impact) }
   })
 }
