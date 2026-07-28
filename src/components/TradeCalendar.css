@@ -1,0 +1,121 @@
+.trade-calendar {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  margin: 20px 32px;
+}
+
+.trade-calendar-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.trade-calendar-header button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.trade-calendar-header button:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.trade-calendar-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+}
+
+.trade-calendar-today {
+  margin-left: auto;
+}
+
+.trade-calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.trade-calendar-weekdays span {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.trade-calendar-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.trade-calendar-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.trade-calendar-day {
+  min-height: 64px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.trade-calendar-day--outside {
+  opacity: 0.35;
+}
+
+.trade-calendar-day--positive {
+  border-color: var(--green);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.trade-calendar-day--negative {
+  border-color: var(--red);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.trade-calendar-daynum {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.trade-calendar-pnl {
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.trade-calendar-day--positive .trade-calendar-pnl {
+  color: var(--green);
+}
+
+.trade-calendar-day--negative .trade-calendar-pnl {
+  color: var(--red);
+}
+
+@media (max-width: 640px) {
+  .trade-calendar {
+    margin: 20px 16px;
+  }
+  .trade-calendar-day {
+    min-height: 48px;
+    padding: 4px 6px;
+  }
+}
