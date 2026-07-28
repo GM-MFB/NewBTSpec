@@ -59,4 +59,30 @@ describe('useInvestmentsHistory', () => {
     expect(del).toHaveBeenCalled()
     expect(deleteEq).toHaveBeenCalledWith('id', 'i1')
   })
+
+  it('updates an investment and reloads', async () => {
+    const rows = [{
+      id: 'i1', account_id: 'a1', user_id: 'u1', created_at: '2026-01-01',
+      symbol: 'AAPL', name: '', asset_type: 'Stock', sector: '',
+      shares: 10, avg_cost: 150, current_price: null, buy_date: '2026-01-01',
+      status: 'open', sell_price: null, sell_date: null, stop_loss: null,
+      target_price: null, chart_link: null, notes: null,
+      option_type: null, option_direction: null, strike: null, expiry: null,
+      strategy: null, strike_2: null,
+    }]
+    const order = vi.fn().mockResolvedValue({ data: rows, error: null })
+    const eq = vi.fn(() => ({ order }))
+    const select = vi.fn(() => ({ eq }))
+    const updateEq = vi.fn().mockResolvedValue({ error: null })
+    const update = vi.fn(() => ({ eq: updateEq }))
+    supabase.from.mockReturnValue({ select, update })
+
+    const { result } = renderHook(() => useInvestmentsHistory('a1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await result.current.updateInvestment('i1', { shares: 20 })
+
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ shares: 20, symbol: 'AAPL' }))
+    expect(updateEq).toHaveBeenCalledWith('id', 'i1')
+  })
 })

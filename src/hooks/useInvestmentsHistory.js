@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../utils/supabase'
-import { fromRow } from '../lib/investmentMappers'
+import { fromRow, toRow } from '../lib/investmentMappers'
 
 export function useInvestmentsHistory(accountId) {
   const [investments, setInvestments] = useState([])
@@ -36,5 +36,12 @@ export function useInvestmentsHistory(accountId) {
     await load()
   }
 
-  return { investments, loading, error, reload: load, deleteInvestment }
+  async function updateInvestment(id, patch) {
+    const current = investments.find((i) => i.id === id)
+    const { error: err } = await supabase.from('investments').update(toRow({ ...current, ...patch })).eq('id', id)
+    if (err) throw err
+    await load()
+  }
+
+  return { investments, loading, error, reload: load, deleteInvestment, updateInvestment }
 }
