@@ -108,6 +108,14 @@ export default function Header({
                 >
                     Analyze
                 </NavLink>
+                <NavLink
+                    to="/watchlist"
+                    className={({ isActive }) =>
+                        isActive ? "active" : undefined
+                    }
+                >
+                    Watchlist
+                </NavLink>
             </nav>
 
             <div className="header-actions">

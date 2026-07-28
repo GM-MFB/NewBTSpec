@@ -6,6 +6,7 @@ import TradesPage from "./pages/TradesPage";
 import SettingsPage from "./pages/SettingsPage";
 import StatsPage from "./pages/StatsPage";
 import AnalyzePage from "./pages/AnalyzePage";
+import WatchlistPage from "./pages/WatchlistPage";
 
 function RequireAuth({ user, children }) {
     if (!user) return <Navigate to="/login" replace />;
@@ -60,6 +61,14 @@ export default function App() {
                 element={
                     <RequireAuth user={user}>
                         <AnalyzePage />
+                    </RequireAuth>
+                }
+            />
+            <Route
+                path="/watchlist"
+                element={
+                    <RequireAuth user={user}>
+                        <WatchlistPage />
                     </RequireAuth>
                 }
             />
