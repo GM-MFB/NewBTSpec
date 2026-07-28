@@ -43,7 +43,7 @@ export default function Header({
                                     </button>
                                 </li>
                             ))}
-                        <li>
+                        <li className="account-dropdown-divider" role="separator">
                             <button
                                 type="button"
                                 onClick={() => {

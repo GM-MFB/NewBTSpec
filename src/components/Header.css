@@ -54,6 +54,12 @@
   margin-top: 2px;
 }
 
+.account-dropdown-divider {
+  margin-top: 8px !important;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
 .account-dropdown button {
   width: 100%;
   text-align: left;
