@@ -74,6 +74,13 @@ describe('Header', () => {
     expect(screen.queryByRole('button', { name: /delete main account/i })).not.toBeInTheDocument()
   })
 
+  it('does not show a delete button for the shared Matt Cap account', async () => {
+    setup({ accounts: [...accounts, { id: 'mc1', name: 'Matt Cap' }] })
+    await userEvent.click(screen.getByText('Main Account'))
+    expect(screen.getByText('Matt Cap')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /delete matt cap/i })).not.toBeInTheDocument()
+  })
+
   it('renders Sign Out in the dropdown and calls onSignOut when clicked', async () => {
     const onSignOut = vi.fn()
     setup({ onSignOut })

@@ -72,6 +72,11 @@ export function useAccounts(userId) {
   }
 
   async function deleteAccount(id) {
+    const target = accounts.find((a) => a.id === id)
+    if (target?.name === 'Matt Cap') {
+      throw new Error('Matt Cap is a shared account and cannot be deleted')
+    }
+
     const { error: tradesError } = await supabase.from('trades').delete().eq('account_id', id)
     if (tradesError) throw tradesError
 

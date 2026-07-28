@@ -178,4 +178,17 @@ describe('useAccounts', () => {
     expect(deleteCalls).toEqual([{ table: 'trades', col: 'account_id', val: 'a2' }])
     expect(result.current.accounts.map((a) => a.id)).toEqual(['a1', 'a2'])
   })
+
+  it('refuses to delete the shared Matt Cap account and makes no delete calls', async () => {
+    const accounts = [{ id: 'a1', name: 'Main' }, { id: 'mc1', name: 'Matt Cap' }]
+    const deleteCalls = []
+    supabase.from.mockImplementation(mockFrom({ ownAccounts: accounts, deleteCalls }))
+
+    const { result } = renderHook(() => useAccounts('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await expect(act(() => result.current.deleteAccount('mc1'))).rejects.toThrow(/matt cap/i)
+    expect(deleteCalls).toEqual([])
+    expect(result.current.accounts.map((a) => a.id)).toEqual(['a1', 'mc1'])
+  })
 })

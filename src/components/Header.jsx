@@ -42,7 +42,7 @@ export default function Header({
                                     >
                                         {a.name}
                                     </button>
-                                    {deleteAccount && (
+                                    {deleteAccount && a.name !== 'Matt Cap' && (
                                         <button
                                             type="button"
                                             className="delete-account-btn"
