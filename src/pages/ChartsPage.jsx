@@ -15,21 +15,12 @@ export default function ChartsPage() {
   const { entries } = useWatchlist(user?.id)
 
   const [symbol, setSymbol] = useState(() => localStorage.getItem(STORAGE_KEY) || 'AAPL')
-  const [searchInput, setSearchInput] = useState('')
 
   const leaderboard = buildLeaderboard(entries)
 
   function setActiveSymbol(next) {
     setSymbol(next)
     localStorage.setItem(STORAGE_KEY, next)
-  }
-
-  function handleSearch(e) {
-    e.preventDefault()
-    const next = searchInput.trim().toUpperCase()
-    if (!next) return
-    setActiveSymbol(next)
-    setSearchInput('')
   }
 
   return (
@@ -68,16 +59,6 @@ export default function ChartsPage() {
         </aside>
 
         <main className="charts-main">
-          <form className="charts-search-form" onSubmit={handleSearch}>
-            <label htmlFor="chartsSymbol">Symbol</label>
-            <input
-              id="chartsSymbol"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-            />
-            <button type="submit">Show</button>
-          </form>
-
           <div className="charts-widget-wrapper">
             <TradingViewWidget symbol={symbol} />
           </div>

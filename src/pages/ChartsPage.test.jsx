@@ -44,17 +44,6 @@ describe('ChartsPage', () => {
     expect(screen.getByTestId('tv-widget')).toHaveTextContent('MSFT')
   })
 
-  it('updates the chart and localStorage when searching a new symbol', async () => {
-    mockCommon()
-    render(<MemoryRouter><ChartsPage /></MemoryRouter>)
-
-    await userEvent.type(screen.getByLabelText(/symbol/i), 'nvda')
-    await userEvent.click(screen.getByRole('button', { name: /^show$/i }))
-
-    expect(screen.getByTestId('tv-widget')).toHaveTextContent('NVDA')
-    expect(localStorage.getItem('bt_charts_symbol')).toBe('NVDA')
-  })
-
   it('shows watchlist symbols ranked by watch count in the sidebar', () => {
     mockCommon({
       entries: [
