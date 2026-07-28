@@ -1,18 +1,33 @@
 import { useState } from 'react'
 import '../styles/modal.css'
+import { lookupPointValue } from '../lib/futuresContracts'
 
 const initial = {
-  type: '', symbol: '', direction: 'long', quantity: '', entryPrice: '',
-  entryDate: '', fees: '', notes: '', chartLink: '',
-  optionType: '', strike: '', expiry: '',
+  type: '', symbol: '', direction: 'long', quantity: '',
+  entryPrice: '', entryDate: '', exitPrice: '', exitDate: '',
+  fees: '', notes: '', chartLink: '',
+  optionType: '', strike: '', expiry: '', pointValue: '',
 }
 
-export default function AddTradeModal({ onClose, onSubmit }) {
-  const [fields, setFields] = useState(initial)
+export default function AddTradeModal({ onClose, onSubmit, initialValues }) {
+  const isEdit = Boolean(initialValues)
+  const [fields, setFields] = useState(() => ({ ...initial, ...initialValues }))
   const [error, setError] = useState(null)
 
   function set(key, value) {
     setFields((f) => ({ ...f, [key]: value }))
+  }
+
+  function setSymbol(value) {
+    const upper = value.toUpperCase()
+    setFields((f) => {
+      const next = { ...f, symbol: upper }
+      if (f.type === 'futures' && !f.pointValue) {
+        const looked = lookupPointValue(upper)
+        if (looked !== undefined) next.pointValue = looked
+      }
+      return next
+    })
   }
 
   async function handleSubmit(e) {
@@ -26,17 +41,18 @@ export default function AddTradeModal({ onClose, onSubmit }) {
   }
 
   return (
-    <div className="modal-backdrop" role="dialog" aria-label="Add Trade">
+    <div className="modal-backdrop" role="dialog" aria-label={isEdit ? 'Edit Trade' : 'Add Trade'}>
       <div className="modal">
         <div className="type-toggle">
-          <button type="button" aria-pressed={fields.type === 'option'} onClick={() => set('type', 'option')}>Option</button>
-          <button type="button" aria-pressed={fields.type === 'futures'} onClick={() => set('type', 'futures')}>Futures</button>
+          <button type="button" disabled={isEdit} aria-pressed={fields.type === 'stock'} onClick={() => set('type', 'stock')}>Stock</button>
+          <button type="button" disabled={isEdit} aria-pressed={fields.type === 'option'} onClick={() => set('type', 'option')}>Option</button>
+          <button type="button" disabled={isEdit} aria-pressed={fields.type === 'futures'} onClick={() => set('type', 'futures')}>Futures</button>
         </div>
 
         {fields.type && (
           <form onSubmit={handleSubmit}>
             <label htmlFor="symbol">Symbol</label>
-            <input id="symbol" value={fields.symbol} onChange={(e) => set('symbol', e.target.value.toUpperCase())} required />
+            <input id="symbol" value={fields.symbol} onChange={(e) => setSymbol(e.target.value)} required />
 
             <label htmlFor="direction">Direction</label>
             <select id="direction" value={fields.direction} onChange={(e) => set('direction', e.target.value)}>
@@ -47,17 +63,24 @@ export default function AddTradeModal({ onClose, onSubmit }) {
             {fields.type === 'option' && (
               <>
                 <label htmlFor="optionType">Option Type</label>
-                <select id="optionType" value={fields.optionType} onChange={(e) => set('optionType', e.target.value)}>
+                <select id="optionType" value={fields.optionType} onChange={(e) => set('optionType', e.target.value)} required>
                   <option value="">Select…</option>
                   <option value="call">Call</option>
                   <option value="put">Put</option>
                 </select>
 
                 <label htmlFor="strike">Strike</label>
-                <input id="strike" type="number" value={fields.strike} onChange={(e) => set('strike', e.target.value)} />
+                <input id="strike" type="number" value={fields.strike} onChange={(e) => set('strike', e.target.value)} required />
 
                 <label htmlFor="expiry">Expiry</label>
-                <input id="expiry" type="date" value={fields.expiry} onChange={(e) => set('expiry', e.target.value)} />
+                <input id="expiry" type="date" value={fields.expiry} onChange={(e) => set('expiry', e.target.value)} required />
+              </>
+            )}
+
+            {fields.type === 'futures' && (
+              <>
+                <label htmlFor="pointValue">$ per Point</label>
+                <input id="pointValue" type="number" step="0.01" value={fields.pointValue} onChange={(e) => set('pointValue', e.target.value)} required />
               </>
             )}
 
@@ -69,6 +92,12 @@ export default function AddTradeModal({ onClose, onSubmit }) {
 
             <label htmlFor="entryDate">Entry Date</label>
             <input id="entryDate" type="date" value={fields.entryDate} onChange={(e) => set('entryDate', e.target.value)} required />
+
+            <label htmlFor="exitPrice">Exit Price</label>
+            <input id="exitPrice" type="number" step="0.01" value={fields.exitPrice} onChange={(e) => set('exitPrice', e.target.value)} required />
+
+            <label htmlFor="exitDate">Exit Date</label>
+            <input id="exitDate" type="date" value={fields.exitDate} onChange={(e) => set('exitDate', e.target.value)} required />
 
             <label htmlFor="fees">Fees</label>
             <input id="fees" type="number" step="0.01" value={fields.fees} onChange={(e) => set('fees', e.target.value)} />
