@@ -121,4 +121,50 @@ describe('useInvestments', () => {
     expect(updateArg.status).toBe('closed')
     expect(updateArg.sell_price).toBe('180')
   })
+
+  it('rollInvestment closes the current leg and opens a new one with the roll fields', async () => {
+    const rows = [{
+      id: 'i1', account_id: 'a1', user_id: 'u1', created_at: '2026-01-01',
+      symbol: 'SPY', name: '', asset_type: 'Option', sector: '',
+      shares: 2, avg_cost: 3.5, current_price: null, buy_date: '2026-01-01',
+      status: 'open', sell_price: null, sell_date: null, stop_loss: null,
+      target_price: null, chart_link: null, notes: null,
+      option_type: 'call', option_direction: 'short', strike: 560, expiry: '2026-07-18',
+      strategy: 'covered_call', strike_2: null,
+    }]
+    const update = vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) }))
+    const insertedRow = { ...rows[0], id: 'i2' }
+    const single = vi.fn().mockResolvedValue({ data: insertedRow, error: null })
+    const select = vi.fn(() => ({ single }))
+    const insert = vi.fn(() => ({ select }))
+    supabase.from.mockReturnValue({ ...mockSelectChain(rows), update, insert })
+
+    const { result } = renderHook(() => useInvestments('a1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await act(async () => {
+      await result.current.rollInvestment('i1', {
+        closePrice: '1.10', closeDate: '2026-07-10',
+        newCredit: '2.40', newExpiry: '2026-08-15', newStrike: '570',
+      }, 'u1')
+    })
+
+    const updateArg = update.mock.calls[0][0]
+    expect(updateArg.status).toBe('closed')
+    expect(updateArg.sell_price).toBe('1.10')
+    expect(updateArg.sell_date).toBe('2026-07-10')
+    expect(updateArg.strike).toBe(560)
+
+    expect(insert).toHaveBeenCalled()
+    const insertArg = insert.mock.calls[0][0]
+    expect(insertArg.account_id).toBe('a1')
+    expect(insertArg.user_id).toBe('u1')
+    expect(insertArg.symbol).toBe('SPY')
+    expect(insertArg.status).toBe('open')
+    expect(insertArg.avg_cost).toBe('2.40')
+    expect(insertArg.strike).toBe('570')
+    expect(insertArg.expiry).toBe('2026-08-15')
+    expect(insertArg.buy_date).toBe('2026-07-10')
+    expect(insertArg.strategy).toBe('covered_call')
+  })
 })
