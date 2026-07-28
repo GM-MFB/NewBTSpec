@@ -235,14 +235,6 @@ export default function Header({
                     Stats
                 </NavLink>
                 <NavLink
-                    to="/daytrading"
-                    className={({ isActive }) =>
-                        isActive ? "active" : undefined
-                    }
-                >
-                    Day Trading
-                </NavLink>
-                <NavLink
                     to="/analyze"
                     className={({ isActive }) =>
                         isActive ? "active" : undefined
@@ -265,6 +257,14 @@ export default function Header({
                     }
                 >
                     Charts
+                </NavLink>
+                <NavLink
+                    to="/daytrading"
+                    className={({ isActive }) =>
+                        isActive ? "active" : undefined
+                    }
+                >
+                    Day Trading
                 </NavLink>
             </nav>
 
