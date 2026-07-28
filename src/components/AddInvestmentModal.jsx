@@ -8,8 +8,9 @@ const initial = {
   strategy: '', strike: '', expiry: '', strike2: '',
 }
 
-export default function AddInvestmentModal({ onClose, onSubmit }) {
-  const [fields, setFields] = useState(initial)
+export default function AddInvestmentModal({ onClose, onSubmit, initialValues }) {
+  const isEdit = Boolean(initialValues)
+  const [fields, setFields] = useState(() => ({ ...initial, ...initialValues }))
   const [error, setError] = useState(null)
 
   function set(key, value) {
@@ -29,11 +30,11 @@ export default function AddInvestmentModal({ onClose, onSubmit }) {
   const isSpread = strategyByValue(fields.strategy)?.isSpread ?? false
 
   return (
-    <div className="modal-backdrop" role="dialog" aria-label="Add Investment">
+    <div className="modal-backdrop" role="dialog" aria-label={isEdit ? 'Edit Investment' : 'Add Investment'}>
       <div className="modal modal--wide">
         <div className="type-toggle">
-          <button type="button" aria-pressed={fields.assetType === 'Stock'} onClick={() => set('assetType', 'Stock')}>Stock</button>
-          <button type="button" aria-pressed={fields.assetType === 'Option'} onClick={() => set('assetType', 'Option')}>Option</button>
+          <button type="button" disabled={isEdit} aria-pressed={fields.assetType === 'Stock'} onClick={() => set('assetType', 'Stock')}>Stock</button>
+          <button type="button" disabled={isEdit} aria-pressed={fields.assetType === 'Option'} onClick={() => set('assetType', 'Option')}>Option</button>
         </div>
 
         {fields.assetType && (

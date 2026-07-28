@@ -74,6 +74,45 @@ describe('AddInvestmentModal', () => {
     }))
   })
 
+  it('pre-fills fields and shows the form immediately in edit mode, with the type toggle locked', async () => {
+    const investment = {
+      assetType: 'Stock', symbol: 'AAPL', name: 'Apple', sector: 'Tech',
+      shares: 10, avgCost: 150, currentPrice: 165, stopLoss: 130, targetPrice: 200,
+      buyDate: '2026-01-01', notes: 'long term', chartLink: 'tradingview.com/x',
+    }
+    render(<AddInvestmentModal onClose={vi.fn()} onSubmit={vi.fn()} initialValues={investment} />)
+
+    expect(screen.getByLabelText(/symbol/i)).toHaveValue('AAPL')
+    expect(screen.getByLabelText(/shares/i)).toHaveValue(10)
+    expect(screen.getByLabelText(/avg cost/i)).toHaveValue(150)
+    expect(screen.getByRole('button', { name: /^stock$/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /^option$/i })).toBeDisabled()
+  })
+
+  it('submits the edited fields for an option investment', async () => {
+    const onSubmit = vi.fn()
+    const investment = {
+      assetType: 'Option', symbol: 'SPY', strategy: 'covered_call',
+      shares: 5, strike: 450, expiry: '2026-03-01', avgCost: 3.5, buyDate: '2026-01-01',
+    }
+    render(<AddInvestmentModal onClose={vi.fn()} onSubmit={onSubmit} initialValues={investment} />)
+
+    const strikeInput = screen.getByLabelText(/^strike$/i)
+    await userEvent.clear(strikeInput)
+    await userEvent.type(strikeInput, '460')
+    await userEvent.click(screen.getByRole('button', { name: /save/i }))
+
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
+      assetType: 'Option', symbol: 'SPY', strike: '460',
+    }))
+  })
+
+  it('uses an "Edit Investment" dialog label in edit mode', () => {
+    const investment = { assetType: 'Stock', symbol: 'AAPL', shares: 10, avgCost: 150, buyDate: '2026-01-01' }
+    render(<AddInvestmentModal onClose={vi.fn()} onSubmit={vi.fn()} initialValues={investment} />)
+    expect(screen.getByRole('dialog', { name: /edit investment/i })).toBeInTheDocument()
+  })
+
   it('shows an inline error and keeps entered values when onSubmit rejects', async () => {
     const onSubmit = vi.fn().mockRejectedValue(new Error('insert failed'))
     render(<AddInvestmentModal onClose={vi.fn()} onSubmit={onSubmit} />)
