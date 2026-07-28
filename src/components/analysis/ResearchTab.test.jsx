@@ -49,6 +49,17 @@ describe('ResearchTab', () => {
     expect(screen.getByRole('button', { name: 'AAPL' })).toHaveClass('fund-chip--active')
   })
 
+  it('shows a symbol chip for an open option position too', () => {
+    useUserSettings.mockReturnValue({ finnhubKey: 'key123', avKey: '', loading: false })
+    const withOption = [
+      ...investments,
+      { id: 'i2', assetType: 'Option', symbol: 'SPY', shares: 2, avgCost: 3.5, strategy: 'cash_secured_put', strike: 480, expiry: '2026-08-01' },
+    ]
+    render(<MemoryRouter><ResearchTab investments={withOption} /></MemoryRouter>)
+    expect(screen.getByRole('button', { name: 'AAPL' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'SPY' })).toBeInTheDocument()
+  })
+
   it('writes profile/metrics/quote to bt_fundamentals_cache after fetching a symbol', async () => {
     useUserSettings.mockReturnValue({ finnhubKey: 'key123', avKey: '', loading: false })
     fetchFundamentals.mockResolvedValue(mockResult('Apple Inc'))

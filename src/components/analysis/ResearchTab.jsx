@@ -24,8 +24,7 @@ export default function ResearchTab({ investments }) {
   const [view, setView] = useState('single')
   const [showSectorBrowser, setShowSectorBrowser] = useState(false)
 
-  const stockSymbols = [...new Set(investments.filter((i) => i.assetType === 'Stock').map((i) => i.symbol))]
-  const portfolioSymbols = [...new Set(investments.filter((i) => i.assetType === 'Stock' || i.assetType === 'Option').map((i) => i.symbol))]
+  const stockSymbols = [...new Set(investments.filter((i) => i.assetType === 'Stock' || i.assetType === 'Option').map((i) => i.symbol))]
   const researchedSymbols = Object.keys(data)
 
   function positionPrice(symbol) {
@@ -179,9 +178,9 @@ export default function ResearchTab({ investments }) {
         <CompareView symbols={compareSymbols} data={data} onRemove={handleRemoveFromCompare} />
       )}
 
-      {view === 'single' && researchedSymbols.length > 0 && portfolioSymbols.length > 0 && (
+      {view === 'single' && researchedSymbols.length > 0 && stockSymbols.length > 0 && (
         <PortfolioContext
-          portfolioSymbols={portfolioSymbols}
+          portfolioSymbols={stockSymbols}
           researchedSymbols={researchedSymbols}
           investments={investments}
           priceMap={{
