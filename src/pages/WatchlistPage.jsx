@@ -6,6 +6,7 @@ import { useUserSettings } from '../hooks/useUserSettings'
 import { useWatchlist } from '../hooks/useWatchlist'
 import { buildLeaderboard } from '../lib/watchlistLeaderboard'
 import { fetchWatchlistQuote } from '../lib/fetchWatchlistQuotes'
+import { assignColors } from '../lib/colorAssignment'
 import { formatCurrency } from '../lib/format'
 import Header from '../components/Header'
 
@@ -63,6 +64,28 @@ export default function WatchlistPage() {
     byPerson.get(entry.userId).items.push(entry)
   }
 
+  const symbolColors = assignColors(leaderboard.map((r) => r.symbol))
+  const personColors = assignColors([...byPerson.values()].map((g) => g.displayName))
+
+  const podium = leaderboard.slice(0, 3)
+  const rest = leaderboard.slice(3)
+
+  function renderLeaderboardCard(row, rank, isPodium) {
+    return (
+      <li
+        key={row.symbol}
+        data-testid="leaderboard-row"
+        className={isPodium ? 'watchlist-podium-card' : 'watchlist-list-row'}
+        style={{ borderColor: symbolColors[row.symbol] }}
+      >
+        <span className="watchlist-rank" style={{ color: symbolColors[row.symbol] }}>#{rank}</span>
+        <span className="watchlist-symbol">{row.symbol}</span>
+        {renderQuote(row.symbol)}
+        <span className="watchlist-count">{row.count} {row.count === 1 ? 'person' : 'people'} — {row.people.join(', ')}</span>
+      </li>
+    )
+  }
+
   return (
     <div data-testid="watchlist-page">
       <Header
@@ -85,39 +108,47 @@ export default function WatchlistPage() {
 
         <section className="watchlist-leaderboard">
           <h2>Most Watched</h2>
-          <ol>
-            {leaderboard.map((row, i) => (
-              <li key={row.symbol} data-testid="leaderboard-row">
-                <span className="watchlist-rank">#{i + 1}</span>
-                <span className="watchlist-symbol">{row.symbol}</span>
-                {renderQuote(row.symbol)}
-                <span className="watchlist-count">{row.count} {row.count === 1 ? 'person' : 'people'} — {row.people.join(', ')}</span>
-              </li>
-            ))}
-          </ol>
+          {podium.length > 0 && (
+            <ol className="watchlist-podium">
+              {podium.map((row, i) => renderLeaderboardCard(row, i + 1, true))}
+            </ol>
+          )}
+          {rest.length > 0 && (
+            <ol className="watchlist-list" start={4}>
+              {rest.map((row, i) => renderLeaderboardCard(row, i + 4, false))}
+            </ol>
+          )}
         </section>
 
         <section className="watchlist-by-person">
           <h2>Individual Watchlists</h2>
-          {[...byPerson.entries()].map(([userId, group]) => (
-            <div key={userId} className="watchlist-person-group">
-              <h3>{group.displayName}</h3>
-              <ul>
-                {group.items.map((entry) => (
-                  <li key={entry.id}>
-                    <span className="watchlist-symbol">{entry.symbol}</span>
-                    {renderQuote(entry.symbol)}
-                    {entry.note && <span className="watchlist-note">{entry.note}</span>}
-                    {entry.userId === user?.id && (
-                      <button type="button" aria-label={`Remove ${entry.symbol}`} onClick={() => removeEntry(entry.id)}>
-                        Remove
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <div className="watchlist-person-grid">
+            {[...byPerson.entries()].map(([userId, group]) => (
+              <div key={userId} className="watchlist-person-card" style={{ borderColor: personColors[group.displayName] }}>
+                <div className="watchlist-person-header">
+                  <span className="watchlist-avatar" style={{ background: personColors[group.displayName] }}>
+                    {group.displayName.charAt(0).toUpperCase()}
+                  </span>
+                  <h3>{group.displayName}</h3>
+                </div>
+                <ul>
+                  {group.items.map((entry) => (
+                    <li key={entry.id}>
+                      <span className="watchlist-symbol-dot" style={{ background: symbolColors[entry.symbol] }} />
+                      <span className="watchlist-symbol">{entry.symbol}</span>
+                      {renderQuote(entry.symbol)}
+                      {entry.note && <span className="watchlist-note">{entry.note}</span>}
+                      {entry.userId === user?.id && (
+                        <button type="button" className="watchlist-remove" aria-label={`Remove ${entry.symbol}`} onClick={() => removeEntry(entry.id)}>
+                          ×
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </section>
       </div>
     </div>

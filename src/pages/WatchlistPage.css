@@ -2,7 +2,7 @@
   padding: 20px 32px 40px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 32px;
 }
 
 .watchlist-add-form {
@@ -38,45 +38,86 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-dim);
-  margin: 0 0 12px;
+  margin: 0 0 16px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
 }
 
-.watchlist-leaderboard ol {
+/* Podium — top 3 most-watched */
+.watchlist-podium {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.watchlist-podium-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-top: 3px solid;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.watchlist-podium-card .watchlist-rank {
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.watchlist-podium-card .watchlist-symbol {
+  font-size: 20px;
+}
+
+/* Compact list — rank 4+ */
+.watchlist-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
 }
 
-.watchlist-leaderboard li {
+.watchlist-list-row {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 8px 0;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--border);
+  border-left: 3px solid;
   font-size: 13px;
 }
 
-.watchlist-rank {
-  color: var(--text-dim);
-  font-weight: 700;
+.watchlist-list-row .watchlist-rank {
   width: 28px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .watchlist-symbol {
   font-weight: 700;
   color: var(--text);
-  min-width: 60px;
+  min-width: 56px;
+}
+
+.watchlist-symbol-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
 }
 
 .watchlist-quote {
   display: flex;
   gap: 8px;
   min-width: 120px;
+  font-variant-numeric: tabular-nums;
 }
 
 .watchlist-change-up { color: var(--green); }
@@ -88,18 +129,49 @@
   font-size: 12px;
 }
 
-.watchlist-person-group {
-  margin-bottom: 20px;
+/* Individual watchlists — person card grid */
+.watchlist-person-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
 }
 
-.watchlist-person-group h3 {
+.watchlist-person-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-top: 3px solid;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.watchlist-person-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.watchlist-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
   font-size: 13px;
+  color: #0b0b0b;
+  flex-shrink: 0;
+}
+
+.watchlist-person-header h3 {
+  font-size: 14px;
   font-weight: 700;
   color: var(--text);
-  margin: 0 0 8px;
+  margin: 0;
 }
 
-.watchlist-person-group ul {
+.watchlist-person-card ul {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -108,10 +180,10 @@
   gap: 6px;
 }
 
-.watchlist-person-group li {
+.watchlist-person-card li {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   font-size: 13px;
   padding: 6px 0;
   border-bottom: 1px solid var(--border);
@@ -121,4 +193,17 @@
   color: var(--text-dim);
   font-size: 12px;
   flex: 1;
+}
+
+.watchlist-remove {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 4px;
+}
+
+.watchlist-remove:hover {
+  color: var(--red);
 }
