@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import './RiskTab.css'
 import { getPortfolioRiskMetrics, getStressTests, getRiskContribution } from '../../lib/efficientFrontier'
+import { optionsCapitalAtRisk } from '../../lib/optionMath'
+import { effectiveStrategyDef } from '../../lib/optionStrategies'
 import { formatCurrency } from '../../lib/format'
 
 function betaBand(beta) {
@@ -24,13 +26,31 @@ function coverageBand(pct) {
 
 export default function RiskTab({ investments }) {
   const [expandedScenario, setExpandedScenario] = useState(null)
-  const positions = investments
+  const stockPositions = investments
     .filter((i) => ['Stock', 'ETF', 'Crypto'].includes(i.assetType))
     .map((i) => {
       const marketValue = i.shares * i.currentPrice
-      return { symbol: i.symbol, marketValue, currentPrice: i.currentPrice, stopLoss: i.stopLoss || null, shares: i.shares }
+      return { symbol: i.symbol, assetType: i.assetType, marketValue, currentPrice: i.currentPrice, stopLoss: i.stopLoss || null, shares: i.shares }
     })
 
+  const optionPositions = investments
+    .filter((i) => i.assetType === 'Option')
+    .map((i) => {
+      const strategyDef = effectiveStrategyDef(i)
+      const capitalAtRisk = optionsCapitalAtRisk(i, strategyDef)
+      return {
+        symbol: i.symbol,
+        assetType: 'Option',
+        strategyLabel: strategyDef?.label ?? 'Option',
+        optionType: strategyDef?.optionType,
+        optionDirection: strategyDef?.optionDirection,
+        contracts: i.shares,
+        capitalAtRisk,
+        marketValue: capitalAtRisk,
+      }
+    })
+
+  const positions = [...stockPositions, ...optionPositions]
   const totalMV = positions.reduce((sum, p) => sum + p.marketValue, 0)
   const withWeights = positions.map((p) => ({ ...p, weight: totalMV > 0 ? p.marketValue / totalMV : 0 }))
 
@@ -71,11 +91,12 @@ export default function RiskTab({ investments }) {
 
       <section className="risk-stoploss">
         <h2>Stop Loss Protection</h2>
-        <p>{withWeights.filter((p) => p.stopLoss).length} / {withWeights.length} positions have a stop set</p>
+        <p>{stockPositions.filter((p) => p.stopLoss).length} / {stockPositions.length} positions have a stop set</p>
         <p>$ at risk if all stops hit: {formatCurrency(metrics.dollarAtRisk)}</p>
         {metrics.stopCoveragePct < 80 && (
           <p className="risk-warning">Stop coverage is below 80% — consider setting stops on more positions.</p>
         )}
+        <p className="risk-caption">Options have a defined max loss instead of a stop — see Options Risk below.</p>
       </section>
 
       <section className="risk-stress">

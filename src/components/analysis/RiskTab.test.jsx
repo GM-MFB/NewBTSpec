@@ -43,4 +43,9 @@ describe('RiskTab', () => {
     expect(screen.getByText('Risk Contribution')).toBeInTheDocument()
     expect(screen.getAllByText(/AAPL|SPY/).length).toBeGreaterThan(0)
   })
+
+  it('shows a caption noting options have a defined max loss instead of a stop', () => {
+    render(<RiskTab investments={investments} />)
+    expect(screen.getByText(/options have a defined max loss/i)).toBeInTheDocument()
+  })
 })
