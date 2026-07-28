@@ -1,0 +1,88 @@
+import { useState } from 'react'
+import './ChartsPage.css'
+import { useAuth } from '../hooks/useAuth'
+import { useAccounts } from '../hooks/useAccounts'
+import { useWatchlist } from '../hooks/useWatchlist'
+import { buildLeaderboard } from '../lib/watchlistLeaderboard'
+import TradingViewWidget from '../components/TradingViewWidget'
+import Header from '../components/Header'
+
+const STORAGE_KEY = 'bt_charts_symbol'
+
+export default function ChartsPage() {
+  const { user, signOut } = useAuth()
+  const { accounts, activeAccount, switchAccount, createAccount } = useAccounts(user?.id)
+  const { entries } = useWatchlist(user?.id)
+
+  const [symbol, setSymbol] = useState(() => localStorage.getItem(STORAGE_KEY) || 'AAPL')
+  const [searchInput, setSearchInput] = useState('')
+
+  const leaderboard = buildLeaderboard(entries)
+
+  function setActiveSymbol(next) {
+    setSymbol(next)
+    localStorage.setItem(STORAGE_KEY, next)
+  }
+
+  function handleSearch(e) {
+    e.preventDefault()
+    const next = searchInput.trim().toUpperCase()
+    if (!next) return
+    setActiveSymbol(next)
+    setSearchInput('')
+  }
+
+  return (
+    <div data-testid="charts-page">
+      <Header
+        accounts={accounts}
+        activeAccount={activeAccount}
+        switchAccount={switchAccount}
+        createAccount={createAccount}
+        onSignOut={signOut}
+        showAddButton={false}
+      />
+
+      <div className="charts-page">
+        <aside className="charts-sidebar">
+          <h2>Watchlist</h2>
+          {leaderboard.length === 0 ? (
+            <p className="charts-sidebar-empty">No watchlist symbols yet.</p>
+          ) : (
+            <ul>
+              {leaderboard.map((row) => (
+                <li key={row.symbol}>
+                  <button
+                    type="button"
+                    data-testid="charts-sidebar-row"
+                    className={row.symbol === symbol ? 'active' : undefined}
+                    onClick={() => setActiveSymbol(row.symbol)}
+                  >
+                    <span className="charts-sidebar-symbol">{row.symbol}</span>
+                    <span className="charts-sidebar-count">{row.count}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </aside>
+
+        <main className="charts-main">
+          <form className="charts-search-form" onSubmit={handleSearch}>
+            <label htmlFor="chartsSymbol">Symbol</label>
+            <input
+              id="chartsSymbol"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+            <button type="submit">Show</button>
+          </form>
+
+          <div className="charts-widget-wrapper">
+            <TradingViewWidget symbol={symbol} />
+          </div>
+        </main>
+      </div>
+    </div>
+  )
+}
