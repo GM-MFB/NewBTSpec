@@ -59,6 +59,11 @@ describe('Header', () => {
     expect(screen.getByRole('link', { name: /watchlist/i })).toHaveAttribute('href', '/watchlist')
   })
 
+  it('renders a Charts nav link', () => {
+    setup()
+    expect(screen.getByRole('link', { name: /charts/i })).toHaveAttribute('href', '/charts')
+  })
+
   it('calls onAddTrade when the Add button is clicked', async () => {
     const onAddTrade = vi.fn()
     setup({ onAddTrade })

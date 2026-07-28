@@ -116,6 +116,14 @@ export default function Header({
                 >
                     Watchlist
                 </NavLink>
+                <NavLink
+                    to="/charts"
+                    className={({ isActive }) =>
+                        isActive ? "active" : undefined
+                    }
+                >
+                    Charts
+                </NavLink>
             </nav>
 
             <div className="header-actions">
