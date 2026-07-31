@@ -243,6 +243,14 @@ export default function Header({
                     Analyze
                 </NavLink>
                 <NavLink
+                    to="/strategy"
+                    className={({ isActive }) =>
+                        isActive ? "active" : undefined
+                    }
+                >
+                    Strategy
+                </NavLink>
+                <NavLink
                     to="/watchlist"
                     className={({ isActive }) =>
                         isActive ? "active" : undefined

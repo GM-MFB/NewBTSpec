@@ -6,6 +6,7 @@ import TradesPage from "./pages/TradesPage";
 import SettingsPage from "./pages/SettingsPage";
 import StatsPage from "./pages/StatsPage";
 import AnalyzePage from "./pages/AnalyzePage";
+import StrategyPage from "./pages/StrategyPage";
 import WatchlistPage from "./pages/WatchlistPage";
 import ChartsPage from "./pages/ChartsPage";
 
@@ -62,6 +63,14 @@ export default function App() {
                 element={
                     <RequireAuth user={user}>
                         <AnalyzePage />
+                    </RequireAuth>
+                }
+            />
+            <Route
+                path="/strategy"
+                element={
+                    <RequireAuth user={user}>
+                        <StrategyPage />
                     </RequireAuth>
                 }
             />
