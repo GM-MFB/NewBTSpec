@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatCurrency, formatCurrencyWhole, formatCurrencyAuto, formatLarge, formatDecimal } from './format'
+import { formatCurrency, formatCurrencyWhole, formatCurrencyAuto, formatLarge, formatDecimal, formatCompactCurrency } from './format'
 
 describe('formatCurrency', () => {
   it('formats a whole number as USD with two decimals', () => {
@@ -88,5 +88,33 @@ describe('formatDecimal', () => {
     expect(formatDecimal(undefined)).toBe('')
     expect(formatDecimal(null)).toBe('')
     expect(formatDecimal('abc')).toBe('')
+  })
+})
+
+describe('formatCompactCurrency', () => {
+  it('abbreviates thousands with one decimal', () => {
+    expect(formatCompactCurrency(1205)).toBe('+1.2k')
+    expect(formatCompactCurrency(-1460)).toBe('-1.5k')
+  })
+
+  it('abbreviates millions with one decimal', () => {
+    expect(formatCompactCurrency(1250000)).toBe('+1.3M')
+  })
+
+  it('leaves values under a thousand whole, with an explicit sign', () => {
+    expect(formatCompactCurrency(45)).toBe('+45')
+    expect(formatCompactCurrency(-320)).toBe('-320')
+    expect(formatCompactCurrency(-45.6)).toBe('-46')
+  })
+
+  it('renders exactly zero without a sign', () => {
+    expect(formatCompactCurrency(0)).toBe('0')
+  })
+
+  it('returns blank for blank/undefined/null/NaN input', () => {
+    expect(formatCompactCurrency('')).toBe('')
+    expect(formatCompactCurrency(undefined)).toBe('')
+    expect(formatCompactCurrency(null)).toBe('')
+    expect(formatCompactCurrency('abc')).toBe('')
   })
 })

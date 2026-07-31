@@ -30,6 +30,19 @@ describe('TradeCalendar', () => {
     expect(screen.getByText('$100.00')).toBeInTheDocument()
   })
 
+  it('also renders an abbreviated amount, so a ~44px phone cell has something that fits', () => {
+    const now = new Date()
+    const exitDate = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-01`
+    const trades = [
+      { type: 'stock', direction: 'long', quantity: 100, entryPrice: 100, exitPrice: 112.05, exitDate, fees: 0 },
+    ]
+    render(<TradeCalendar trades={trades} />)
+
+    // Full amount for desktop, abbreviated for mobile; CSS picks one.
+    expect(screen.getByText('$1,205.00')).toBeInTheDocument()
+    expect(screen.getByText('+1.2k')).toBeInTheDocument()
+  })
+
   it('shows no P&L line for a day with no trades', () => {
     render(<TradeCalendar trades={[]} />)
     const dayCells = screen.getAllByTestId('trade-calendar-day')

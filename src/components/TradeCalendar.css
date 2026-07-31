@@ -119,12 +119,67 @@
   color: var(--red);
 }
 
+/* The compact amount only exists for narrow screens. */
+.trade-calendar-pnl--compact {
+  display: none;
+}
+
 @media (max-width: 640px) {
+  /* Every horizontal pixel goes to the cells: a 375px screen has to fit seven
+     columns, so margin, padding and gaps all come down hard. */
   .trade-calendar {
-    margin: 20px 16px;
+    margin: 16px var(--page-pad-x);
+    padding: 12px 10px;
   }
+
+  .trade-calendar-weekdays,
+  .trade-calendar-row {
+    gap: 3px;
+  }
+
+  .trade-calendar-grid {
+    gap: 3px;
+  }
+
+  .trade-calendar-weekdays span {
+    font-size: 9px;
+  }
+
   .trade-calendar-day {
-    min-height: 48px;
-    padding: 4px 6px;
+    min-height: 44px;
+    padding: 2px;
+    gap: 0;
+  }
+
+  /* Stays out of flow in the corner so the amount can centre in the cell. */
+  .trade-calendar-daynum {
+    top: 2px;
+    left: 3px;
+    font-size: 9px;
+    line-height: 1.1;
+  }
+
+  /* Swap the full amount for the abbreviated one. */
+  .trade-calendar-pnl {
+    display: none;
+  }
+
+  .trade-calendar-pnl--compact {
+    display: block;
+    font-size: 10px;
+    line-height: 1.2;
+  }
+
+  .trade-calendar-title {
+    font-size: 14px;
+  }
+
+  .trade-calendar-header {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .trade-calendar-header button {
+    padding: 6px 10px;
   }
 }

@@ -31,6 +31,19 @@ export function formatDecimal(value) {
   return Number(value).toFixed(2)
 }
 
+// A calendar cell on a phone is roughly 44px wide — "+$1,205.00" does not fit
+// in that, so day P&L is abbreviated to "+1.2k".
+export function formatCompactCurrency(value) {
+  if (value === '' || value === undefined || value === null || Number.isNaN(Number(value))) return ''
+  const n = Number(value)
+  if (n === 0) return '0'
+  const sign = n > 0 ? '+' : '-'
+  const abs = Math.abs(n)
+  if (abs >= 1e6) return `${sign}${(abs / 1e6).toFixed(1)}M`
+  if (abs >= 1000) return `${sign}${(abs / 1000).toFixed(1)}k`
+  return `${sign}${Math.round(abs)}`
+}
+
 export function formatLarge(value) {
   if (value === '' || value === undefined || value === null || Number.isNaN(Number(value))) return ''
   const n = Number(value)

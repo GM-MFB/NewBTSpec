@@ -40,6 +40,35 @@ const CASH_FLOW_ROWS = [
   ['financingCF', 'Financing CF', 'Cash flow from financing activities, such as debt, equity issuance, or buybacks.'],
 ]
 
+// Somewhere to cross-check a figure when the API's data looks wrong. EDGAR is
+// the primary source; the rest are easier to read at a glance.
+const SOURCE_LINKS = [
+  ['SEC EDGAR', (s) => `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&ticker=${s}&type=10-Q&dateb=&owner=include&count=40`],
+  ['StockAnalysis', (s) => `https://stockanalysis.com/stocks/${s}/financials/`],
+  ['Yahoo Finance', (s) => `https://finance.yahoo.com/quote/${s}/financials`],
+  ['Macrotrends', (s) => `https://www.macrotrends.net/stocks/charts/${s}/${s}/financial-statements`],
+]
+
+function SourceLinks({ symbol }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="fin-sources">
+      <button type="button" className="fin-sources-btn" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+        Verify ↗
+      </button>
+      {open && (
+        <ul className="fin-sources-menu">
+          {SOURCE_LINKS.map(([label, href]) => (
+            <li key={label}>
+              <a href={href(symbol)} target="_blank" rel="noopener noreferrer">{label}</a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 function InfoIcon({ text }) {
   return (
     <span className="fin-info-icon" title={text} aria-label={text} role="img">ⓘ</span>
@@ -235,6 +264,7 @@ export default function FinancialsTab({ investments }) {
               as of {new Date(fetchedAt[activeSymbol]).toLocaleDateString()}
             </span>
           )}
+          <SourceLinks symbol={activeSymbol} />
           <button
             type="button"
             className="fin-refresh-btn"

@@ -198,6 +198,26 @@ describe('FinancialsTab', () => {
     expect(screen.queryByText('Income Statement')).not.toBeInTheDocument()
   })
 
+  it('offers links out to trusted sources for the active symbol, so figures can be cross-checked', async () => {
+    useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
+    fetchFinancials.mockResolvedValue(sampleData)
+
+    render(<MemoryRouter><FinancialsTab investments={investments} /></MemoryRouter>)
+    await waitFor(() => expect(screen.getByText('Income Statement')).toBeInTheDocument())
+
+    // Collapsed by default.
+    expect(screen.queryByRole('link', { name: /sec edgar/i })).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: /verify/i }))
+
+    const edgar = screen.getByRole('link', { name: /sec edgar/i })
+    expect(edgar).toHaveAttribute('href', expect.stringContaining('AAPL'))
+    expect(edgar).toHaveAttribute('target', '_blank')
+    expect(screen.getByRole('link', { name: /stockanalysis/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /yahoo/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /macrotrends/i })).toBeInTheDocument()
+  })
+
   it('shows an info icon with a tooltip describing each metric', async () => {
     useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
     fetchFinancials.mockResolvedValue(sampleData)

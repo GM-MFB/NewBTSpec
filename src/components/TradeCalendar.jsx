@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './TradeCalendar.css'
 import { buildMonthGrid } from '../lib/tradeCalendar'
-import { formatCurrency } from '../lib/format'
+import { formatCurrency, formatCompactCurrency } from '../lib/format'
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTH_LABELS = [
@@ -65,7 +65,14 @@ export default function TradeCalendar({ trades }) {
               >
                 <span className="trade-calendar-daynum">{cell.dayNum}</span>
                 {cell.pnl != null && (
-                  <span className="trade-calendar-pnl">{formatCurrency(cell.pnl)}</span>
+                  <>
+                    {/* Both are rendered and the media query picks one — a phone
+                        cell is ~44px wide, far too narrow for "+$1,205.00". */}
+                    <span className="trade-calendar-pnl">{formatCurrency(cell.pnl)}</span>
+                    <span className="trade-calendar-pnl trade-calendar-pnl--compact" aria-hidden="true">
+                      {formatCompactCurrency(cell.pnl)}
+                    </span>
+                  </>
                 )}
               </div>
             ))}
