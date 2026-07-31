@@ -40,8 +40,10 @@ function MetaItem({ field, label, value, colorClass }) {
   )
 }
 
-function StrikeMeta({ investment, strategyDef, strikeDisplay }) {
-  const currentPriceDisplay = formatCurrency(investment.currentPrice)
+function StrikeMeta({ investment, strategyDef, strikeDisplay, isClosed }) {
+  // Same reasoning as market value: the underlying's price today says nothing
+  // about a position that has already been closed out.
+  const currentPriceDisplay = isClosed ? '' : formatCurrency(investment.currentPrice)
   const favorability = priceFavorability(investment, strategyDef)
 
   return (
@@ -69,7 +71,9 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, o
   const collateral = isOption ? formatCurrencyWhole(collateralFor(investment, strategyDef)) : ''
   const potentialPnl = isOption ? formatCurrency(potentialPnlFor(investment, strategyDef)) : ''
   const sharesDisplay = coveredShares ? `${investment.shares}/${coveredShares}` : investment.shares
-  const marketValue = !isOption && !isBlank(investment.currentPrice)
+  // Once a position is closed, anything derived from today's price is noise —
+  // what it sold for and what it made are the numbers that matter.
+  const marketValue = !isOption && !isClosed && !isBlank(investment.currentPrice)
     ? formatCurrency(Number(investment.currentPrice) * Number(investment.shares))
     : ''
 
@@ -113,7 +117,7 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, o
           {isOption ? (
             <>
               <MetaItem field="contracts" label="Contracts" value={investment.shares} />
-              <StrikeMeta investment={investment} strategyDef={strategyDef} strikeDisplay={strikeDisplay} />
+              <StrikeMeta investment={investment} strategyDef={strategyDef} strikeDisplay={strikeDisplay} isClosed={isClosed} />
               <MetaItem field="expires" label="Expires" value={investment.expiry} />
               {!isClosed && <MetaItem field="days-left" label="Days Left" value={daysLeftLabel(investment.expiry)} />}
               <MetaItem field="avg-price" label="Avg Price" value={formatCurrency(investment.avgCost)} />

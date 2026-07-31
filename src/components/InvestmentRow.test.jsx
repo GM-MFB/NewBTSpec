@@ -397,6 +397,41 @@ describe('InvestmentRow', () => {
     expect(pnlItem.querySelector('.meta-value')).toHaveClass('price-favorable')
   })
 
+  it('does not show Market Value on a closed stock row — the position is gone, so today\'s price is noise', () => {
+    const investment = {
+      id: 'i1', symbol: 'AAPL', assetType: 'Stock', status: 'closed',
+      shares: 10, avgCost: 100, sellPrice: 150, sellDate: '2026-01-10',
+      currentPrice: 999, strategy: '', strike: '', expiry: '',
+    }
+    renderRow(<InvestmentRow investment={investment} />)
+    expect(screen.queryByText('Market Value:')).not.toBeInTheDocument()
+    // The figures that do matter for a closed position stay.
+    expect(screen.getByText('Sell Price:')).toBeInTheDocument()
+    expect(screen.getByText('Realized P&L:')).toBeInTheDocument()
+  })
+
+  it('does not show the current underlying price beside the strike on a closed option row', () => {
+    const investment = {
+      id: 'i2', symbol: 'SPY', assetType: 'Option', status: 'closed',
+      strategy: 'cash_secured_put', shares: 1, strike: 380, avgCost: 2,
+      sellPrice: 0.5, sellDate: '2026-01-10', currentPrice: 412.34, expiry: '2026-02-01',
+    }
+    renderRow(<InvestmentRow investment={investment} />)
+    const strikeItem = screen.getByText('Strike:').closest('.meta-item')
+    expect(strikeItem).not.toHaveTextContent('412.34')
+    expect(strikeItem).toHaveTextContent('$380')
+  })
+
+  it('still shows the current underlying price beside the strike while the option is open', () => {
+    const investment = {
+      id: 'i3', symbol: 'SPY', assetType: 'Option', status: 'open',
+      strategy: 'cash_secured_put', shares: 1, strike: 380, avgCost: 2,
+      currentPrice: 412.34, expiry: '2026-02-01',
+    }
+    renderRow(<InvestmentRow investment={investment} />)
+    expect(screen.getByText('Strike:').closest('.meta-item')).toHaveTextContent('412.34')
+  })
+
   it('shows a red Realized P&L for a closed losing stock', () => {
     const investment = {
       id: 'i1', symbol: 'AAPL', assetType: 'Stock', status: 'closed',
