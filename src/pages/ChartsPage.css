@@ -95,7 +95,11 @@
   height: 100%;
 }
 
-@media (max-width: 640px) {
+/* Breakpoint is deliberately much higher than the app's usual 640px: the
+   sidebar costs 272px of overhead (220 + gap + page padding), so the side-by-
+   side layout stops being worth it long before phone widths — at 768px the
+   chart is still only getting 496px. Below 900px, stack instead. */
+@media (max-width: 900px) {
   /* The sidebar is a fixed 220px that cannot shrink, which left the chart
      about 103px wide on a phone. Stack instead, and turn the watchlist into a
      swipeable strip of chips so switching symbols is still one tap. */
@@ -122,11 +126,25 @@
     gap: 6px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    padding-bottom: 6px;
+    /* Deliberately NOT hidden. Mobile overlays and auto-hides it anyway, but
+       on a narrow desktop window a hidden bar leaves no way to discover that
+       the strip scrolls at all. */
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
   }
 
   .charts-sidebar ul::-webkit-scrollbar {
-    display: none;
+    height: 6px;
+  }
+
+  .charts-sidebar ul::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+
+  .charts-sidebar ul::-webkit-scrollbar-track {
+    background: transparent;
   }
 
   .charts-sidebar li {
