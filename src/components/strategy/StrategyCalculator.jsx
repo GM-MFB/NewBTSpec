@@ -3,6 +3,7 @@ import { formatCurrency } from '../../lib/format'
 import {
   cashSecuredPut, coveredCall, creditSpread, debitSpread, calendarSpread, ironCondor,
 } from '../../lib/strategyMath'
+import PayoffChart from './PayoffChart'
 
 function Field({ id, label, value, onChange, step = '0.01' }) {
   return (
@@ -64,6 +65,7 @@ function WheelCalculator() {
           <Result label="Return on capital" value={percent(p.returnOnCapital)} />
           <Result label="Annualized" value={percent(p.annualized)} tone={toneFor(p.annualized)} />
         </div>
+        <PayoffChart kind="wheel-put" params={put} gradientId="csp" />
       </div>
 
       <div className="calc-block">
@@ -84,6 +86,7 @@ function WheelCalculator() {
           <Result label="Breakeven" value={money(c.breakeven)} />
           <Result label="Return if called" value={percent(c.returnIfCalled)} tone={toneFor(c.returnIfCalled)} />
         </div>
+        <PayoffChart kind="wheel-call" params={call} gradientId="cc" />
       </div>
     </>
   )
@@ -114,6 +117,7 @@ function CreditSpreadCalculator() {
         <Result label="Breakeven" value={money(r.breakeven)} />
         <Result label="Return on risk" value={percent(r.returnOnRisk)} />
       </div>
+      <PayoffChart kind="credit-spread" params={f} gradientId="cs" />
     </div>
   )
 }
@@ -142,6 +146,7 @@ function DebitSpreadCalculator() {
         <Result label="Max loss" value={money(r.maxLoss)} tone="price-unfavorable" />
         <Result label="Breakeven" value={money(r.breakeven)} />
       </div>
+      <PayoffChart kind="debit-spread" params={f} gradientId="ds" />
     </div>
   )
 }
@@ -189,6 +194,7 @@ function CondorCalculator() {
         <Result label="Upper breakeven" value={money(r.upperBreakeven)} />
         <Result label="Return on risk" value={percent(r.returnOnRisk)} />
       </div>
+      <PayoffChart kind="iron-condor" params={f} gradientId="ic" />
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import StrategyCalculator from './StrategyCalculator'
+import WheelCycle from './WheelCycle'
 
 function List({ title, items, testId }) {
   return (
@@ -49,7 +50,8 @@ export default function StrategyArticle({ strategy }) {
       {(strategy.extraSections ?? []).map((section) => (
         <section className="strategy-section strategy-section--extra" key={section.title}>
           <h3 className="strategy-section-title">{section.title}</h3>
-          {section.body.map((paragraph) => (
+          {/* The cycle is a sequence, so it is drawn rather than described. */}
+          {section.title === 'The cycle' ? <WheelCycle /> : section.body.map((paragraph) => (
             <p className="strategy-paragraph" key={paragraph}>{paragraph}</p>
           ))}
         </section>

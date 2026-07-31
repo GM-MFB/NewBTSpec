@@ -92,6 +92,25 @@ describe('StrategyPage', () => {
     expect(screen.getByText(/locks in this loss/i)).toBeInTheDocument()
   })
 
+  it('draws the wheel cycle as a diagram rather than prose', () => {
+    renderPage()
+    expect(screen.getByTestId('wheel-cycle')).toBeInTheDocument()
+  })
+
+  it('renders a payoff chart for every strategy that has an expiration payoff', async () => {
+    renderPage()
+    for (const name of ['The Wheel', 'Credit Spreads', 'Debit Spreads', 'Iron Condors']) {
+      await userEvent.click(screen.getByRole('button', { name }))
+      expect(screen.getAllByText(/profit and loss at expiration/i).length, `${name} has no payoff chart`).toBeGreaterThan(0)
+    }
+  })
+
+  it('draws no payoff chart for a calendar spread, which has no expiration payoff', async () => {
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: 'Calendar Spreads' }))
+    expect(screen.queryByText(/profit and loss at expiration/i)).not.toBeInTheDocument()
+  })
+
   it('states that a calendar spread has no calculable max profit', async () => {
     renderPage()
     await userEvent.click(screen.getByRole('button', { name: 'Calendar Spreads' }))

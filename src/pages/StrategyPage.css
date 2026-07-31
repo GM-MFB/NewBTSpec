@@ -250,3 +250,103 @@
     font-size: 12px;
   }
 }
+
+/* Payoff chart */
+
+.payoff-figure {
+  margin: 18px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.payoff-caption {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+
+.payoff-tooltip {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.payoff-tooltip-price {
+  color: var(--text-dim);
+  margin-bottom: 3px;
+}
+
+.payoff-tooltip-pnl {
+  font-weight: 700;
+}
+
+/* Wheel cycle diagram */
+
+.wheel-cycle {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.wheel-step-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.wheel-step {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  grid-template-areas: 'num title' 'num detail';
+  gap: 2px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.wheel-step--income { border-left-color: var(--green); }
+.wheel-step--shift { border-left-color: #eab308; }
+.wheel-step--loop { border-left-color: var(--border); }
+
+.wheel-step-num {
+  grid-area: num;
+  align-self: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.wheel-step-title {
+  grid-area: title;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.wheel-step-detail {
+  grid-area: detail;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+.wheel-arrow {
+  align-self: center;
+  color: var(--text-dim);
+  font-size: 15px;
+  line-height: 1;
+  padding: 5px 0;
+}
+
+.wheel-cycle-note {
+  margin: 14px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-dim);
+}
