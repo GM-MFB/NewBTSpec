@@ -108,22 +108,24 @@ export default function RiskTab({ investments }) {
           <p>No open option positions.</p>
         ) : (
           <>
-            <table className="risk-table">
-              <thead>
-                <tr><th>Symbol</th><th>Strategy</th><th>Contracts</th><th>Capital at Risk</th><th>% of Portfolio</th></tr>
-              </thead>
-              <tbody>
-                {optionPositions.map((p, idx) => (
-                  <tr key={`${p.symbol}-${idx}`}>
-                    <th scope="row">{p.symbol}</th>
-                    <td className="mono">{p.strategyLabel}</td>
-                    <td className="mono">{p.contracts}</td>
-                    <td className="mono">{p.strategyLabel === 'Covered Call' ? 'Covered' : formatCurrency(p.capitalAtRisk)}</td>
-                    <td className="mono">{(metrics.totalMV > 0 ? (p.capitalAtRisk / metrics.totalMV) * 100 : 0).toFixed(1)}%</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="risk-table-wrap">
+              <table className="risk-table">
+                <thead>
+                  <tr><th>Symbol</th><th>Strategy</th><th>Contracts</th><th>Capital at Risk</th><th>% of Portfolio</th></tr>
+                </thead>
+                <tbody>
+                  {optionPositions.map((p, idx) => (
+                    <tr key={`${p.symbol}-${idx}`}>
+                      <th scope="row">{p.symbol}</th>
+                      <td className="mono">{p.strategyLabel}</td>
+                      <td className="mono">{p.contracts}</td>
+                      <td className="mono">{p.strategyLabel === 'Covered Call' ? 'Covered' : formatCurrency(p.capitalAtRisk)}</td>
+                      <td className="mono">{(metrics.totalMV > 0 ? (p.capitalAtRisk / metrics.totalMV) * 100 : 0).toFixed(1)}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             <p data-testid="options-total-risk">
               Total Options Capital at Risk: {formatCurrency(optionPositions.reduce((sum, p) => sum + p.capitalAtRisk, 0))}
               {' '}({(metrics.totalMV > 0 ? (optionPositions.reduce((sum, p) => sum + p.capitalAtRisk, 0) / metrics.totalMV) * 100 : 0).toFixed(1)}% of portfolio)
@@ -141,19 +143,21 @@ export default function RiskTab({ investments }) {
               {scenario.name} ({(scenario.portfolioMove * 100).toFixed(1)}%, {formatCurrency(scenario.totalImpact)})
             </button>
             {expandedScenario === scenario.name && (
-              <table className="risk-table" data-testid="stress-scenario-table">
-                <thead><tr><th>Symbol</th><th>Beta</th><th>Move %</th><th>$ Impact</th></tr></thead>
-                <tbody>
-                  {scenario.perPosition.map((p, idx) => (
-                    <tr key={`${p.symbol}-${idx}`}>
-                      <th scope="row">{p.symbol}</th>
-                      <td className="mono">{p.beta === null ? '—' : p.beta.toFixed(2)}</td>
-                      <td className="mono">{p.move === null ? '—' : `${(p.move * 100).toFixed(1)}%`}</td>
-                      <td className="mono">{formatCurrency(p.impact)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="risk-table-wrap">
+                <table className="risk-table" data-testid="stress-scenario-table">
+                  <thead><tr><th>Symbol</th><th>Beta</th><th>Move %</th><th>$ Impact</th></tr></thead>
+                  <tbody>
+                    {scenario.perPosition.map((p, idx) => (
+                      <tr key={`${p.symbol}-${idx}`}>
+                        <th scope="row">{p.symbol}</th>
+                        <td className="mono">{p.beta === null ? '—' : p.beta.toFixed(2)}</td>
+                        <td className="mono">{p.move === null ? '—' : `${(p.move * 100).toFixed(1)}%`}</td>
+                        <td className="mono">{formatCurrency(p.impact)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         ))}
@@ -161,21 +165,23 @@ export default function RiskTab({ investments }) {
 
       <section className="risk-contribution">
         <h2>Risk Contribution</h2>
-        <table className="risk-table">
-          <thead><tr><th>Symbol</th><th>Weight %</th><th>Risk %</th><th>Flag</th></tr></thead>
-          <tbody>
-            {riskContributions.map((c, idx) => (
-              <tr key={`${c.symbol}-${idx}`}>
-                <th scope="row">{c.symbol}</th>
-                <td className="mono">{c.weightPct.toFixed(1)}%</td>
-                <td className="mono">{c.riskPct.toFixed(1)}%</td>
-                <td className={c.flag === 'outsized' ? 'risk-flag-outsized' : c.flag === 'efficient' ? 'risk-flag-efficient' : ''}>
-                  {c.flag ?? '—'}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="risk-table-wrap">
+          <table className="risk-table">
+            <thead><tr><th>Symbol</th><th>Weight %</th><th>Risk %</th><th>Flag</th></tr></thead>
+            <tbody>
+              {riskContributions.map((c, idx) => (
+                <tr key={`${c.symbol}-${idx}`}>
+                  <th scope="row">{c.symbol}</th>
+                  <td className="mono">{c.weightPct.toFixed(1)}%</td>
+                  <td className="mono">{c.riskPct.toFixed(1)}%</td>
+                  <td className={c.flag === 'outsized' ? 'risk-flag-outsized' : c.flag === 'efficient' ? 'risk-flag-efficient' : ''}>
+                    {c.flag ?? '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
     </div>
   )

@@ -1,5 +1,5 @@
 .financials-tab {
-  padding: 20px 32px 40px;
+  padding: 20px var(--page-pad-x) 40px;
   display: flex;
   flex-direction: column;
   gap: 20px;

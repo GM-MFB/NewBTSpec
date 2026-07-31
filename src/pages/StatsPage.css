@@ -4,7 +4,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
-  padding: 16px 32px 0;
+  padding: 16px var(--page-pad-x) 0;
 }
 
 .date-range-filter {
@@ -102,7 +102,7 @@
 }
 
 .stats-numbers {
-  padding: 20px 32px 40px;
+  padding: 20px var(--page-pad-x) 40px;
   display: flex;
   flex-direction: column;
   gap: 32px;
@@ -246,4 +246,8 @@
   line-height: 1.5;
   text-transform: none;
   letter-spacing: normal;
+}
+
+.stats-table-wrap {
+  overflow-x: auto;
 }

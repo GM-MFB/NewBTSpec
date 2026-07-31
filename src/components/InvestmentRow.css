@@ -1,7 +1,7 @@
 .investment-list {
   list-style: none;
   margin: 0;
-  padding: 12px 32px 40px;
+  padding: 12px var(--page-pad-x) 40px;
   display: flex;
   flex-direction: column;
   gap: 10px;

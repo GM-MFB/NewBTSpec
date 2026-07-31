@@ -1,7 +1,7 @@
 .stats-charts {
-  padding: 20px 32px 40px;
+  padding: 20px var(--page-pad-x) 40px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
   gap: 24px;
 }
 

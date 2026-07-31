@@ -1,7 +1,7 @@
 .charts-page {
   display: flex;
   gap: 20px;
-  padding: 20px 32px 40px;
+  padding: 20px var(--page-pad-x) 40px;
   align-items: flex-start;
 }
 

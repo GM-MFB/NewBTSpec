@@ -25,6 +25,16 @@ describe('FrontierPanel', () => {
     expect(screen.getByRole('rowheader', { name: /spy/i })).toBeInTheDocument()
   })
 
+  it('wraps the rebalancing table in a horizontal scroll container so it cannot overflow the page on mobile', () => {
+    const { container } = render(<FrontierPanel symbols={['AAPL', 'SPY']} weights={[0.6, 0.4]} storageKey="test_ef_wrap" nSim={300} />)
+
+    const tables = container.querySelectorAll('table')
+    expect(tables.length).toBeGreaterThan(0)
+    for (const table of tables) {
+      expect(table.parentElement).toHaveClass('frontier-table-wrap')
+    }
+  })
+
   it('shows the assumptions editor expanded by default and persists an override to localStorage', async () => {
     render(<FrontierPanel symbols={['AAPL', 'SPY']} weights={[0.6, 0.4]} storageKey="test_ef_params_2" nSim={300} />)
 

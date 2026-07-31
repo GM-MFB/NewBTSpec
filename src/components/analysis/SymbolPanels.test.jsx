@@ -43,4 +43,18 @@ describe('SymbolPanels', () => {
     await userEvent.click(screen.getByRole('button', { name: 'MSFT' }))
     expect(onResearchPeer).toHaveBeenCalledWith('MSFT')
   })
+
+  it('wraps every table in a horizontal scroll container so it cannot overflow the page on mobile', () => {
+    // The Earnings History table only renders when earnings data is present.
+    const withEarnings = {
+      ...fullResult,
+      earnings: { earnings: [{ period: '2024-12-31', actual: 2.4, estimate: 2.1 }] },
+    }
+    const { container } = render(<SymbolPanels symbol="AAPL" result={withEarnings} investment={null} peers={[]} onResearchPeer={vi.fn()} />)
+    const tables = container.querySelectorAll('table')
+    expect(tables.length).toBeGreaterThan(0)
+    for (const table of tables) {
+      expect(table.parentElement).toHaveClass('symbol-table-wrap')
+    }
+  })
 })

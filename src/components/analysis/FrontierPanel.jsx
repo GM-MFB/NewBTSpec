@@ -162,63 +162,65 @@ export default function FrontierPanel({
           Based on total portfolio value of {formatLarge(portfolioValue)}
           {cashAmount > 0 && <> · Buy suggestions sized against {formatCurrency(cashAmount)} cash</>}
         </p>
-        <table className="frontier-table">
-          <thead>
-            <tr>
-              <th>Symbol</th>
-              <th>Current %</th>
-              <th>Shares</th>
-              <th>Max-Div %</th>
-              <th>Buy</th>
-              <th>Max-Sharpe %</th>
-              <th>Buy</th>
-            </tr>
-          </thead>
-          <tbody>
-            {allSymbols.map((symbol, i) => {
-              const isCash = symbol === 'CASH'
-              const currentWeight = currentPoint.weights[i] * 100
-              const maxDivWeight = simData.maxDiversification.weights[i] * 100
-              const maxSharpeWeight = simData.maxSharpe.weights[i] * 100
-              const price = priceMap[symbol]
-              const shares = price ? (currentWeight / 100) * portfolioValue / price : null
-              const isNew = extraSymbols.includes(symbol) && !symbols.includes(symbol)
+        <div className="frontier-table-wrap">
+          <table className="frontier-table">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Current %</th>
+                <th>Shares</th>
+                <th>Max-Div %</th>
+                <th>Buy</th>
+                <th>Max-Sharpe %</th>
+                <th>Buy</th>
+              </tr>
+            </thead>
+            <tbody>
+              {allSymbols.map((symbol, i) => {
+                const isCash = symbol === 'CASH'
+                const currentWeight = currentPoint.weights[i] * 100
+                const maxDivWeight = simData.maxDiversification.weights[i] * 100
+                const maxSharpeWeight = simData.maxSharpe.weights[i] * 100
+                const price = priceMap[symbol]
+                const shares = price ? (currentWeight / 100) * portfolioValue / price : null
+                const isNew = extraSymbols.includes(symbol) && !symbols.includes(symbol)
 
-              function renderBuy(targetWeight) {
-                if (isCash || !price || cashAmount <= 0) return <span className="frontier-action-hold">—</span>
-                const targetDollars = (targetWeight / 100) * cashAmount
-                const targetShares = Math.round(targetDollars / price)
-                if (targetShares === 0) {
-                  return <span className="frontier-action-hold">Hold</span>
+                function renderBuy(targetWeight) {
+                  if (isCash || !price || cashAmount <= 0) return <span className="frontier-action-hold">—</span>
+                  const targetDollars = (targetWeight / 100) * cashAmount
+                  const targetShares = Math.round(targetDollars / price)
+                  if (targetShares === 0) {
+                    return <span className="frontier-action-hold">Hold</span>
+                  }
+                  return (
+                    <span className="frontier-action-buy">
+                      ▲ Buy {targetShares}
+                      <br />
+                      <span className="frontier-action-delta">{formatCurrency(targetDollars)}</span>
+                    </span>
+                  )
                 }
-                return (
-                  <span className="frontier-action-buy">
-                    ▲ Buy {targetShares}
-                    <br />
-                    <span className="frontier-action-delta">{formatCurrency(targetDollars)}</span>
-                  </span>
-                )
-              }
 
-              return (
-                <tr key={symbol}>
-                  <th scope="row">
-                    <span className="frontier-symbol-dot" style={{ background: colorMap[symbol] }} />
-                    {symbol}{isNew ? ' (new)' : ''}
-                    <br />
-                    <span className="frontier-symbol-price">{price ? formatCurrency(price) : '—'}</span>
-                  </th>
-                  <td className="mono">{currentWeight.toFixed(2)}%</td>
-                  <td className="mono">{shares !== null ? formatShares(shares) : '—'}</td>
-                  <td className="mono">{maxDivWeight.toFixed(2)}%</td>
-                  <td>{renderBuy(maxDivWeight)}</td>
-                  <td className="mono">{maxSharpeWeight.toFixed(2)}%</td>
-                  <td>{renderBuy(maxSharpeWeight)}</td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                return (
+                  <tr key={symbol}>
+                    <th scope="row">
+                      <span className="frontier-symbol-dot" style={{ background: colorMap[symbol] }} />
+                      {symbol}{isNew ? ' (new)' : ''}
+                      <br />
+                      <span className="frontier-symbol-price">{price ? formatCurrency(price) : '—'}</span>
+                    </th>
+                    <td className="mono">{currentWeight.toFixed(2)}%</td>
+                    <td className="mono">{shares !== null ? formatShares(shares) : '—'}</td>
+                    <td className="mono">{maxDivWeight.toFixed(2)}%</td>
+                    <td>{renderBuy(maxDivWeight)}</td>
+                    <td className="mono">{maxSharpeWeight.toFixed(2)}%</td>
+                    <td>{renderBuy(maxSharpeWeight)}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <button type="button" onClick={() => setShowAssumptions((v) => !v)}>

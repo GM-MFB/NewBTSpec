@@ -14,24 +14,26 @@ export default function CorrelationHeatmap({ symbols }) {
 
   return (
     <div className="correlation-heatmap">
-      <table className="correlation-table">
-        <tbody>
-          {symbols.map((rowSymbol, i) => (
-            <tr key={rowSymbol}>
-              <th scope="row">{rowSymbol}</th>
-              {symbols.slice(0, i).map((colSymbol, j) => {
-                const value = matrix[i][j]
-                const band = bandFor(value)
-                return (
-                  <td key={colSymbol} data-testid="heatmap-cell" data-band={band} className={`heatmap-cell heatmap-cell--${band}`}>
-                    {value.toFixed(2)}
-                  </td>
-                )
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="corr-table-wrap">
+        <table className="correlation-table">
+          <tbody>
+            {symbols.map((rowSymbol, i) => (
+              <tr key={rowSymbol}>
+                <th scope="row">{rowSymbol}</th>
+                {symbols.slice(0, i).map((colSymbol, j) => {
+                  const value = matrix[i][j]
+                  const band = bandFor(value)
+                  return (
+                    <td key={colSymbol} data-testid="heatmap-cell" data-band={band} className={`heatmap-cell heatmap-cell--${band}`}>
+                      {value.toFixed(2)}
+                    </td>
+                  )
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <div className="heatmap-legend">
         <span className="heatmap-legend-key heatmap-cell--red">&ge; 0.7</span>
         <span className="heatmap-legend-key heatmap-cell--orange">&ge; 0.4</span>

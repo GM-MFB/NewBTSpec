@@ -37,7 +37,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  padding: 16px 32px 0;
+  padding: 16px var(--page-pad-x) 0;
 }
 
 .trades-tabs button {
@@ -60,7 +60,7 @@
 }
 
 .trade-day-groups {
-  padding: 12px 32px 40px;
+  padding: 12px var(--page-pad-x) 40px;
   display: flex;
   flex-direction: column;
   gap: 24px;

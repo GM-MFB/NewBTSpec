@@ -165,39 +165,43 @@ export default function StatsPage() {
 
           <section className="stats-section">
             <h2 className="stats-section-title">By Strategy</h2>
-            <table className="stats-table">
-              <thead>
-                <tr><th>Strategy</th><th>Trades</th><th>Win Rate</th><th>Total P&L</th></tr>
-              </thead>
-              <tbody>
-                {stats.byStrategy.map((row) => (
-                  <tr key={row.strategy}>
-                    <td>{row.label}</td>
-                    <td className="mono">{row.count}</td>
-                    <td className="mono">{row.winRate.toFixed(1)}%</td>
-                    <td className={`mono ${row.totalPnl >= 0 ? 'stat-tile-value--positive' : 'stat-tile-value--negative'}`}>{formatCurrency(row.totalPnl)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="stats-table-wrap">
+              <table className="stats-table">
+                <thead>
+                  <tr><th>Strategy</th><th>Trades</th><th>Win Rate</th><th>Total P&L</th></tr>
+                </thead>
+                <tbody>
+                  {stats.byStrategy.map((row) => (
+                    <tr key={row.strategy}>
+                      <td>{row.label}</td>
+                      <td className="mono">{row.count}</td>
+                      <td className="mono">{row.winRate.toFixed(1)}%</td>
+                      <td className={`mono ${row.totalPnl >= 0 ? 'stat-tile-value--positive' : 'stat-tile-value--negative'}`}>{formatCurrency(row.totalPnl)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </section>
 
           <section className="stats-section">
             <h2 className="stats-section-title">By Symbol</h2>
-            <table className="stats-table">
-              <thead>
-                <tr><th>Symbol</th><th>Trades</th><th>Total P&L</th></tr>
-              </thead>
-              <tbody>
-                {stats.bySymbol.map((row) => (
-                  <tr key={row.symbol}>
-                    <td>{row.symbol}</td>
-                    <td className="mono">{row.count}</td>
-                    <td className={`mono ${row.totalPnl >= 0 ? 'stat-tile-value--positive' : 'stat-tile-value--negative'}`}>{formatCurrency(row.totalPnl)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="stats-table-wrap">
+              <table className="stats-table">
+                <thead>
+                  <tr><th>Symbol</th><th>Trades</th><th>Total P&L</th></tr>
+                </thead>
+                <tbody>
+                  {stats.bySymbol.map((row) => (
+                    <tr key={row.symbol}>
+                      <td>{row.symbol}</td>
+                      <td className="mono">{row.count}</td>
+                      <td className={`mono ${row.totalPnl >= 0 ? 'stat-tile-value--positive' : 'stat-tile-value--negative'}`}>{formatCurrency(row.totalPnl)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </section>
         </div>
       )}

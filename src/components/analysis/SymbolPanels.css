@@ -181,3 +181,7 @@
 .fund-news-list a:hover {
   color: var(--green);
 }
+
+.symbol-table-wrap {
+  overflow-x: auto;
+}

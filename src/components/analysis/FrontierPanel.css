@@ -260,3 +260,7 @@
   padding: 6px 8px;
   width: 80px;
 }
+
+.frontier-table-wrap {
+  overflow-x: auto;
+}

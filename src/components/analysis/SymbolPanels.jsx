@@ -105,20 +105,22 @@ export default function SymbolPanels({ symbol, result, investment, peers, onRese
       {result.earnings?.earnings?.length > 0 && (
         <section className="fund-section">
           <h2>Earnings History</h2>
-          <table className="fund-table">
-            <thead>
-              <tr><th>Period</th><th>Actual</th><th>Estimate</th></tr>
-            </thead>
-            <tbody>
-              {[...result.earnings.earnings].slice(0, 8).reverse().map((e, idx) => (
-                <tr key={idx}>
-                  <td>{e.period}</td>
-                  <td className="mono">{formatDecimal(e.actual)}</td>
-                  <td className="mono">{formatDecimal(e.estimate)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="symbol-table-wrap">
+            <table className="fund-table">
+              <thead>
+                <tr><th>Period</th><th>Actual</th><th>Estimate</th></tr>
+              </thead>
+              <tbody>
+                {[...result.earnings.earnings].slice(0, 8).reverse().map((e, idx) => (
+                  <tr key={idx}>
+                    <td>{e.period}</td>
+                    <td className="mono">{formatDecimal(e.actual)}</td>
+                    <td className="mono">{formatDecimal(e.estimate)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
       )}
 

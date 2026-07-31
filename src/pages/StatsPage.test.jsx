@@ -49,6 +49,19 @@ describe('StatsPage', () => {
     expect(screen.getByText('Open Positions')).toBeInTheDocument()
   })
 
+  it('wraps every table in a horizontal scroll container so it cannot overflow the page on mobile', () => {
+    mockAccounts()
+    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment: vi.fn() })
+
+    const { container } = render(<MemoryRouter><StatsPage /></MemoryRouter>)
+
+    const tables = container.querySelectorAll('table')
+    expect(tables.length).toBeGreaterThan(0)
+    for (const table of tables) {
+      expect(table.parentElement).toHaveClass('stats-table-wrap')
+    }
+  })
+
   it('switches to the Charts view when toggled', async () => {
     mockAccounts()
     useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment: vi.fn() })

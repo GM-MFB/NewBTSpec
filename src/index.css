@@ -8,6 +8,13 @@
   --accent: #3b82f6;
   --green: #22c55e;
   --red: #ef4444;
+  --page-pad-x: 32px;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --page-pad-x: 16px;
+  }
 }
 
 * { box-sizing: border-box; }

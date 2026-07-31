@@ -38,6 +38,22 @@ describe('RiskTab', () => {
     expect(screen.getAllByText(/aapl|spy/i).length).toBeGreaterThan(0)
   })
 
+  it('wraps every table in a horizontal scroll container so it cannot overflow the page on mobile', async () => {
+    const userEvent = (await import('@testing-library/user-event')).default
+    const withOption = [
+      ...investments,
+      { symbol: 'MSFT', assetType: 'Option', shares: 2, avgCost: 3.5, strategy: 'cash_secured_put', strike: 130 },
+    ]
+    const { container } = render(<RiskTab investments={withOption} />)
+    await userEvent.click(screen.getByText(/^Bear Market/))
+
+    const tables = container.querySelectorAll('table')
+    expect(tables).toHaveLength(3)
+    for (const table of tables) {
+      expect(table.parentElement).toHaveClass('risk-table-wrap')
+    }
+  })
+
   it('renders risk contribution rows with outsized/efficient flags', () => {
     render(<RiskTab investments={investments} />)
     expect(screen.getByText('Risk Contribution')).toBeInTheDocument()

@@ -19,4 +19,13 @@ describe('CorrelationHeatmap', () => {
     const cell = screen.getByTestId('heatmap-cell')
     expect(cell).toHaveAttribute('data-band', 'red')
   })
+
+  it('wraps the table in a horizontal scroll container so it cannot overflow the page on mobile', () => {
+    const { container } = render(<CorrelationHeatmap symbols={['AAPL', 'SPY', 'TLT']} />)
+    const tables = container.querySelectorAll('table')
+    expect(tables.length).toBeGreaterThan(0)
+    for (const table of tables) {
+      expect(table.parentElement).toHaveClass('corr-table-wrap')
+    }
+  })
 })
