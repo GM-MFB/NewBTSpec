@@ -19,6 +19,19 @@ function toNum(value) {
   return Number.isNaN(n) ? null : n
 }
 
+// Revenue is never legitimately negative for an operating company, but the
+// upstream API does occasionally return one — HOOD's 2026-06-30 quarter came
+// back as -319M against $1,308M actually reported, with every other field in
+// the row correct. Rather than presenting that as fact, rebuild it from the
+// accounting identity revenue = grossProfit + costOfRevenue, and report it as
+// unavailable if that is not possible either.
+function plausibleRevenue(totalRevenue, grossProfit, costOfRevenue) {
+  if (totalRevenue === null || totalRevenue >= 0) return totalRevenue
+  if (grossProfit === null) return null
+  const reconstructed = grossProfit + (costOfRevenue ?? 0)
+  return reconstructed > 0 ? reconstructed : null
+}
+
 function mergeByDate(incomeReports, balanceReports, cashFlowReports) {
   const byDate = new Map()
 
@@ -29,9 +42,9 @@ function mergeByDate(incomeReports, balanceReports, cashFlowReports) {
 
   for (const r of incomeReports) {
     const p = get(r.fiscalDateEnding)
-    p.revenue = toNum(r.totalRevenue)
     p.cogs = toNum(r.costOfRevenue)
     p.grossProfit = toNum(r.grossProfit)
+    p.revenue = plausibleRevenue(toNum(r.totalRevenue), p.grossProfit, p.cogs)
     p.rd = toNum(r.researchAndDevelopment)
     p.sga = toNum(r.sellingGeneralAndAdministrative)
     p.ebitda = toNum(r.ebitda)

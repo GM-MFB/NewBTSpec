@@ -51,6 +51,69 @@ describe('fetchFinancials', () => {
     expect(period.freeCF).toBe(270)
   })
 
+  // Alpha Vantage returned totalRevenue: -319000000 for HOOD's 2026-06-30
+  // quarter while every other field in the row was correct. Robinhood actually
+  // reported $1,308M of net revenues. Revenue is never legitimately negative,
+  // so the boundary must not pass that value through as fact.
+  describe('implausible totalRevenue from the upstream API', () => {
+    function incomeOnly(report) {
+      global.fetch.mockImplementation((url) => {
+        if (url.includes('INCOME_STATEMENT')) return jsonResponse({ annualReports: [], quarterlyReports: [report] })
+        return jsonResponse({ annualReports: [], quarterlyReports: [] })
+      })
+    }
+
+    async function run() {
+      const promise = fetchFinancials('HOOD', 'key123')
+      await vi.runAllTimersAsync()
+      return (await promise).quarterly[0]
+    }
+
+    it('reconstructs revenue from grossProfit + costOfRevenue when totalRevenue is negative', async () => {
+      incomeOnly({
+        fiscalDateEnding: '2026-06-30',
+        totalRevenue: '-319000000',
+        costOfRevenue: 'None',
+        grossProfit: '1308000000',
+        netIncome: '573000000',
+      })
+      const period = await run()
+      expect(period.revenue).toBe(1308000000)
+      expect(period.netIncome).toBe(573000000)
+    })
+
+    it('adds costOfRevenue back when reconstructing, per revenue = grossProfit + COGS', async () => {
+      incomeOnly({
+        fiscalDateEnding: '2026-06-30',
+        totalRevenue: '-500',
+        costOfRevenue: '400',
+        grossProfit: '600',
+      })
+      expect((await run()).revenue).toBe(1000)
+    })
+
+    it('reports revenue as unavailable rather than inventing one when no plausible reconstruction exists', async () => {
+      incomeOnly({
+        fiscalDateEnding: '2026-06-30',
+        totalRevenue: '-319000000',
+        costOfRevenue: 'None',
+        grossProfit: 'None',
+      })
+      expect((await run()).revenue).toBeNull()
+    })
+
+    it('leaves a normal positive totalRevenue completely alone', async () => {
+      incomeOnly({
+        fiscalDateEnding: '2026-06-30',
+        totalRevenue: '1000',
+        costOfRevenue: '400',
+        grossProfit: '600',
+      })
+      // Must NOT become 1000 via reconstruction coincidence — it is the real field.
+      expect((await run()).revenue).toBe(1000)
+    })
+  })
+
   it('slices to the most recent 8 periods, sorted ascending by date', async () => {
     const annualReports = Array.from({ length: 10 }, (_, i) => ({ fiscalDateEnding: `${2015 + i}-12-31`, totalRevenue: String(i) }))
     global.fetch.mockImplementation((url) => {
