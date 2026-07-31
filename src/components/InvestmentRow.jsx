@@ -5,6 +5,7 @@ import { effectiveStrategyDef } from '../lib/optionStrategies'
 import { formatCurrency, formatCurrencyWhole, formatCurrencyAuto } from '../lib/format'
 import { collateralFor, potentialPnlFor } from '../lib/optionMath'
 import { realizedPnlFor, unrealizedPnlFor } from '../lib/investmentStats'
+import { annualizedReturnFor } from '../lib/annualizedReturn'
 import { abbreviateUrl, normalizeUrl } from '../lib/url'
 
 function daysLeftLabel(expiry) {
@@ -86,6 +87,12 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, o
   const realizedPnlRaw = isClosed ? realizedPnlFor(investment) : null
   const realizedPnlClass = realizedPnlRaw !== null ? (realizedPnlRaw >= 0 ? 'price-favorable' : 'price-unfavorable') : ''
 
+  // Blank whenever there is nothing honest to report — open positions, missing
+  // dates, or a covered call — which leaves the meta item unrendered.
+  const annualReturn = annualizedReturnFor(investment)
+  const annualReturnDisplay = annualReturn !== null ? `${(annualReturn * 100).toFixed(1)}%` : ''
+  const annualReturnClass = annualReturn !== null ? (annualReturn >= 0 ? 'price-favorable' : 'price-unfavorable') : ''
+
   async function handleDelete() {
     try {
       await onDelete(investment.id)
@@ -125,6 +132,7 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, o
                 <>
                   <MetaItem field="sell-price" label="Sell Price" value={formatCurrency(investment.sellPrice)} />
                   <MetaItem field="realized-pnl" label="Realized P&L" value={formatCurrency(realizedPnlRaw)} colorClass={realizedPnlClass} />
+                  <MetaItem field="annual-return" label="Ann. Return" value={annualReturnDisplay} colorClass={annualReturnClass} />
                 </>
               ) : (
                 <>
@@ -142,6 +150,7 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, o
                 <>
                   <MetaItem field="sell-price" label="Sell Price" value={formatCurrency(investment.sellPrice)} />
                   <MetaItem field="realized-pnl" label="Realized P&L" value={formatCurrency(realizedPnlRaw)} colorClass={realizedPnlClass} />
+                  <MetaItem field="annual-return" label="Ann. Return" value={annualReturnDisplay} colorClass={annualReturnClass} />
                 </>
               ) : (
                 <>

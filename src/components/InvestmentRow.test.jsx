@@ -432,6 +432,59 @@ describe('InvestmentRow', () => {
     expect(screen.getByText('Strike:').closest('.meta-item')).toHaveTextContent('412.34')
   })
 
+  it('shows the annualized return on a closed stock row', () => {
+    const investment = {
+      id: 'i1', symbol: 'AAPL', assetType: 'Stock', status: 'closed',
+      shares: 10, avgCost: 100, sellPrice: 150,
+      buyDate: '2025-01-01', sellDate: '2026-01-01', strategy: '', strike: '', expiry: '',
+    }
+    renderRow(<InvestmentRow investment={investment} />)
+    const item = screen.getByText('Ann. Return:').closest('.meta-item')
+    expect(item).toHaveTextContent('50.0%')
+    expect(item.querySelector('.meta-value')).toHaveClass('price-favorable')
+  })
+
+  it('shows a negative annualized return in red', () => {
+    const investment = {
+      id: 'i1', symbol: 'AAPL', assetType: 'Stock', status: 'closed',
+      shares: 10, avgCost: 100, sellPrice: 90,
+      buyDate: '2025-01-01', sellDate: '2026-01-01', strategy: '', strike: '', expiry: '',
+    }
+    renderRow(<InvestmentRow investment={investment} />)
+    const item = screen.getByText('Ann. Return:').closest('.meta-item')
+    expect(item).toHaveTextContent('-10.0%')
+    expect(item.querySelector('.meta-value')).toHaveClass('price-unfavorable')
+  })
+
+  it('shows the annualized return on a closed short put, measured against collateral', () => {
+    const investment = {
+      id: 'i2', symbol: 'SPY', assetType: 'Option', status: 'closed',
+      strategy: 'cash_secured_put', shares: 1, strike: 380, avgCost: 2, sellPrice: 0.5,
+      buyDate: '2026-01-01', sellDate: '2026-01-31', expiry: '2026-02-01',
+    }
+    renderRow(<InvestmentRow investment={investment} />)
+    // 150 on 38,000 over 30 days = 4.8%
+    expect(screen.getByText('Ann. Return:').closest('.meta-item')).toHaveTextContent('4.8%')
+  })
+
+  it('does not show an annualized return on an open position', () => {
+    const investment = {
+      id: 'i3', symbol: 'AAPL', assetType: 'Stock', status: 'open',
+      shares: 10, avgCost: 100, currentPrice: 150, buyDate: '2025-01-01', strategy: '', strike: '', expiry: '',
+    }
+    renderRow(<InvestmentRow investment={investment} />)
+    expect(screen.queryByText('Ann. Return:')).not.toBeInTheDocument()
+  })
+
+  it('does not show an annualized return when the open date is missing', () => {
+    const investment = {
+      id: 'i4', symbol: 'AAPL', assetType: 'Stock', status: 'closed',
+      shares: 10, avgCost: 100, sellPrice: 150, buyDate: '', sellDate: '2026-01-01', strategy: '', strike: '', expiry: '',
+    }
+    renderRow(<InvestmentRow investment={investment} />)
+    expect(screen.queryByText('Ann. Return:')).not.toBeInTheDocument()
+  })
+
   it('shows a red Realized P&L for a closed losing stock', () => {
     const investment = {
       id: 'i1', symbol: 'AAPL', assetType: 'Stock', status: 'closed',
