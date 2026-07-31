@@ -92,6 +92,35 @@ describe('StrategyPage', () => {
     expect(screen.getByText(/locks in this loss/i)).toBeInTheDocument()
   })
 
+  it('shows an at-a-glance strip so strategies can be compared without reading', async () => {
+    renderPage()
+    for (const strategy of STRATEGY_CONTENT) {
+      await userEvent.click(screen.getByRole('button', { name: strategy.name }))
+      const glance = screen.getByTestId('strategy-glance')
+      for (const label of ['Risk', 'Direction', 'Volatility', 'Capital', 'Legs']) {
+        expect(within(glance).getByText(label), `${strategy.name} glance is missing ${label}`).toBeInTheDocument()
+      }
+    }
+  })
+
+  it('marks the wheel as undefined risk and the spreads as defined', async () => {
+    renderPage()
+    expect(within(screen.getByTestId('strategy-glance')).getByText('Undefined')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Credit Spreads' }))
+    expect(within(screen.getByTestId('strategy-glance')).getByText('Defined')).toBeInTheDocument()
+  })
+
+  it('labels each leg as bought or sold so the structure reads at a glance', async () => {
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: 'Iron Condors' }))
+
+    const legs = screen.getByTestId('strategy-legs')
+    // A condor is two sold and two bought.
+    expect(within(legs).getAllByText('Sell')).toHaveLength(2)
+    expect(within(legs).getAllByText('Buy')).toHaveLength(2)
+  })
+
   it('draws the wheel cycle as a diagram rather than prose', () => {
     renderPage()
     expect(screen.getByTestId('wheel-cycle')).toBeInTheDocument()
