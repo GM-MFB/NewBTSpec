@@ -15,7 +15,7 @@ import {
   LabelList,
 } from 'recharts'
 import './StatsCharts.css'
-import { formatCurrency } from '../lib/format'
+import { formatCurrency, formatAxisCurrency } from '../lib/format'
 
 const GREEN = '#22c55e'
 const RED = '#ef4444'
@@ -61,8 +61,8 @@ export default function StatsCharts({ stats }) {
         <ResponsiveContainer width="100%" height={260}>
           <LineChart data={equityCurve} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
             <CartesianGrid stroke={GRID} strokeDasharray="0" vertical={false} />
-            <XAxis dataKey="date" tick={{ fill: AXIS_TEXT, fontSize: 11 }} axisLine={{ stroke: GRID }} tickLine={false} />
-            <YAxis tick={{ fill: AXIS_TEXT, fontSize: 11 }} axisLine={{ stroke: GRID }} tickLine={false} tickFormatter={(v) => formatCurrency(v)} width={80} />
+            <XAxis dataKey="date" tick={{ fill: AXIS_TEXT, fontSize: 11 }} axisLine={{ stroke: GRID }} tickLine={false} minTickGap={28} />
+            <YAxis tick={{ fill: AXIS_TEXT, fontSize: 11 }} axisLine={{ stroke: GRID }} tickLine={false} tickFormatter={formatAxisCurrency} width={46} />
             <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => formatCurrency(v)} />
             <Line type="monotone" dataKey="cumulative" name="Cumulative P&L" stroke="#3987e5" strokeWidth={2} dot={{ r: 4, fill: '#3987e5', stroke: '#141414', strokeWidth: 2 }} activeDot={{ r: 5 }} />
           </LineChart>
@@ -74,7 +74,7 @@ export default function StatsCharts({ stats }) {
           <BarChart data={byStrategy} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
             <CartesianGrid stroke={GRID} strokeDasharray="0" vertical={false} />
             <XAxis dataKey="label" tick={{ fill: AXIS_TEXT, fontSize: 11 }} axisLine={{ stroke: GRID }} tickLine={false} />
-            <YAxis tick={{ fill: AXIS_TEXT, fontSize: 11 }} axisLine={{ stroke: GRID }} tickLine={false} tickFormatter={(v) => formatCurrency(v)} width={80} />
+            <YAxis tick={{ fill: AXIS_TEXT, fontSize: 11 }} axisLine={{ stroke: GRID }} tickLine={false} tickFormatter={formatAxisCurrency} width={46} />
             <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => formatCurrency(v)} />
             <Bar dataKey="totalPnl" name="Total P&L" radius={[4, 4, 0, 0]} maxBarSize={24}>
               {byStrategy.map((row) => (
@@ -110,16 +110,16 @@ export default function StatsCharts({ stats }) {
 
       <ChartCard title="P&L by Symbol" isEmpty={topSymbols.length === 0} wide>
         <ResponsiveContainer width="100%" height={Math.max(260, topSymbols.length * 40)}>
-          <BarChart data={topSymbols} layout="vertical" margin={{ top: 8, right: 60, left: 16, bottom: 0 }} barCategoryGap="30%">
+          <BarChart data={topSymbols} layout="vertical" margin={{ top: 8, right: 44, left: 8, bottom: 0 }} barCategoryGap="30%">
             <CartesianGrid stroke={GRID} strokeDasharray="0" horizontal={false} />
-            <XAxis type="number" tick={{ fill: AXIS_TEXT, fontSize: 11 }} axisLine={{ stroke: GRID }} tickLine={false} tickFormatter={(v) => formatCurrency(v)} />
-            <YAxis type="category" dataKey="symbol" tick={{ fill: AXIS_TEXT, fontSize: 11 }} axisLine={{ stroke: GRID }} tickLine={false} width={70} />
+            <XAxis type="number" tick={{ fill: AXIS_TEXT, fontSize: 11 }} axisLine={{ stroke: GRID }} tickLine={false} tickFormatter={formatAxisCurrency} />
+            <YAxis type="category" dataKey="symbol" tick={{ fill: AXIS_TEXT, fontSize: 11 }} axisLine={{ stroke: GRID }} tickLine={false} width={52} />
             <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => formatCurrency(v)} />
             <Bar dataKey="totalPnl" name="Total P&L" radius={[0, 4, 4, 0]} maxBarSize={20}>
               {topSymbols.map((row) => (
                 <Cell key={row.symbol} fill={pnlColor(row.totalPnl)} />
               ))}
-              <LabelList dataKey="totalPnl" position="right" formatter={(v) => formatCurrency(v)} fill={AXIS_TEXT} fontSize={11} />
+              <LabelList dataKey="totalPnl" position="right" formatter={formatAxisCurrency} fill={AXIS_TEXT} fontSize={11} />
             </Bar>
           </BarChart>
         </ResponsiveContainer>

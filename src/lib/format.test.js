@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatCurrency, formatCurrencyWhole, formatCurrencyAuto, formatLarge, formatDecimal, formatCompactCurrency } from './format'
+import { formatCurrency, formatCurrencyWhole, formatCurrencyAuto, formatLarge, formatDecimal, formatCompactCurrency, formatAxisCurrency } from './format'
 
 describe('formatCurrency', () => {
   it('formats a whole number as USD with two decimals', () => {
@@ -116,5 +116,25 @@ describe('formatCompactCurrency', () => {
     expect(formatCompactCurrency(undefined)).toBe('')
     expect(formatCompactCurrency(null)).toBe('')
     expect(formatCompactCurrency('abc')).toBe('')
+  })
+})
+
+describe('formatAxisCurrency', () => {
+  it('abbreviates like the compact form but without a plus, per axis convention', () => {
+    expect(formatAxisCurrency(1205)).toBe('1.2k')
+    expect(formatAxisCurrency(-1460)).toBe('-1.5k')
+    expect(formatAxisCurrency(1250000)).toBe('1.3M')
+    expect(formatAxisCurrency(45)).toBe('45')
+    expect(formatAxisCurrency(-320)).toBe('-320')
+  })
+
+  it('renders zero plainly', () => {
+    expect(formatAxisCurrency(0)).toBe('0')
+  })
+
+  it('returns blank for blank/undefined/null/NaN input', () => {
+    expect(formatAxisCurrency('')).toBe('')
+    expect(formatAxisCurrency(null)).toBe('')
+    expect(formatAxisCurrency('abc')).toBe('')
   })
 })

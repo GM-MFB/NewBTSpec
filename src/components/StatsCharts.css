@@ -35,3 +35,23 @@
   font-size: 13px;
   padding: 0 24px;
 }
+
+@media (max-width: 640px) {
+  /* Card padding is width the plot could be using instead. */
+  .stats-charts {
+    gap: 16px;
+  }
+
+  .chart-card {
+    padding: 12px 8px 6px;
+  }
+
+  .chart-card-title {
+    margin: 0 0 8px;
+    padding-left: 4px;
+  }
+
+  .chart-empty {
+    padding: 0 12px;
+  }
+}
