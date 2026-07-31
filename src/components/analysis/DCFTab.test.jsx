@@ -62,6 +62,34 @@ describe('DCFTab', () => {
     expect(screen.getByRole('button', { name: 'AAPL' })).toHaveClass('fin-chip--active')
   })
 
+  it('refetches past every cache layer when Refresh is clicked', async () => {
+    useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
+    getSharedCache.mockResolvedValue({ data: sampleData, fetchedAt: '2026-01-15T00:00:00Z' })
+    fetchFinancials.mockResolvedValue(sampleData)
+
+    render(<MemoryRouter><DCFTab investments={investments} /></MemoryRouter>)
+    await waitFor(() => expect(screen.getByText('Intrinsic Value')).toBeInTheDocument())
+    expect(fetchFinancials).not.toHaveBeenCalled()
+
+    await userEvent.click(screen.getByRole('button', { name: /refresh/i }))
+
+    await waitFor(() => expect(fetchFinancials).toHaveBeenCalledWith('AAPL', 'avkey123'))
+  })
+
+  it('surfaces a rate-limit error instead of hanging', async () => {
+    useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
+    getSharedCache.mockResolvedValue({ data: sampleData, fetchedAt: '2026-01-15T00:00:00Z' })
+    fetchFinancials.mockRejectedValue(new Error('Our standard API rate limit is 25 requests per day'))
+
+    render(<MemoryRouter><DCFTab investments={investments} /></MemoryRouter>)
+    await waitFor(() => expect(screen.getByText('Intrinsic Value')).toBeInTheDocument())
+
+    await userEvent.click(screen.getByRole('button', { name: /refresh/i }))
+
+    await waitFor(() => expect(screen.getByText(/25 requests per day/i)).toBeInTheDocument())
+    expect(screen.getByRole('button', { name: /refresh/i })).toBeEnabled()
+  })
+
   it('renders the 30-cell sensitivity grid', async () => {
     useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
     fetchFinancials.mockResolvedValue(sampleData)

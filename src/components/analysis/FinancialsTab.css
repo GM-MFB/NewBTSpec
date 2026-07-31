@@ -92,7 +92,40 @@
 .fin-header {
   display: flex;
   align-items: baseline;
+  flex-wrap: wrap;
   gap: 14px;
+}
+
+.fin-fetched-at {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.fin-refresh-btn {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.fin-refresh-btn:hover:not(:disabled) {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.fin-refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.fin-error {
+  margin: 0;
+  color: var(--red);
+  font-size: 13px;
 }
 
 .fin-symbol {

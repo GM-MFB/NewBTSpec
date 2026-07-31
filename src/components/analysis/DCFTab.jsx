@@ -35,42 +35,74 @@ export default function DCFTab({ investments }) {
   const [activeSymbol, setActiveSymbol] = useState(null)
   const [inputValue, setInputValue] = useState('')
   const [loadingSymbol, setLoadingSymbol] = useState(null)
+  const [fetchedAt, setFetchedAt] = useState({})
+  const [error, setError] = useState(null)
   const [overrides, setOverrides] = useState({})
 
   const stockSymbols = [...new Set(investments.filter((i) => i.assetType === 'Stock' || i.assetType === 'Option').map((i) => i.symbol))]
 
-  async function research(rawSymbol) {
+  function readLocalCache() {
+    const cacheRaw = localStorage.getItem('bt_financials_cache')
+    return cacheRaw ? JSON.parse(cacheRaw) : {}
+  }
+
+  // Entries written before the timestamp existed are the bare statement object;
+  // newer ones are { data, fetchedAt }. Accept both.
+  function unwrap(entry) {
+    if (entry && entry.data) return { data: entry.data, fetchedAt: entry.fetchedAt ?? null }
+    return { data: entry, fetchedAt: null }
+  }
+
+  async function research(rawSymbol, { force = false } = {}) {
     const symbol = rawSymbol.trim().toUpperCase()
     if (!symbol) return
     setActiveSymbol(symbol)
     setInputValue('')
     setOverrides({})
-    if (data[symbol]) return
+    setError(null)
 
-    const cacheRaw = localStorage.getItem('bt_financials_cache')
-    const localCache = cacheRaw ? JSON.parse(cacheRaw) : {}
-    if (localCache[symbol]) {
-      setData((prev) => ({ ...prev, [symbol]: localCache[symbol] }))
-      return
-    }
+    const localCache = readLocalCache()
 
-    const shared = await getSharedCache(symbol)
-    if (shared) {
-      setData((prev) => ({ ...prev, [symbol]: shared }))
-      localCache[symbol] = shared
-      localStorage.setItem('bt_financials_cache', JSON.stringify(localCache))
-      return
+    // A refresh has to skip all three cache layers, or the shared Supabase
+    // cache hands back the same stale snapshot the user is trying to escape.
+    if (!force) {
+      if (data[symbol]) return
+
+      const local = unwrap(localCache[symbol])
+      if (local.data) {
+        setData((prev) => ({ ...prev, [symbol]: local.data }))
+        setFetchedAt((prev) => ({ ...prev, [symbol]: local.fetchedAt }))
+        return
+      }
+
+      const shared = await getSharedCache(symbol)
+      if (shared?.data) {
+        setData((prev) => ({ ...prev, [symbol]: shared.data }))
+        setFetchedAt((prev) => ({ ...prev, [symbol]: shared.fetchedAt }))
+        localCache[symbol] = { data: shared.data, fetchedAt: shared.fetchedAt }
+        localStorage.setItem('bt_financials_cache', JSON.stringify(localCache))
+        return
+      }
     }
 
     if (!avKey) return
     setLoadingSymbol(symbol)
-    const result = await fetchFinancials(symbol, avKey)
-    setData((prev) => ({ ...prev, [symbol]: result }))
-    setLoadingSymbol(null)
+    try {
+      const result = await fetchFinancials(symbol, avKey)
+      const now = new Date().toISOString()
+      setData((prev) => ({ ...prev, [symbol]: result }))
+      setFetchedAt((prev) => ({ ...prev, [symbol]: now }))
 
-    localCache[symbol] = result
-    localStorage.setItem('bt_financials_cache', JSON.stringify(localCache))
-    await saveSharedCache(symbol, result, user?.id)
+      localCache[symbol] = { data: result, fetchedAt: now }
+      localStorage.setItem('bt_financials_cache', JSON.stringify(localCache))
+      await saveSharedCache(symbol, result, user?.id)
+    } catch (err) {
+      // Alpha Vantage throws on rate limit. Nothing has been written at this
+      // point, so whatever was already on screen stays valid.
+      setError(err.message)
+    } finally {
+      setLoadingSymbol(null)
+    }
   }
 
   useEffect(() => {
@@ -141,6 +173,27 @@ export default function DCFTab({ investments }) {
           />
         </form>
       </div>
+
+      {activeSymbol && (
+        <div className="fin-header">
+          <span className="fin-symbol" data-testid="dcf-active-symbol">{activeSymbol}</span>
+          {fetchedAt[activeSymbol] && (
+            <span className="fin-fetched-at" data-testid="dcf-fetched-at">
+              as of {new Date(fetchedAt[activeSymbol]).toLocaleDateString()}
+            </span>
+          )}
+          <button
+            type="button"
+            className="fin-refresh-btn"
+            onClick={() => research(activeSymbol, { force: true })}
+            disabled={loadingSymbol === activeSymbol}
+          >
+            {loadingSymbol === activeSymbol ? 'Refreshing…' : '↻ Refresh'}
+          </button>
+        </div>
+      )}
+
+      {error && <p className="fin-error" role="alert">{error}</p>}
 
       {loadingSymbol && <p>Loading {loadingSymbol}…</p>}
 

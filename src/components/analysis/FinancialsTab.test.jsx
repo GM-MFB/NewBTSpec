@@ -101,13 +101,56 @@ describe('FinancialsTab', () => {
 
   it('uses the Supabase shared cache instead of fetching when available', async () => {
     useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
-    getSharedCache.mockResolvedValue(sampleData)
+    getSharedCache.mockResolvedValue({ data: sampleData, fetchedAt: '2026-01-15T00:00:00Z' })
 
     render(<MemoryRouter><FinancialsTab investments={investments} /></MemoryRouter>)
     await userEvent.click(screen.getByRole('button', { name: 'AAPL' }))
 
     await waitFor(() => expect(screen.getByText('Income Statement')).toBeInTheDocument())
     expect(fetchFinancials).not.toHaveBeenCalled()
+  })
+
+  it('refetches past every cache layer when Refresh is clicked, so new earnings actually arrive', async () => {
+    useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
+    // Data is already in the shared cache — without a force, this short-circuits.
+    getSharedCache.mockResolvedValue({ data: sampleData, fetchedAt: '2026-01-15T00:00:00Z' })
+    fetchFinancials.mockResolvedValue(sampleData)
+
+    render(<MemoryRouter><FinancialsTab investments={investments} /></MemoryRouter>)
+    await waitFor(() => expect(screen.getByText('Income Statement')).toBeInTheDocument())
+    expect(fetchFinancials).not.toHaveBeenCalled()
+
+    await userEvent.click(screen.getByRole('button', { name: /refresh/i }))
+
+    await waitFor(() => expect(fetchFinancials).toHaveBeenCalledWith('AAPL', 'avkey123'))
+    expect(saveSharedCache).toHaveBeenCalled()
+  })
+
+  it('shows when the data was last fetched so you can tell it is stale', async () => {
+    useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
+    getSharedCache.mockResolvedValue({ data: sampleData, fetchedAt: '2026-01-15T12:00:00Z' })
+
+    render(<MemoryRouter><FinancialsTab investments={investments} /></MemoryRouter>)
+
+    await waitFor(() => expect(screen.getByTestId('fin-fetched-at')).toBeInTheDocument())
+    expect(screen.getByTestId('fin-fetched-at')).toHaveTextContent(/2026/)
+  })
+
+  it('surfaces a rate-limit error instead of hanging, and keeps the cached data on screen', async () => {
+    useUserSettings.mockReturnValue({ avKey: 'avkey123', finnhubKey: '', loading: false })
+    getSharedCache.mockResolvedValue({ data: sampleData, fetchedAt: '2026-01-15T00:00:00Z' })
+    fetchFinancials.mockRejectedValue(new Error('Our standard API rate limit is 25 requests per day'))
+
+    render(<MemoryRouter><FinancialsTab investments={investments} /></MemoryRouter>)
+    await waitFor(() => expect(screen.getByText('Income Statement')).toBeInTheDocument())
+
+    await userEvent.click(screen.getByRole('button', { name: /refresh/i }))
+
+    await waitFor(() => expect(screen.getByText(/25 requests per day/i)).toBeInTheDocument())
+    // The stale-but-valid data must survive a failed refresh.
+    expect(screen.getByText('Income Statement')).toBeInTheDocument()
+    expect(saveSharedCache).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: /refresh/i })).toBeEnabled()
   })
 
   it('defaults to Annual and switches periods when Quarterly is clicked', async () => {

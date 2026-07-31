@@ -7,8 +7,9 @@ vi.mock('../utils/supabase', () => ({ supabase: { from: vi.fn() } }))
 describe('getSharedCache', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('returns the cached data for a ticker', async () => {
-    const maybeSingle = vi.fn().mockResolvedValue({ data: { data: { annual: [{ date: '2024-12-31' }], quarterly: [] } }, error: null })
+  it('returns the cached data and its fetch timestamp for a ticker', async () => {
+    const row = { data: { annual: [{ date: '2024-12-31' }], quarterly: [] }, fetched_at: '2026-01-15T00:00:00Z' }
+    const maybeSingle = vi.fn().mockResolvedValue({ data: row, error: null })
     const eq = vi.fn(() => ({ maybeSingle }))
     const select = vi.fn(() => ({ eq }))
     supabase.from.mockReturnValue({ select })
@@ -17,7 +18,20 @@ describe('getSharedCache', () => {
 
     expect(supabase.from).toHaveBeenCalledWith('financials_cache')
     expect(eq).toHaveBeenCalledWith('ticker', 'AAPL')
-    expect(result).toEqual({ annual: [{ date: '2024-12-31' }], quarterly: [] })
+    expect(result).toEqual({
+      data: { annual: [{ date: '2024-12-31' }], quarterly: [] },
+      fetchedAt: '2026-01-15T00:00:00Z',
+    })
+  })
+
+  it('returns a null timestamp for rows cached before fetched_at was populated', async () => {
+    const row = { data: { annual: [], quarterly: [] }, fetched_at: null }
+    const maybeSingle = vi.fn().mockResolvedValue({ data: row, error: null })
+    const eq = vi.fn(() => ({ maybeSingle }))
+    const select = vi.fn(() => ({ eq }))
+    supabase.from.mockReturnValue({ select })
+
+    expect(await getSharedCache('AAPL')).toEqual({ data: { annual: [], quarterly: [] }, fetchedAt: null })
   })
 
   it('returns null when there is no cached row', async () => {
