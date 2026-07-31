@@ -6,8 +6,8 @@ import { useAccounts } from '../hooks/useAccounts'
 import { useInvestmentsHistory } from '../hooks/useInvestmentsHistory'
 import { computeInvestmentStats } from '../lib/investmentStats'
 import { formatCurrency } from '../lib/format'
-import { STRATEGIES, effectiveStrategyDef } from '../lib/optionStrategies'
 import { isWithinDateRange } from '../lib/dateRange'
+import { groupClosedByDateAndStrategy } from '../lib/groupClosedInvestments'
 import { buildExportData } from '../lib/exportData'
 import { generatePdfReport } from '../lib/pdfReport'
 import { generateExcelWorkbook } from '../lib/excelExport'
@@ -23,6 +23,13 @@ function StatTile({ label, value, tone }) {
       <span className={`stat-tile-value mono ${tone ? `stat-tile-value--${tone}` : ''}`}>{value}</span>
     </div>
   )
+}
+
+function formatCloseDate(date) {
+  if (date === 'No Date') return 'No Close Date'
+  const parsed = new Date(`${date}T00:00:00`)
+  if (Number.isNaN(parsed.getTime())) return date
+  return parsed.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 export default function StatsPage() {
@@ -45,30 +52,7 @@ export default function StatsPage() {
 
   const closedInvestments = filteredInvestments.filter((i) => i.status === 'closed')
   const openInvestments = filteredInvestments.filter((i) => i.status === 'open')
-  const closedStocks = closedInvestments.filter((i) => i.assetType === 'Stock')
-  const closedOptions = closedInvestments.filter((i) => i.assetType === 'Option')
-
-  const knownStrategyGroups = STRATEGIES
-    .map((s) => ({ key: s.value, label: s.label, items: closedOptions.filter((i) => i.strategy === s.value) }))
-    .filter((g) => g.items.length > 0)
-  const categorizedOptionIds = new Set(knownStrategyGroups.flatMap((g) => g.items.map((i) => i.id)))
-  const uncategorizedOptions = closedOptions.filter((i) => !categorizedOptionIds.has(i.id))
-
-  const fallbackGroupsByLabel = new Map()
-  const closedOtherInvestments = []
-  for (const investment of uncategorizedOptions) {
-    const def = effectiveStrategyDef(investment)
-    if (!def) {
-      closedOtherInvestments.push(investment)
-      continue
-    }
-    const key = `fallback:${def.label}`
-    if (!fallbackGroupsByLabel.has(key)) fallbackGroupsByLabel.set(key, { key, label: def.label, items: [] })
-    fallbackGroupsByLabel.get(key).items.push(investment)
-  }
-  closedOtherInvestments.push(...closedInvestments.filter((i) => i.assetType !== 'Stock' && i.assetType !== 'Option'))
-
-  const closedStrategyGroups = [...knownStrategyGroups, ...fallbackGroupsByLabel.values()]
+  const closedByDate = groupClosedByDateAndStrategy(closedInvestments)
 
   async function handleExportPdf() {
     const data = buildExportData({ stats, closedInvestments, openInvestments, accountName: activeAccount?.name ?? '', startDate, endDate })
@@ -214,21 +198,18 @@ export default function StatsPage() {
           </div>
 
           <div className="investment-groups">
-            {closedStocks.length > 0 && (
-              <details className="investment-group" open>
-                <summary className="group-title">Stock<span className="group-count">{closedStocks.length}</span></summary>
-                <ul className="investment-list">
-                  {closedStocks.map((investment) => (
-                    <InvestmentRow key={investment.id} investment={investment} onEdit={setEditing} onDelete={deleteInvestment} />
-                  ))}
-                </ul>
-              </details>
-            )}
-
-            {closedStrategyGroups.length > 0 && (
-              <details className="investment-group" open>
-                <summary className="group-title">Option</summary>
-                {closedStrategyGroups.map((group) => (
+            {closedByDate.map((day) => (
+              <details key={day.date} className="investment-group closed-day-group" open>
+                <summary className="group-title">
+                  {formatCloseDate(day.date)}
+                  <span className="group-count">{day.count}</span>
+                  {day.totalPnl !== null && (
+                    <span className={`closed-day-pnl mono ${day.totalPnl >= 0 ? 'price-favorable' : 'price-unfavorable'}`}>
+                      {formatCurrency(day.totalPnl)}
+                    </span>
+                  )}
+                </summary>
+                {day.groups.map((group) => (
                   <details key={group.key} className="strategy-group" open>
                     <summary className="strategy-title">{group.label}<span className="group-count">{group.items.length}</span></summary>
                     <ul className="investment-list">
@@ -239,18 +220,7 @@ export default function StatsPage() {
                   </details>
                 ))}
               </details>
-            )}
-
-            {closedOtherInvestments.length > 0 && (
-              <details className="investment-group" open>
-                <summary className="group-title">Other<span className="group-count">{closedOtherInvestments.length}</span></summary>
-                <ul className="investment-list">
-                  {closedOtherInvestments.map((investment) => (
-                    <InvestmentRow key={investment.id} investment={investment} onEdit={setEditing} onDelete={deleteInvestment} />
-                  ))}
-                </ul>
-              </details>
-            )}
+            ))}
           </div>
         </div>
       )}

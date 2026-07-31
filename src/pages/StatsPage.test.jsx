@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import StatsPage from './StatsPage'
@@ -93,6 +93,33 @@ describe('StatsPage', () => {
     expect(screen.getAllByText('AAPL').length).toBeGreaterThan(0)
   })
 
+  it('groups closed positions by close date, most recent first, with strategy inside each day', () => {
+    mockAccounts()
+    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment: vi.fn() })
+
+    const { container } = render(<MemoryRouter><StatsPage /></MemoryRouter>)
+
+    const dayHeadings = [...container.querySelectorAll('.closed-day-group > .group-title')].map((el) => el.textContent)
+    expect(dayHeadings[0]).toMatch(/Jan 12, 2026/)
+    expect(dayHeadings[1]).toMatch(/Jan 10, 2026/)
+
+    // The QQQ cash secured put closed on the 12th, the AAPL stock on the 10th.
+    const firstDay = container.querySelectorAll('.closed-day-group')[0]
+    expect(within(firstDay).getByText('Cash Secured Put')).toBeInTheDocument()
+    expect(within(firstDay).queryByText('Stock')).not.toBeInTheDocument()
+  })
+
+  it('shows realized P&L for each close date', () => {
+    mockAccounts()
+    useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment: vi.fn() })
+
+    const { container } = render(<MemoryRouter><StatsPage /></MemoryRouter>)
+
+    // AAPL closed on the 10th for (150 - 100) x 10.
+    const days = container.querySelectorAll('.closed-day-group')
+    expect(days[1].querySelector('.closed-day-pnl')).toHaveTextContent('$500.00')
+  })
+
   it('renders each closed-investment group as an expanded, collapsible dropdown', () => {
     mockAccounts()
     useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment: vi.fn() })
@@ -122,9 +149,14 @@ describe('StatsPage', () => {
     const deleteInvestment = vi.fn()
     useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment })
 
-    render(<MemoryRouter><StatsPage /></MemoryRouter>)
+    const { container } = render(<MemoryRouter><StatsPage /></MemoryRouter>)
 
-    await userEvent.click(screen.getAllByRole('button', { name: /^delete$/i })[0])
+    // Scoped to the AAPL row rather than an index: closed positions are now
+    // ordered by close date, so render position is not a stable identifier.
+    // Scoped to the section too, since AAPL also appears in the Best Trade tile.
+    const closed = container.querySelector('.closed-investments-section')
+    const aaplRow = within(closed).getByText('AAPL').closest('.investment-row')
+    await userEvent.click(within(aaplRow).getByRole('button', { name: /^delete$/i }))
     expect(deleteInvestment).toHaveBeenCalledWith('i1')
   })
 
@@ -133,9 +165,11 @@ describe('StatsPage', () => {
     const updateInvestment = vi.fn()
     useInvestmentsHistory.mockReturnValue({ investments, loading: false, error: null, reload: vi.fn(), deleteInvestment: vi.fn(), updateInvestment })
 
-    render(<MemoryRouter><StatsPage /></MemoryRouter>)
+    const { container } = render(<MemoryRouter><StatsPage /></MemoryRouter>)
 
-    await userEvent.click(screen.getAllByRole('button', { name: /^edit$/i })[0])
+    const closed = container.querySelector('.closed-investments-section')
+    const aaplRow = within(closed).getByText('AAPL').closest('.investment-row')
+    await userEvent.click(within(aaplRow).getByRole('button', { name: /^edit$/i }))
     expect(screen.getByLabelText(/symbol/i)).toHaveValue('AAPL')
 
     const sharesInput = screen.getByLabelText(/shares/i)

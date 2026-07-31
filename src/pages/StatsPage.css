@@ -251,3 +251,38 @@
 .stats-table-wrap {
   overflow-x: auto;
 }
+
+/* Closed positions are grouped by close date, then by strategy inside each
+   day. The date heading carries that day's realized P&L. */
+.closed-day-group > .group-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.closed-day-pnl {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.closed-day-group .strategy-group {
+  padding-left: 12px;
+  border-left: 1px solid var(--border);
+  margin-top: 10px;
+}
+
+@media (max-width: 640px) {
+  .closed-day-group > .group-title {
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  .closed-day-group .strategy-group {
+    padding-left: 8px;
+  }
+}
