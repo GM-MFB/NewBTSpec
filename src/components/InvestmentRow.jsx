@@ -91,12 +91,13 @@ export default function InvestmentRow({ investment, onClosePosition, onDelete, o
   }
 
   return (
-    <li className={`investment-row${isClosed ? ' investment-row--closed' : ''}`} data-testid="investment-row">
+    <li className={`investment-row${isClosed ? ' investment-row--closed' : ''}${expanded ? ' investment-row--expanded' : ''}`} data-testid="investment-row">
       <div
         className="investment-row-clickable"
         data-testid="investment-row-clickable"
         role="button"
         tabIndex={0}
+        aria-expanded={expanded}
         onClick={() => setExpanded((v) => !v)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {

@@ -20,12 +20,13 @@ export default function TradeRow({ trade, onEdit, onDelete }) {
   }
 
   return (
-    <li className="trade-row" data-testid="trade-row">
+    <li className={`trade-row${expanded ? ' trade-row--expanded' : ''}`} data-testid="trade-row">
       <div
         className="trade-row-clickable"
         data-testid="trade-row-clickable"
         role="button"
         tabIndex={0}
+        aria-expanded={expanded}
         onClick={() => setExpanded((v) => !v)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -47,7 +48,7 @@ export default function TradeRow({ trade, onEdit, onDelete }) {
               {isOpen ? (
                 <span className="trade-open-badge">Open</span>
               ) : (
-                <span className="meta-item"><span className="meta-label">P&L:</span><span className={`meta-value ${pnlClass}`}>{formatCurrency(pnl)}</span></span>
+                <span className="meta-item meta-item--pnl"><span className="meta-label">P&L:</span><span className={`meta-value ${pnlClass}`}>{formatCurrency(pnl)}</span></span>
               )}
             </>
           ) : (
@@ -58,7 +59,7 @@ export default function TradeRow({ trade, onEdit, onDelete }) {
               ) : (
                 <>
                   <span className="meta-item"><span className="meta-label">Exit:</span><span className="meta-value">{formatCurrency(trade.exitPrice)}</span></span>
-                  <span className="meta-item"><span className="meta-label">P&L:</span><span className={`meta-value ${pnlClass}`}>{formatCurrency(pnl)}</span></span>
+                  <span className="meta-item meta-item--pnl"><span className="meta-label">P&L:</span><span className={`meta-value ${pnlClass}`}>{formatCurrency(pnl)}</span></span>
                 </>
               )}
             </>

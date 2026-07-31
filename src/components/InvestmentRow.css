@@ -178,3 +178,59 @@
   color: var(--red);
 }
 
+
+@media (max-width: 640px) {
+  /* Collapsed, the row is just ticker + P&L. Everything else — the remaining
+     stats and the action buttons that used to collide with them — lives
+     behind the tap. */
+  .investment-row-clickable {
+    width: 100%;
+    gap: 10px;
+    order: 1;
+  }
+
+  /* Only the collapsed row is a single line; expanded needs to wrap. */
+  .investment-row:not(.investment-row--expanded) .investment-row-clickable {
+    flex-wrap: nowrap;
+  }
+
+  .investment-row-clickable::after {
+    content: '›';
+    color: var(--text-dim);
+    font-size: 15px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .investment-row--expanded .investment-row-clickable::after {
+    content: '⌄';
+  }
+
+  .investment-row:not(.investment-row--expanded) .meta-item:not(.meta-item--pnl):not(.meta-item--realized-pnl):not(.meta-item--unrealized-pnl),
+  .investment-row:not(.investment-row--expanded) .investment-row-actions {
+    display: none;
+  }
+
+  .investment-row:not(.investment-row--expanded) .investment-row-meta {
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+  }
+
+  /* Expanded: stats, then details, then the buttons last. */
+  .investment-row-details {
+    order: 2;
+  }
+
+  .investment-row-actions {
+    order: 3;
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .investment-row-actions button,
+  .investment-chart-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 9px 14px;
+  }
+}

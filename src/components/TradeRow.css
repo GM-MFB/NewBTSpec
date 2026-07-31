@@ -168,7 +168,59 @@
 }
 
 @media (max-width: 640px) {
+  /* Collapsed, the row is just ticker + P&L. Everything else — the badges,
+     the remaining stats, and the action buttons that used to collide with
+     them — lives behind the tap. */
+  .trade-row-clickable {
+    width: 100%;
+    gap: 10px;
+    order: 1;
+  }
+
+  /* Only the collapsed row is a single line; expanded needs to wrap. */
+  .trade-row:not(.trade-row--expanded) .trade-row-clickable {
+    flex-wrap: nowrap;
+  }
+
+  .trade-row-clickable::after {
+    content: '›';
+    color: var(--text-dim);
+    font-size: 15px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .trade-row--expanded .trade-row-clickable::after {
+    content: '⌄';
+  }
+
+  .trade-row:not(.trade-row--expanded) .trade-badge,
+  .trade-row:not(.trade-row--expanded) .trade-direction,
+  .trade-row:not(.trade-row--expanded) .meta-item:not(.meta-item--pnl),
+  .trade-row:not(.trade-row--expanded) .trade-row-actions {
+    display: none;
+  }
+
+  .trade-row:not(.trade-row--expanded) .trade-row-meta {
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+  }
+
+  /* Expanded: stats, then details, then the buttons last. */
+  .trade-row-details {
+    order: 2;
+  }
+
   .trade-row-actions {
+    order: 3;
     margin-left: 0;
+    width: 100%;
+  }
+
+  .trade-row-actions button,
+  .trade-chart-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 9px 14px;
   }
 }

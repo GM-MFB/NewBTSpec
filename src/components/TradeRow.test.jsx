@@ -99,6 +99,31 @@ describe('TradeRow', () => {
     expect(screen.getByText('good setup')).toBeInTheDocument()
   })
 
+  it('marks the row expanded and reports it to assistive tech, so mobile CSS can reveal the hidden stats', async () => {
+    renderRow(<TradeRow trade={closedTrade} />)
+    const clickable = screen.getByTestId('trade-row-clickable')
+    const row = screen.getByTestId('trade-row')
+
+    expect(row).not.toHaveClass('trade-row--expanded')
+    expect(clickable).toHaveAttribute('aria-expanded', 'false')
+
+    await userEvent.click(clickable)
+
+    expect(row).toHaveClass('trade-row--expanded')
+    expect(clickable).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('tags the P&L meta item so it stays visible in the collapsed mobile row', () => {
+    const { container } = renderRow(<TradeRow trade={closedTrade} />)
+    expect(container.querySelector('.meta-item--pnl')).toBeInTheDocument()
+  })
+
+  it('tags the P&L meta item on a futures trade too', () => {
+    const futuresTrade = { id: 't3', symbol: 'MES', type: 'futures', direction: 'long', quantity: 2, ticks: 33, tickValue: 1.25, fees: 0 }
+    const { container } = renderRow(<TradeRow trade={futuresTrade} />)
+    expect(container.querySelector('.meta-item--pnl')).toBeInTheDocument()
+  })
+
   it('shows placeholder text in the details panel when there is no chart link or notes', async () => {
     renderRow(<TradeRow trade={closedTrade} />)
     await userEvent.click(screen.getByTestId('trade-row-clickable'))

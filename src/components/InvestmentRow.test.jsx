@@ -300,6 +300,24 @@ describe('InvestmentRow', () => {
     expect(screen.queryByRole('link', { name: /tradingview\.com/i })).not.toBeInTheDocument()
   })
 
+  it('marks the row expanded and reports it to assistive tech, so mobile CSS can reveal the hidden stats', async () => {
+    const investment = {
+      id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150,
+      strategy: '', strike: '', expiry: '',
+    }
+    renderRow(<InvestmentRow investment={investment} />)
+    const clickable = screen.getByTestId('investment-row-clickable')
+    const row = screen.getByTestId('investment-row')
+
+    expect(row).not.toHaveClass('investment-row--expanded')
+    expect(clickable).toHaveAttribute('aria-expanded', 'false')
+
+    await userEvent.click(clickable)
+
+    expect(row).toHaveClass('investment-row--expanded')
+    expect(clickable).toHaveAttribute('aria-expanded', 'true')
+  })
+
   it('expands to show the chart link and notes when the row is clicked', async () => {
     const investment = {
       id: 'i1', symbol: 'AAPL', assetType: 'Stock', shares: 10, avgCost: 150,
