@@ -112,6 +112,14 @@ export function useAccounts(userId) {
     setAccounts((prev) => prev.map((a) => (a.id === id ? { ...a, name: trimmed } : a)))
   }
 
+  async function updateCash(id, cash) {
+    const amount = Number(cash) || 0
+    const { error } = await supabase.from('accounts').update({ cash: amount }).eq('id', id)
+    if (error) throw error
+
+    setAccounts((prev) => prev.map((a) => (a.id === id ? { ...a, cash: amount } : a)))
+  }
+
   return {
     accounts,
     activeAccountId,
@@ -121,5 +129,6 @@ export function useAccounts(userId) {
     createAccount,
     deleteAccount,
     renameAccount,
+    updateCash,
   }
 }

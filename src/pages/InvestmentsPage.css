@@ -80,6 +80,53 @@
   color: var(--text);
 }
 
+/* The headline figure — everything else on this row is a component of it. */
+.summary-stat--worth {
+  padding-right: 24px;
+  border-right: 1px solid var(--border);
+}
+
+.summary-stat--worth .summary-value {
+  font-size: 26px;
+  color: var(--green);
+}
+
+.summary-cash-input {
+  width: 120px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 5px 8px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.summary-cash-input:focus {
+  outline: none;
+  border-color: var(--green);
+}
+
+.summary-hint {
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+@media (max-width: 640px) {
+  .portfolio-summary {
+    gap: 14px 20px;
+  }
+
+  /* The divider only reads correctly beside the other stats, not above them. */
+  .summary-stat--worth {
+    width: 100%;
+    padding-right: 0;
+    border-right: none;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
 .summary-value--positive {
   color: var(--green);
 }

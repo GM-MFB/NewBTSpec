@@ -216,6 +216,35 @@ describe('useAccounts', () => {
     expect(result.current.accounts).toEqual([{ id: 'a1', name: 'Main' }, { id: 'a2', name: 'Swing Trades' }])
   })
 
+  it('updateCash persists the balance to the DB and local list', async () => {
+    const accounts = [{ id: 'a1', name: 'Main', cash: 0 }]
+    const updateCalls = []
+    supabase.from.mockImplementation(mockFrom({ ownAccounts: accounts, updateCalls }))
+
+    const { result } = renderHook(() => useAccounts('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await act(() => result.current.updateCash('a1', 12500))
+
+    expect(updateCalls).toEqual([
+      { table: 'accounts', fields: { cash: 12500 }, col: 'id', val: 'a1' },
+    ])
+    expect(result.current.activeAccount.cash).toBe(12500)
+  })
+
+  it('updateCash coerces a blank entry to zero rather than writing null', async () => {
+    const accounts = [{ id: 'a1', name: 'Main', cash: 500 }]
+    const updateCalls = []
+    supabase.from.mockImplementation(mockFrom({ ownAccounts: accounts, updateCalls }))
+
+    const { result } = renderHook(() => useAccounts('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await act(() => result.current.updateCash('a1', ''))
+
+    expect(updateCalls[0].fields).toEqual({ cash: 0 })
+  })
+
   it('renameAccount trims whitespace from the new name', async () => {
     const accounts = [{ id: 'a1', name: 'Main' }]
     const updateCalls = []

@@ -28,6 +28,66 @@ function mockAccounts() {
   useUserSettings.mockReturnValue({ finnhubKey: 'key123', loading: false, saveFinnhubKey: vi.fn() })
 }
 
+describe('Total Portfolio Worth', () => {
+  const holdings = [
+    { id: 'i1', assetType: 'Stock', symbol: 'AAPL', shares: 100, avgCost: 150, currentPrice: 165, strategy: '', strike: '', expiry: '' },
+    { id: 'i2', assetType: 'Option', symbol: 'SPY', shares: 1, avgCost: 1.5, strategy: 'cash_secured_put', strike: 380, expiry: '2026-08-01' },
+  ]
+
+  function mockWith(cash, updateCash = vi.fn()) {
+    useAuth.mockReturnValue({ user: { id: 'u1' } })
+    useAccounts.mockReturnValue({
+      accounts: [{ id: 'a1', name: 'Main Account', cash }],
+      activeAccount: { id: 'a1', name: 'Main Account', cash },
+      activeAccountId: 'a1',
+      switchAccount: vi.fn(),
+      createAccount: vi.fn(),
+      updateCash,
+      loading: false,
+    })
+    useUserSettings.mockReturnValue({ finnhubKey: 'key123', loading: false, saveFinnhubKey: vi.fn() })
+    useInvestments.mockReturnValue({ investments: holdings, error: null, reload: vi.fn(), addInvestment: vi.fn(), closeInvestment: vi.fn(), updateInvestment: vi.fn(), deleteInvestment: vi.fn() })
+  }
+
+  it('totals free cash, stock market value and option collateral', () => {
+    mockWith(10000)
+    render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
+    // 10,000 cash + (100 x 165) stock + (380 x 100 x 1) collateral
+    expect(screen.getByTestId('portfolio-worth')).toHaveTextContent('$64,500.00')
+  })
+
+  it('still totals correctly when no cash has been entered yet', () => {
+    mockWith(0)
+    render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
+    expect(screen.getByTestId('portfolio-worth')).toHaveTextContent('$54,500.00')
+  })
+
+  it('seeds the cash field from the account and persists an edit on blur', async () => {
+    const updateCash = vi.fn().mockResolvedValue(undefined)
+    mockWith(10000, updateCash)
+    render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
+
+    const input = screen.getByLabelText(/free cash/i)
+    expect(input).toHaveValue(10000)
+
+    await userEvent.clear(input)
+    await userEvent.type(input, '12500')
+    fireEvent.blur(input)
+
+    expect(updateCash).toHaveBeenCalledWith('a1', 12500)
+  })
+
+  it('does not write to the database when the value is unchanged', async () => {
+    const updateCash = vi.fn()
+    mockWith(10000, updateCash)
+    render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
+
+    fireEvent.blur(screen.getByLabelText(/free cash/i))
+
+    expect(updateCash).not.toHaveBeenCalled()
+  })
+})
+
 describe('InvestmentsPage', () => {
   it('shows the empty state when there are no open investments', () => {
     mockAccounts()

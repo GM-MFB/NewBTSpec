@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import './InvestmentsPage.css'
 import { useAuth } from '../hooks/useAuth'
@@ -7,7 +7,7 @@ import { useInvestments } from '../hooks/useInvestments'
 import { useUserSettings } from '../hooks/useUserSettings'
 import { STRATEGIES } from '../lib/optionStrategies'
 import { coveredSharesFor } from '../lib/coverage'
-import { computeSummary } from '../lib/portfolioSummary'
+import { computeSummary, computePortfolioWorth } from '../lib/portfolioSummary'
 import { formatCurrency } from '../lib/format'
 import { fetchQuote } from '../lib/finnhub'
 import { currentWeekValue } from '../lib/isoWeek'
@@ -19,7 +19,7 @@ import ClosePositionModal from '../components/ClosePositionModal'
 
 export default function InvestmentsPage() {
   const { user, signOut } = useAuth()
-  const { accounts, activeAccount, activeAccountId, switchAccount, createAccount, deleteAccount, renameAccount } = useAccounts(user?.id)
+  const { accounts, activeAccount, activeAccountId, switchAccount, createAccount, deleteAccount, renameAccount, updateCash } = useAccounts(user?.id)
   const { investments, error, reload, addInvestment, closeInvestment, updateInvestment, rollInvestment, deleteInvestment } = useInvestments(activeAccountId)
   const { finnhubKey } = useUserSettings(user?.id)
   const [addOpen, setAddOpen] = useState(false)
@@ -29,6 +29,20 @@ export default function InvestmentsPage() {
   const [missingKey, setMissingKey] = useState(false)
   const [refreshFailedSymbols, setRefreshFailedSymbols] = useState([])
   const [weekValue, setWeekValue] = useState(currentWeekValue())
+  const [cashDraft, setCashDraft] = useState('')
+
+  // The account loads asynchronously and can be switched, so the draft follows
+  // whichever account is active rather than initialising once.
+  useEffect(() => {
+    setCashDraft(activeAccount?.cash != null ? String(activeAccount.cash) : '')
+  }, [activeAccountId, activeAccount?.cash])
+
+  async function saveCash() {
+    if (!activeAccountId) return
+    const amount = Number(cashDraft) || 0
+    if (amount === Number(activeAccount?.cash ?? 0)) return
+    await updateCash(activeAccountId, amount)
+  }
 
   const stockInvestments = investments.filter((i) => i.assetType === 'Stock')
   const strategyGroups = STRATEGIES
@@ -106,6 +120,27 @@ export default function InvestmentsPage() {
 
       {investments.length > 0 && (
         <div className="portfolio-summary">
+          <div className="summary-stat summary-stat--worth">
+            <span className="summary-label">Total Portfolio Worth</span>
+            <span className="summary-value mono" data-testid="portfolio-worth">
+              {formatCurrency(computePortfolioWorth(investments, activeAccount?.cash))}
+            </span>
+          </div>
+          <div className="summary-stat summary-stat--cash">
+            <label htmlFor="cashInput" className="summary-label">Free cash</label>
+            <input
+              id="cashInput"
+              type="number"
+              step="0.01"
+              min="0"
+              className="summary-cash-input mono"
+              value={cashDraft}
+              onChange={(e) => setCashDraft(e.target.value)}
+              onBlur={saveCash}
+              onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
+            />
+            <span className="summary-hint">Excluding collateral</span>
+          </div>
           <div className="summary-stat">
             <span className="summary-label">Total Collateral Deployed</span>
             <span className="summary-value mono">{formatCurrency(summary.totalCollateral)}</span>
