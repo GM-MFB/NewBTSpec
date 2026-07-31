@@ -17,19 +17,39 @@ const PRICED_ASSET_TYPES = ['Stock', 'ETF', 'Crypto']
 //
 // `cash` is FREE cash. A cash-secured put's collateral is also cash sitting in
 // the account, so counting restricted cash here as well would double count it.
-export function computePortfolioWorth(investments, cash) {
-  let holdings = 0
+export function computeWorthBreakdown(investments, cash) {
+  let stockValue = 0
+  let optionCollateral = 0
+  let longOptionPremium = 0
 
   for (const investment of investments) {
     if (investment.assetType === 'Option') {
-      holdings += optionsCapitalAtRisk(investment, effectiveStrategyDef(investment))
+      const strategyDef = effectiveStrategyDef(investment)
+      const value = optionsCapitalAtRisk(investment, strategyDef)
+      // A covered call is short with a value of zero, so it lands in
+      // collateral and contributes nothing — which is what we want.
+      if (strategyDef?.optionDirection === 'short') optionCollateral += value
+      else longOptionPremium += value
     } else if (PRICED_ASSET_TYPES.includes(investment.assetType)) {
       const price = Number(investment.currentPrice) || Number(investment.avgCost) || 0
-      holdings += price * (Number(investment.shares) || 0)
+      stockValue += price * (Number(investment.shares) || 0)
     }
   }
 
-  return (Number(cash) || 0) + holdings
+  const freeCash = Number(cash) || 0
+  return {
+    cash: freeCash,
+    stockValue,
+    optionCollateral,
+    longOptionPremium,
+    total: freeCash + stockValue + optionCollateral + longOptionPremium,
+  }
+}
+
+// Derived from the breakdown so the headline figure and the allocation rows
+// behind it can never disagree.
+export function computePortfolioWorth(investments, cash) {
+  return computeWorthBreakdown(investments, cash).total
 }
 
 export function computeSummary(investments) {

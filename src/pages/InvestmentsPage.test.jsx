@@ -77,6 +77,40 @@ describe('Total Portfolio Worth', () => {
     expect(updateCash).toHaveBeenCalledWith('a1', 12500)
   })
 
+  it('expands into an allocation breakdown when the worth figure is clicked', async () => {
+    mockWith(10000)
+    render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
+
+    expect(screen.queryByTestId('worth-breakdown')).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: /total portfolio worth/i }))
+
+    const panel = screen.getByTestId('worth-breakdown')
+    expect(panel).toHaveTextContent('Cash')
+    expect(panel).toHaveTextContent('$10,000.00')
+    expect(panel).toHaveTextContent('Stock')
+    expect(panel).toHaveTextContent('$16,500.00')
+    expect(panel).toHaveTextContent('Option Collateral')
+    expect(panel).toHaveTextContent('$38,000.00')
+  })
+
+  it('shows each slice as a share of the total', async () => {
+    mockWith(10000)
+    render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
+    await userEvent.click(screen.getByRole('button', { name: /total portfolio worth/i }))
+
+    // 38,000 of 64,500 is 58.9%
+    expect(screen.getByTestId('worth-breakdown')).toHaveTextContent('58.9%')
+  })
+
+  it('omits the long option row when there are no long options', async () => {
+    mockWith(10000)
+    render(<MemoryRouter><InvestmentsPage /></MemoryRouter>)
+    await userEvent.click(screen.getByRole('button', { name: /total portfolio worth/i }))
+
+    expect(screen.getByTestId('worth-breakdown')).not.toHaveTextContent(/long option/i)
+  })
+
   it('does not write to the database when the value is unchanged', async () => {
     const updateCash = vi.fn()
     mockWith(10000, updateCash)

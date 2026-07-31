@@ -7,7 +7,7 @@ import { useInvestments } from '../hooks/useInvestments'
 import { useUserSettings } from '../hooks/useUserSettings'
 import { STRATEGIES } from '../lib/optionStrategies'
 import { coveredSharesFor } from '../lib/coverage'
-import { computeSummary, computePortfolioWorth } from '../lib/portfolioSummary'
+import { computeSummary, computeWorthBreakdown } from '../lib/portfolioSummary'
 import { formatCurrency } from '../lib/format'
 import { fetchQuote } from '../lib/finnhub'
 import { currentWeekValue } from '../lib/isoWeek'
@@ -30,6 +30,7 @@ export default function InvestmentsPage() {
   const [refreshFailedSymbols, setRefreshFailedSymbols] = useState([])
   const [weekValue, setWeekValue] = useState(currentWeekValue())
   const [cashDraft, setCashDraft] = useState('')
+  const [worthOpen, setWorthOpen] = useState(false)
 
   // The account loads asynchronously and can be switched, so the draft follows
   // whichever account is active rather than initialising once.
@@ -54,6 +55,17 @@ export default function InvestmentsPage() {
   ])
   const otherInvestments = investments.filter((i) => !categorizedIds.has(i.id))
   const summary = computeSummary(investments)
+  const breakdown = computeWorthBreakdown(investments, activeAccount?.cash)
+  // Long option premium only earns a row when there is some — otherwise the
+  // breakdown is the three buckets that actually apply.
+  const breakdownRows = [
+    { label: 'Cash', value: breakdown.cash },
+    { label: 'Stock', value: breakdown.stockValue },
+    { label: 'Option Collateral', value: breakdown.optionCollateral },
+    ...(breakdown.longOptionPremium > 0
+      ? [{ label: 'Long Option Premium', value: breakdown.longOptionPremium }]
+      : []),
+  ]
 
   async function handleRefresh() {
     if (!finnhubKey) {
@@ -121,10 +133,33 @@ export default function InvestmentsPage() {
       {investments.length > 0 && (
         <div className="portfolio-summary">
           <div className="summary-stat summary-stat--worth">
-            <span className="summary-label">Total Portfolio Worth</span>
-            <span className="summary-value mono" data-testid="portfolio-worth">
-              {formatCurrency(computePortfolioWorth(investments, activeAccount?.cash))}
-            </span>
+            <button
+              type="button"
+              className="summary-worth-toggle"
+              onClick={() => setWorthOpen((v) => !v)}
+              aria-expanded={worthOpen}
+            >
+              <span className="summary-label">
+                Total Portfolio Worth
+                <span className="summary-worth-caret" aria-hidden="true">{worthOpen ? '⌄' : '›'}</span>
+              </span>
+              <span className="summary-value mono" data-testid="portfolio-worth">
+                {formatCurrency(breakdown.total)}
+              </span>
+            </button>
+            {worthOpen && (
+              <ul className="worth-breakdown" data-testid="worth-breakdown">
+                {breakdownRows.map((row) => (
+                  <li key={row.label}>
+                    <span className="worth-breakdown-label">{row.label}</span>
+                    <span className="worth-breakdown-value mono">{formatCurrency(row.value)}</span>
+                    <span className="worth-breakdown-pct mono">
+                      {breakdown.total > 0 ? `${((row.value / breakdown.total) * 100).toFixed(1)}%` : '—'}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <div className="summary-stat summary-stat--cash">
             <label htmlFor="cashInput" className="summary-label">Free cash</label>

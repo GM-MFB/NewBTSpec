@@ -84,11 +84,88 @@
 .summary-stat--worth {
   padding-right: 24px;
   border-right: 1px solid var(--border);
+  position: relative;
 }
 
 .summary-stat--worth .summary-value {
   font-size: 26px;
   color: var(--green);
+}
+
+.summary-worth-toggle {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+}
+
+.summary-worth-toggle .summary-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.summary-worth-caret {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.summary-worth-toggle:hover .summary-value {
+  filter: brightness(1.15);
+}
+
+.summary-worth-toggle:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.worth-breakdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 20;
+  min-width: 260px;
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+.worth-breakdown li {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 7px 10px;
+  font-size: 13px;
+}
+
+.worth-breakdown li + li {
+  border-top: 1px solid var(--border);
+}
+
+.worth-breakdown-label {
+  color: var(--text-dim);
+  flex: 1;
+}
+
+.worth-breakdown-value {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.worth-breakdown-pct {
+  color: var(--text-dim);
+  font-size: 12px;
+  width: 48px;
+  text-align: right;
 }
 
 .summary-cash-input {

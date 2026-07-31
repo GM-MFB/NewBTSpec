@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeSummary, computePortfolioWorth } from './portfolioSummary'
+import { computeSummary, computePortfolioWorth, computeWorthBreakdown } from './portfolioSummary'
 
 describe('computeSummary', () => {
   it('sums collateral and potential premium across short option positions', () => {
@@ -93,5 +93,43 @@ describe('computePortfolioWorth', () => {
     const investments = [{ assetType: 'Stock', symbol: 'AAPL', shares: 10, avgCost: 100, currentPrice: 100 }]
     expect(computePortfolioWorth(investments, null)).toBe(1000)
     expect(computePortfolioWorth(investments, '')).toBe(1000)
+  })
+})
+
+describe('computeWorthBreakdown', () => {
+  const holdings = [
+    { assetType: 'Stock', symbol: 'AAPL', shares: 100, avgCost: 150, currentPrice: 165 },
+    { assetType: 'Option', strategy: 'cash_secured_put', shares: 1, strike: 380, avgCost: 1.5 },
+    { assetType: 'Option', strategy: 'call', shares: 2, strike: 200, avgCost: 3 },
+  ]
+
+  it('splits the total into cash, stock, option collateral and long premium', () => {
+    const b = computeWorthBreakdown(holdings, 10000)
+    expect(b.cash).toBe(10000)
+    expect(b.stockValue).toBe(16500)
+    expect(b.optionCollateral).toBe(38000)
+    expect(b.longOptionPremium).toBe(600)
+  })
+
+  it('has parts that sum to the total, and a total matching computePortfolioWorth', () => {
+    const b = computeWorthBreakdown(holdings, 10000)
+    expect(b.cash + b.stockValue + b.optionCollateral + b.longOptionPremium).toBe(b.total)
+    expect(b.total).toBe(computePortfolioWorth(holdings, 10000))
+  })
+
+  it('counts a covered call as collateral of zero, not as long premium', () => {
+    const covered = [
+      { assetType: 'Stock', symbol: 'AAPL', shares: 100, avgCost: 150, currentPrice: 165 },
+      { assetType: 'Option', symbol: 'AAPL', strategy: 'covered_call', shares: 1, strike: 200, avgCost: 1.2 },
+    ]
+    const b = computeWorthBreakdown(covered, 0)
+    expect(b.optionCollateral).toBe(0)
+    expect(b.longOptionPremium).toBe(0)
+    expect(b.total).toBe(16500)
+  })
+
+  it('reports zero parts for an empty portfolio without dividing by anything', () => {
+    const b = computeWorthBreakdown([], 0)
+    expect(b).toEqual({ cash: 0, stockValue: 0, optionCollateral: 0, longOptionPremium: 0, total: 0 })
   })
 })
