@@ -268,3 +268,153 @@ export function ironButterfly({ centerStrike, wingWidth, credit, contracts } = {
     returnOnRisk: maxProfit / maxLoss,
   }
 }
+
+// ---------------------------------------------------------------------------
+// Premium-seller structures
+// ---------------------------------------------------------------------------
+
+// Short put plus a short call spread. Size the credit above the call spread's
+// width and the upside risk disappears entirely — that is the whole point of
+// the structure, so it is reported explicitly.
+export function jadeLizard({ putStrike, shortCall, longCall, credit, contracts } = {}) {
+  const keys = ['maxProfit', 'callWidth', 'upsideRisk', 'downsideBreakeven', 'maxDownsideLoss', 'upsideCovered']
+  const ps = num(putStrike)
+  const sc = num(shortCall)
+  const lc = num(longCall)
+  const c = num(credit)
+  const n = num(contracts)
+  const callWidth = lc - sc
+  if (ps <= 0 || sc <= 0 || lc <= 0 || c <= 0 || n <= 0 || callWidth <= 0) return nulls(keys)
+
+  const upside = Math.max(0, callWidth - c)
+
+  return {
+    maxProfit: c * SHARES_PER_CONTRACT * n,
+    callWidth,
+    upsideRisk: upside * SHARES_PER_CONTRACT * n,
+    upsideCovered: c >= callWidth,
+    downsideBreakeven: ps - c,
+    // The put side behaves like a cash-secured put: the floor is the stock at zero.
+    maxDownsideLoss: (ps - c) * SHARES_PER_CONTRACT * n,
+  }
+}
+
+// Own the shares, sell a put and a call against them. Double premium, and a
+// second assignment waiting if the stock falls.
+export function coveredStrangle({ costBasis, putStrike, callStrike, credit, contracts } = {}) {
+  const keys = ['maxProfit', 'breakeven', 'sharesIfAssigned', 'blendedBasis', 'capitalRequired']
+  const basis = num(costBasis)
+  const ps = num(putStrike)
+  const cs = num(callStrike)
+  const c = num(credit)
+  const n = num(contracts)
+  if (basis <= 0 || ps <= 0 || cs <= 0 || c <= 0 || n <= 0) return nulls(keys)
+
+  return {
+    // Called away at the call strike, having collected both premiums.
+    maxProfit: ((cs - basis) + c) * SHARES_PER_CONTRACT * n,
+    breakeven: basis - c,
+    // Assignment doubles the position, so the basis is the average of the two.
+    sharesIfAssigned: 200 * n,
+    blendedBasis: (basis + ps - c) / 2,
+    capitalRequired: ps * SHARES_PER_CONTRACT * n,
+  }
+}
+
+// Uneven wings: the narrow side is the profit tent, the wide side carries the
+// risk. Taken for a credit, the narrow side finishes risk-free.
+export function brokenWingButterfly({ shortStrike, narrowWing, wideWing, credit, contracts } = {}) {
+  const keys = ['maxProfit', 'maxLoss', 'peakStrike', 'riskFreeSide', 'breakeven']
+  const short = num(shortStrike)
+  const narrow = num(narrowWing)
+  const wide = num(wideWing)
+  const c = num(credit)
+  const n = num(contracts)
+  if (short <= 0 || narrow <= 0 || wide <= 0 || n <= 0 || wide <= narrow) return nulls(keys)
+
+  const maxLossPerShare = wide - narrow - c
+  return {
+    maxProfit: (narrow + c) * SHARES_PER_CONTRACT * n,
+    maxLoss: Math.max(0, maxLossPerShare) * SHARES_PER_CONTRACT * n,
+    peakStrike: short,
+    // A credit means nothing is lost if it expires past the narrow wing.
+    riskFreeSide: c > 0,
+    breakeven: short - narrow - c,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Portfolio approaches
+// ---------------------------------------------------------------------------
+
+// Systematic far-OTM put buying. The question is never "what does one put do"
+// but "what does the programme cost per year, and what does it pay in a crash".
+export function tailHedge({ portfolioValue, spotPrice, strikePct, premium, contracts, rollsPerYear } = {}) {
+  const keys = ['strike', 'annualCost', 'costAsPct', 'payoffs']
+  const pv = num(portfolioValue)
+  const spot = num(spotPrice)
+  const pct = num(strikePct)
+  const p = num(premium)
+  const n = num(contracts)
+  const rolls = num(rollsPerYear)
+  if (pv <= 0 || spot <= 0 || pct <= 0 || pct >= 100 || p <= 0 || n <= 0 || rolls <= 0) return nulls(keys)
+
+  const strike = spot * (1 - pct / 100)
+  const annualCost = p * SHARES_PER_CONTRACT * n * rolls
+
+  // What the hedge pays against what the portfolio loses, at each drawdown.
+  const payoffs = [10, 20, 30, 40, 50].map((drop) => {
+    const endPrice = spot * (1 - drop / 100)
+    const hedgePayoff = Math.max(0, strike - endPrice) * SHARES_PER_CONTRACT * n
+    const portfolioLoss = pv * (drop / 100)
+    return {
+      drop,
+      hedgePayoff,
+      portfolioLoss,
+      netLoss: portfolioLoss - hedgePayoff,
+      coverage: portfolioLoss > 0 ? hedgePayoff / portfolioLoss : 0,
+    }
+  })
+
+  return { strike, annualCost, costAsPct: annualCost / pv, payoffs }
+}
+
+// A buffer: long stock exposure, downside absorbed to a point, upside capped.
+// Structurally a collar, which is why it belongs beside one.
+export function bufferStructure({ portfolioValue, bufferPct, capPct } = {}) {
+  const keys = ['bufferedTo', 'cappedAt', 'outcomes']
+  const pv = num(portfolioValue)
+  const buffer = num(bufferPct)
+  const cap = num(capPct)
+  if (pv <= 0 || buffer <= 0 || cap <= 0) return nulls(keys)
+
+  const outcomes = [-30, -20, -10, 0, 10, 20, 30].map((move) => {
+    let result
+    if (move >= 0) result = Math.min(move, cap)
+    // The buffer absorbs the first slice of a fall; beyond it losses resume.
+    else result = Math.min(0, move + buffer)
+    return { move, result, value: pv * (1 + result / 100) }
+  })
+
+  return { bufferedTo: buffer, cappedAt: cap, outcomes }
+}
+
+// Short put funded by a long call. Behaves like the shares above and below the
+// strikes, with a flat stretch between them where only the credit remains.
+export function riskReversal({ putStrike, callStrike, netCredit, contracts } = {}) {
+  const keys = ['maxProfit', 'maxLoss', 'lowerBreakeven', 'flatZone', 'creditKept']
+  const ps = num(putStrike)
+  const cs = num(callStrike)
+  const c = num(netCredit)
+  const n = num(contracts)
+  if (ps <= 0 || cs <= 0 || n <= 0 || cs <= ps) return nulls(keys)
+
+  return {
+    // Unbounded above the call strike, exactly as owning the shares would be.
+    maxProfit: null,
+    maxLoss: (ps - c) * SHARES_PER_CONTRACT * n,
+    lowerBreakeven: ps - c,
+    flatZone: [ps, cs],
+    creditKept: c * SHARES_PER_CONTRACT * n,
+  }
+}

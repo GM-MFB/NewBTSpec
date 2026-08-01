@@ -578,3 +578,40 @@
     left: -21px;
   }
 }
+
+/* Scenario tables inside calculators */
+
+.tail-table-wrap {
+  overflow-x: auto;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.tail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.tail-table th,
+.tail-table td {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.tail-table thead th {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+}
+
+.tail-table th[scope="row"] {
+  text-align: left;
+  color: var(--text);
+  font-weight: 700;
+}

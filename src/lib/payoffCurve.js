@@ -79,6 +79,36 @@ const PAYOFFS = {
     return (sign * (intrinsic - num(premium))) * SHARES_PER_CONTRACT * num(contracts)
   },
 
+  // Short put plus a short call spread.
+  'jade-lizard': ({ putStrike, shortCall, longCall, credit, contracts }, price) => {
+    const putSide = intrinsicPut(price, num(putStrike))
+    const callSide = intrinsicCall(price, num(shortCall)) - intrinsicCall(price, num(longCall))
+    return (num(credit) - putSide - callSide) * SHARES_PER_CONTRACT * num(contracts)
+  },
+
+  // Shares, plus a short call above and a short put below.
+  'covered-strangle': ({ costBasis, putStrike, callStrike, credit, contracts }, price) =>
+    ((price - num(costBasis))
+      + num(credit)
+      - intrinsicCall(price, num(callStrike))
+      - intrinsicPut(price, num(putStrike)))
+    * SHARES_PER_CONTRACT * num(contracts),
+
+  // Long 1 at short+narrow, short 2 at short, long 1 at short-wide, in puts.
+  'broken-wing': ({ shortStrike, narrowWing, wideWing, credit, contracts }, price) => {
+    const short = num(shortStrike)
+    const upper = short + num(narrowWing)
+    const lower = short - num(wideWing)
+    const value = intrinsicPut(price, upper)
+      - 2 * intrinsicPut(price, short)
+      + intrinsicPut(price, lower)
+    return (value + num(credit)) * SHARES_PER_CONTRACT * num(contracts)
+  },
+
+  'risk-reversal': ({ putStrike, callStrike, netCredit, contracts }, price) =>
+    (num(netCredit) - intrinsicPut(price, num(putStrike)) + intrinsicCall(price, num(callStrike)))
+    * SHARES_PER_CONTRACT * num(contracts),
+
   'iron-butterfly': ({ centerStrike, wingWidth, credit, contracts }, price) => {
     const center = num(centerStrike)
     const wing = num(wingWidth)
@@ -107,6 +137,14 @@ function strikesFor(kind, params) {
     case 'protective-put': return [num(params.putStrike), num(params.costBasis)]
     case 'collar': return [num(params.putStrike), num(params.callStrike), num(params.costBasis)]
     case 'strangle': return [num(params.putStrike), num(params.callStrike)]
+    case 'risk-reversal': return [num(params.putStrike), num(params.callStrike)]
+    case 'jade-lizard': return [num(params.putStrike), num(params.shortCall), num(params.longCall)]
+    case 'covered-strangle': return [num(params.putStrike), num(params.callStrike), num(params.costBasis)]
+    case 'broken-wing': return [
+      num(params.shortStrike) - num(params.wideWing),
+      num(params.shortStrike),
+      num(params.shortStrike) + num(params.narrowWing),
+    ]
     case 'iron-butterfly': return [
       num(params.centerStrike) - num(params.wingWidth),
       num(params.centerStrike),
@@ -133,6 +171,9 @@ function isValid(kind, params, strikes) {
   if (kind === 'collar' && num(params.callStrike) <= num(params.putStrike)) return false
   if (kind === 'strangle' && num(params.callStrike) < num(params.putStrike)) return false
   if (kind === 'iron-butterfly' && num(params.wingWidth) <= 0) return false
+  if (kind === 'jade-lizard' && num(params.longCall) <= num(params.shortCall)) return false
+  if (kind === 'risk-reversal' && num(params.callStrike) <= num(params.putStrike)) return false
+  if (kind === 'broken-wing' && num(params.wideWing) <= num(params.narrowWing)) return false
   return true
 }
 

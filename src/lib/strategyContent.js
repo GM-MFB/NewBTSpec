@@ -535,6 +535,334 @@ export const STRATEGY_CONTENT = [
     ],
     calculator: 'protective-put',
   },
+
+  {
+    id: 'jade-lizard',
+    group: 'Income',
+    name: 'Jade Lizard',
+    outlook: 'Neutral to bullish',
+    capital: 'Put collateral, plus the call spread width',
+    glance: {
+      risk: 'Undefined below',
+      riskTone: 'bad',
+      direction: 'Neutral / bullish',
+      volatility: 'Sell high IV',
+      capital: 'High',
+      legs: '3',
+    },
+    summary:
+      'A short put plus a short call spread. Size the total credit above the width of the call spread and the position has no upside risk at all — the stock can gap to any price and you still keep something. The downside behaves exactly like a cash-secured put, which is the trade you were making anyway.',
+    legs: [
+      { action: 'sell', text: '1 put below the price — the same short put as a wheel entry' },
+      { action: 'sell', text: '1 call above the price' },
+      { action: 'buy', text: '1 further call — caps the upside side' },
+    ],
+    keyFacts: [
+      ['Max profit', 'The total credit, if price finishes between the put and short call', 'good'],
+      ['Upside risk', 'Call spread width − credit. Zero if the credit exceeds the width', null],
+      ['Downside risk', 'Put strike − credit, per share, to zero', 'bad'],
+      ['Capital required', 'Put collateral plus the call spread margin', null],
+    ],
+    entry: [
+      { lead: 'Credit above the call spread width', detail: 'This is the defining condition. Collect $5.00 against a $5 wide call spread and no price above the calls can hurt you.' },
+      { lead: 'Put strike where you would buy', detail: 'The downside is a cash-secured put with extra credit. All the wheel entry rules still apply.' },
+      { lead: 'High IV, both sides', detail: 'You are selling three options. Elevated volatility is what makes the credit large enough to cover the call width.' },
+      { lead: '30 – 45 days out', detail: 'The usual short-premium window.' },
+    ],
+    management: [
+      { when: 'Entry', detail: 'Credit received across three legs. Upside is either capped or eliminated depending on the credit.' },
+      { when: '50% profit', detail: 'Close as with any short-premium position.' },
+      { when: 'Stock rallies', detail: 'If the credit covered the width, do nothing — a rally cannot hurt. That is the point of the structure.' },
+      { when: 'Stock falls', detail: 'Manage exactly like a cash-secured put: roll down and out for a credit, or accept assignment.' },
+    ],
+    mistakes: [
+      { lead: 'Not actually covering the call width', detail: 'A jade lizard whose credit is below the call spread width is just a short put with a capped, risky call side. Check the arithmetic before entering.' },
+      { lead: 'Forgetting the downside is undefined', detail: 'The headline is "no upside risk". The put side is still a full cash-secured put and that is where the real exposure lives.' },
+      { lead: 'Chasing the structure on a bad name', detail: 'The put strike still means you might own the shares. Same rule as always.' },
+    ],
+    calculator: 'jade-lizard',
+  },
+
+  {
+    id: 'covered-strangle',
+    group: 'Income',
+    name: 'Covered Strangle',
+    outlook: 'Bullish, willing to double',
+    capital: 'The shares plus full put collateral',
+    glance: {
+      risk: 'Undefined',
+      riskTone: 'bad',
+      direction: 'Bullish',
+      volatility: 'Sell high IV',
+      capital: 'Very high',
+      legs: '3',
+    },
+    summary:
+      'Own 100 shares, sell a covered call above and a cash-secured put below. Two premiums instead of one, on a name you already hold. The catch is in the name: if the stock falls through the put you are assigned a second hundred shares, so you must want twice as much of it as you already own.',
+    legs: [
+      { action: 'hold', text: '100 shares per contract' },
+      { action: 'sell', text: '1 call above the price — caps the shares you hold' },
+      { action: 'sell', text: '1 put below the price — commits you to buying 100 more' },
+    ],
+    keyFacts: [
+      ['Max profit', 'Call strike − basis, plus both premiums', 'good'],
+      ['Max loss', 'Both lots to zero, less the premiums collected', 'bad'],
+      ['Breakeven', 'Cost basis − total premium (before assignment)', null],
+      ['Capital required', 'The shares you hold plus full collateral for the put', null],
+    ],
+    entry: [
+      { lead: 'Only if you want twice the position', detail: 'This is the whole risk. Assignment doubles your exposure to one name at exactly the moment it is falling.' },
+      { lead: 'Put strike where you would add', detail: 'Treat it as a limit order you get paid for, at a level where doubling up is genuinely attractive.' },
+      { lead: 'Call above your cost basis', detail: 'Same rule as any covered call. A call below basis locks in a loss when called away.' },
+      { lead: 'Size for the doubled position', detail: 'Half the position size you would normally take, because assignment makes it the full one.' },
+    ],
+    management: [
+      { when: 'Entry', detail: 'Two premiums received. Capital committed on both the shares and the put collateral.' },
+      { when: 'Stock rises', detail: 'The call caps you. Roll it up and out for a credit if you want to keep the shares.' },
+      { when: 'Stock falls to the put', detail: 'Assignment doubles the position at a lower basis. The blended basis is what matters from here.' },
+      { when: 'After assignment', detail: 'You now hold 200 shares. Sell covered calls against both lots — above the blended basis, not the original.' },
+    ],
+    mistakes: [
+      { lead: 'Running it on a full-size position', detail: 'Assignment turns a normal position into a double. Sizing for the pre-assignment state is how concentration accidents happen.' },
+      { lead: 'Using the original basis after assignment', detail: 'The blended basis is lower. Calls priced off the old number leave money on the table or lock in losses.' },
+      { lead: 'Treating it as safer than a covered call', detail: 'It collects more premium because it carries more risk. The put side is a genuine second commitment.' },
+    ],
+    calculator: 'covered-strangle',
+  },
+
+  {
+    id: 'broken-wing',
+    group: 'Neutral',
+    name: 'Broken Wing Butterfly',
+    outlook: 'Neutral with a directional lean',
+    capital: 'Wing difference less the credit',
+    glance: {
+      risk: 'Defined',
+      riskTone: 'good',
+      direction: 'Leaning',
+      volatility: 'Sell high IV',
+      capital: 'Low',
+      legs: '4',
+    },
+    summary:
+      'A butterfly with one wing further out than the other. Skewing it that way usually lets you put the trade on for a credit, which means the narrow side finishes risk-free — if the stock runs that way you simply keep the credit. All the risk sits on the wide side, which is the direction you believe it will not go.',
+    legs: [
+      { action: 'buy', text: '1 option one narrow wing beyond the body' },
+      { action: 'sell', text: '2 options at the body strike — the peak' },
+      { action: 'buy', text: '1 option one wide wing the other side — where the risk lives' },
+    ],
+    keyFacts: [
+      ['Max profit', 'Narrow wing + credit, at the body strike', 'good'],
+      ['Max loss', 'Wide wing − narrow wing − credit', 'bad'],
+      ['Risk-free side', 'The narrow side, whenever the trade is opened for a credit', null],
+      ['Capital required', 'The max loss', null],
+    ],
+    entry: [
+      { lead: 'Open it for a credit', detail: 'This is the point. A credit means the narrow side cannot lose, so you are only wrong in one direction.' },
+      { lead: 'Wide wing away from your fear', detail: 'All the risk sits on the wide side. Put it where you least expect the stock to go.' },
+      { lead: 'Body where you expect it to land', detail: 'The peak is at the body strike, exactly as with a symmetric butterfly.' },
+      { lead: 'Sell into high IV', detail: 'You are net short premium, so richer options mean a larger credit and a wider risk-free zone.' },
+    ],
+    management: [
+      { when: 'Entry', detail: 'Credit received. The narrow side is already safe.' },
+      { when: 'Drifts to the narrow side', detail: 'Nothing to do — that side pays the credit and nothing more. Let it go.' },
+      { when: 'Drifts to the wide side', detail: 'This is the only place you lose. Close or roll before it reaches the far wing.' },
+      { when: '21 DTE', detail: 'Same gamma warning as any butterfly: the peak sharpens and small moves matter a lot.' },
+    ],
+    mistakes: [
+      { lead: 'Putting it on for a debit', detail: 'That surrenders the risk-free side, which is the entire reason to break the wing in the first place.' },
+      { lead: 'Wide wing in the wrong direction', detail: 'Placing the risk where the stock is actually likely to move turns a clever structure into a bad directional bet.' },
+      { lead: 'Expecting the peak', detail: 'Like every butterfly, the maximum only exists at one price. Plan for the plateau, not the point.' },
+    ],
+    calculator: 'broken-wing',
+  },
+
+  {
+    id: 'vol-risk-premium',
+    group: 'Hedge Fund',
+    name: 'Volatility Risk Premium',
+    outlook: 'The edge behind every premium sale',
+    capital: 'Whatever the structure requires',
+    glance: {
+      risk: 'Varies',
+      direction: 'Non-directional',
+      volatility: 'Sell it',
+      capital: 'Varies',
+      legs: 'An approach',
+    },
+    summary:
+      'Implied volatility tends to exceed the volatility that subsequently arrives. That gap is the volatility risk premium, and it is the reason selling options is profitable on average rather than a coin flip. Every income strategy on this page — the wheel, credit spreads, condors — is a different way of harvesting the same edge. Understanding it tells you when the edge is present and when it is not.',
+    legs: [
+      { action: 'sell', text: 'Any short-premium structure — this is an approach, not a position' },
+    ],
+    keyFacts: [
+      ['The edge', 'Implied vol exceeds realised vol most of the time, on most underlyings', 'good'],
+      ['Why it exists', 'Investors pay up for protection. That demand is structural, not a mistake', null],
+      ['When it fails', 'Crashes. The premium is compensation for taking the tail, and sometimes the tail arrives', 'bad'],
+      ['How to measure it', 'Compare current IV against the realised volatility of recent weeks', null],
+    ],
+    entry: [
+      { lead: 'Sell when IV rank is high', detail: 'The premium is largest when implied volatility is elevated relative to its own history. That is when the gap is widest.' },
+      { lead: 'Not all underlyings are equal', detail: 'Broad indices carry a persistent premium because they are what people hedge with. Single names are noisier and the edge is thinner.' },
+      { lead: 'Diversify across time, not just names', detail: 'Staggered expiries mean a single bad week cannot catch every position at its worst moment.' },
+      { lead: 'Assume the tail will arrive', detail: 'The premium exists because sellers occasionally lose badly. Size on the assumption that it happens to you eventually.' },
+    ],
+    management: [
+      { when: 'Normal conditions', detail: 'The edge accrues slowly and unspectacularly. Most months look like nothing happening.' },
+      { when: 'Volatility spike', detail: 'Positions lose together — this is the correlation nobody prices in. Reduce rather than double down.' },
+      { when: 'After a crash', detail: 'IV is highest exactly when selling feels worst. That is usually when the premium is most real.' },
+      { when: 'Long run', detail: 'Judge the approach over years, not trades. A single quarter says almost nothing about whether the edge is working.' },
+    ],
+    mistakes: [
+      { lead: 'Mistaking the premium for free money', detail: 'It is payment for accepting losses that are rare, correlated, and large. Long strings of wins are the strategy working normally, not evidence of safety.' },
+      { lead: 'Selling into low IV', detail: 'When implied volatility is already low there is little premium to harvest and the same tail risk to carry.' },
+      { lead: 'Sizing off the win rate', detail: 'A 90% win rate says nothing about expectancy if the 10% is ten times larger.' },
+      { lead: 'Ignoring correlation', detail: 'Twenty positions across twenty names is one position when the market falls.' },
+    ],
+    calculator: null,
+  },
+
+  {
+    id: 'tail-hedge',
+    group: 'Hedge Fund',
+    name: 'Tail Risk Hedging',
+    outlook: 'Insurance against the crash',
+    capital: 'A small, continuous bleed',
+    glance: {
+      risk: 'Defined',
+      riskTone: 'good',
+      direction: 'Short crash',
+      volatility: 'Buy low IV',
+      capital: 'Low',
+      legs: '1, repeatedly',
+    },
+    summary:
+      'Continuously buy far out-of-the-money puts on an index. Most expire worthless and the programme costs one or two percent a year. In a genuine crash the payoff is convex and enormous — the position that was bleeding quietly becomes the one that saves the portfolio. It is the deliberate mirror image of premium selling, and the two coexist well.',
+    legs: [
+      { action: 'buy', text: 'Far OTM index puts, 15–30% below spot, rolled continuously' },
+    ],
+    keyFacts: [
+      ['Cost', 'Typically 1 – 2% of portfolio value per year, paid continuously', 'bad'],
+      ['Payoff', 'Convex — it accelerates as the drawdown deepens', 'good'],
+      ['Max loss', 'The premium spent. It is an expense, not a position', null],
+      ['When it works', 'Fast, deep, correlated drawdowns. Not slow grinding declines', null],
+    ],
+    entry: [
+      { lead: '15 – 30% out of the money', detail: 'Close enough to pay in a real crash, far enough that the premium stays small. Nearer puts cost more than the protection is worth.' },
+      { lead: 'Buy when volatility is cheap', detail: 'Insurance bought calmly is affordable. Bought in a panic it is not, and that is exactly when people reach for it.' },
+      { lead: 'Roll continuously', detail: 'The programme only works if it is always on. A hedge you let lapse protects nothing, and gaps do not announce themselves.' },
+      { lead: 'Size as an expense line', detail: 'Decide what percentage of the portfolio per year you will spend, then buy what that affords. Do not size off what you hope to make.' },
+    ],
+    management: [
+      { when: 'Most of the time', detail: 'It loses money. Every month. That is the programme working correctly, and it is the reason most people abandon it.' },
+      { when: 'Volatility rises', detail: 'The puts gain on volatility alone, before the underlying reaches them.' },
+      { when: 'Real crash', detail: 'Payoff is convex. Consider monetising rather than holding for more — the peak is brief and the rebound is fast.' },
+      { when: 'After monetising', detail: 'Re-establish once volatility subsides. Crashes cluster, and the second leg is a real risk.' },
+    ],
+    mistakes: [
+      { lead: 'Abandoning it after a quiet year', detail: 'The whole payoff is in the rare event. Cancelling insurance because you did not claim is how you are uninsured for the one that matters.' },
+      { lead: 'Buying after the fall', detail: 'Put premium spikes with fear. The hedge is cheapest precisely when nobody wants it.' },
+      { lead: 'Strikes too close', detail: 'Nearer puts feel safer but cost several times more, turning a 1% annual bleed into a 5% one the portfolio cannot carry.' },
+      { lead: 'Treating it as a trade', detail: 'It is an expense line with a lottery ticket attached. Judging it on monthly P&L guarantees you cancel it at the worst moment.' },
+    ],
+    calculator: 'tail-hedge',
+  },
+
+  {
+    id: 'risk-reversal',
+    group: 'Hedge Fund',
+    name: 'Skew & Risk Reversals',
+    outlook: 'Bullish, funded by selling fear',
+    capital: 'Put collateral, or margin',
+    glance: {
+      risk: 'Undefined',
+      riskTone: 'bad',
+      direction: 'Bullish',
+      volatility: 'Sell put skew',
+      capital: 'High',
+      legs: '2',
+    },
+    summary:
+      'Out-of-the-money puts are structurally more expensive than equidistant calls, because everyone wants downside protection and few want upside. That asymmetry is the volatility skew. A risk reversal sells the expensive put to buy the cheap call — often for zero cost or a credit — leaving you long the underlying with a shape the market has paid you to take.',
+    legs: [
+      { action: 'sell', text: '1 OTM put — the expensive side of the skew' },
+      { action: 'buy', text: '1 OTM call — the cheap side, funded by the put' },
+    ],
+    keyFacts: [
+      ['Max profit', 'Unbounded above the call strike', 'good'],
+      ['Max loss', 'Put strike less the net credit, to zero. Same as a short put', 'bad'],
+      ['Cost', 'Often near zero, sometimes a credit — that is the skew paying you', null],
+      ['Capital required', 'Full put collateral if secured, otherwise naked margin', null],
+    ],
+    entry: [
+      { lead: 'Check the skew is actually there', detail: 'Compare the IV of the put and the call you are trading. If they are similar, there is no premium to harvest and this is just a leveraged bet.' },
+      { lead: 'Only where you would own the shares', detail: 'The short put is a real commitment. Every cash-secured put rule applies unchanged.' },
+      { lead: 'Steep skew, calm market', detail: 'Skew steepens after selloffs. That is when the put is richest relative to the call.' },
+      { lead: 'Know it is a synthetic long', detail: 'The combined position behaves much like owning the stock, with a gap between the strikes where nothing happens.' },
+    ],
+    management: [
+      { when: 'Entry', detail: 'Near-zero cost, sometimes a credit. Delta is positive and grows as the stock rises.' },
+      { when: 'Stock rises', detail: 'The call gains, the put decays. Both legs work together — this is the intended outcome.' },
+      { when: 'Stock falls', detail: 'The short put dominates and the call becomes worthless. Manage it exactly like a cash-secured put.' },
+      { when: 'Skew flattens', detail: 'Part of the edge was the skew itself. If it normalises while price is unchanged, the position has gained a little.' },
+    ],
+    mistakes: [
+      { lead: 'Treating "zero cost" as zero risk', detail: 'It costs nothing to put on and can lose as much as owning the shares outright. Cost and risk are unrelated here.' },
+      { lead: 'Trading it without checking skew', detail: 'Without a genuine IV difference between the legs, there is no edge, only leverage.' },
+      { lead: 'Using naked margin carelessly', detail: 'Brokers permit far more size than is prudent. The put should be one you could actually honour.' },
+    ],
+    calculator: 'risk-reversal',
+  },
+
+  {
+    id: 'buffer',
+    group: 'Hedge Fund',
+    name: 'Defined Outcome & Buffers',
+    outlook: 'Long, with a floor and a ceiling',
+    capital: 'The underlying exposure',
+    glance: {
+      risk: 'Defined',
+      riskTone: 'good',
+      direction: 'Long',
+      volatility: 'Structure dependent',
+      capital: 'Moderate',
+      legs: '3 – 4',
+    },
+    summary:
+      'A structure that absorbs the first slice of a fall in exchange for capping the gain, over a fixed period. This is what buffer ETFs sell, and it is a multi-billion-dollar product category built entirely from a collar. Knowing the construction means you can build it yourself on a position you already hold, choose your own buffer and cap, and skip the management fee.',
+    legs: [
+      { action: 'buy', text: '1 deep ITM call — the long exposure, cheaper than shares' },
+      { action: 'buy', text: '1 ATM put — the top of the buffer' },
+      { action: 'sell', text: '1 OTM put — the bottom of the buffer, funds the structure' },
+      { action: 'sell', text: '1 OTM call — the cap, pays for the rest' },
+    ],
+    keyFacts: [
+      ['Buffer', 'The first slice of a fall, absorbed entirely', 'good'],
+      ['Cap', 'The most you can make over the period, whatever the underlying does', null],
+      ['Below the buffer', 'Losses resume one for one — it is a buffer, not a floor', 'bad'],
+      ['Outcome period', 'Fixed. The buffer and cap only hold if held to the end', null],
+    ],
+    entry: [
+      { lead: 'Match the period to the legs', detail: 'The buffer and cap only apply at expiry. Entering mid-period or exiting early gives neither.' },
+      { lead: 'Deeper buffers cost more cap', detail: 'The trade-off is explicit. A 15% buffer costs more upside than a 9% one, always.' },
+      { lead: 'Best when you want exposure but fear a drawdown', detail: 'It is for holding through uncertainty, not for maximising return.' },
+      { lead: 'Build it yourself on a position you hold', detail: 'You already have the shares. A collar plus a put spread reproduces the product without the fee.' },
+    ],
+    management: [
+      { when: 'Entry', detail: 'All legs on. The outcome profile is fixed for the period from here.' },
+      { when: 'Mid-period', detail: 'The value will not track the advertised buffer or cap. Those apply at expiry only, and interim marks can look alarming.' },
+      { when: 'Underlying falls inside the buffer', detail: 'The structure absorbs it. This is the whole reason to hold it.' },
+      { when: 'Underlying falls past the buffer', detail: 'Losses resume one for one from there. A buffer is not a floor and never was.' },
+      { when: 'Period ends', detail: 'Roll into the next one if the reason still stands, at whatever buffer and cap the market then offers.' },
+    ],
+    mistakes: [
+      { lead: 'Believing the buffer is a floor', detail: 'It absorbs the first slice. Past it you lose exactly as though it were not there.' },
+      { lead: 'Judging it mid-period', detail: 'The legs price independently before expiry. Mid-period marks routinely look worse than the outcome profile implies.' },
+      { lead: 'Ignoring the cap in a strong year', detail: 'It was the price of the buffer. Regretting it in a rally is regretting the trade you chose to make.' },
+      { lead: 'Paying a fund for it', detail: 'The construction is four legs you can place yourself if you already hold the underlying.' },
+    ],
+    calculator: 'buffer',
+  },
 ]
 
 export function strategyById(id) {

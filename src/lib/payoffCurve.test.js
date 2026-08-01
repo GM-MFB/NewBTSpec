@@ -195,3 +195,45 @@ describe('payoffAt — added strategies', () => {
     expect(at('pmcc', p, 140)).toBeCloseTo(700, 6)
   })
 })
+
+describe('payoffAt — premium seller structures', () => {
+  it('jade lizard keeps the whole credit above the call spread when it is covered', () => {
+    const p = { putStrike: 95, shortCall: 105, longCall: 110, credit: 5, contracts: 1 }
+    expect(at('jade-lizard', p, 100)).toBeCloseTo(500, 6)
+    // Credit 5 against a 5 wide call spread: nothing lost to the upside.
+    expect(at('jade-lizard', p, 140)).toBeCloseTo(0, 6)
+    expect(at('jade-lizard', p, 90)).toBeCloseTo(0, 6)
+  })
+
+  it('jade lizard loses to the upside when the credit is short of the width', () => {
+    const p = { putStrike: 95, shortCall: 105, longCall: 110, credit: 3, contracts: 1 }
+    expect(at('jade-lizard', p, 140)).toBeCloseTo(-200, 6)
+  })
+
+  it('covered strangle caps at the call and doubles down below the put', () => {
+    const p = { costBasis: 100, putStrike: 95, callStrike: 110, credit: 4, contracts: 1 }
+    expect(at('covered-strangle', p, 110)).toBeCloseTo(1400, 6)
+    expect(at('covered-strangle', p, 130)).toBeCloseTo(1400, 6)
+    // Below the put both the shares and the assignment lose together:
+    // shares -1500, credit +400, short put 10 in the money -1000.
+    expect(at('covered-strangle', p, 85)).toBeCloseTo(-2100, 6)
+  })
+
+  it('broken wing butterfly peaks at the short strike', () => {
+    const p = { shortStrike: 100, narrowWing: 5, wideWing: 10, credit: 1, contracts: 1 }
+    expect(at('broken-wing', p, 100)).toBeCloseTo(600, 6)
+    // Above the narrow wing only the credit remains — the risk-free side.
+    expect(at('broken-wing', p, 120)).toBeCloseTo(100, 6)
+    // Below the wide wing the loss is capped.
+    expect(at('broken-wing', p, 80)).toBeCloseTo(-400, 6)
+  })
+})
+
+describe('payoffAt — risk reversal', () => {
+  it('keeps only the credit between the strikes and tracks the shares outside them', () => {
+    const p = { putStrike: 95, callStrike: 110, netCredit: 0.5, contracts: 1 }
+    expect(at('risk-reversal', p, 100)).toBeCloseTo(50, 6)
+    expect(at('risk-reversal', p, 120)).toBeCloseTo(1050, 6)
+    expect(at('risk-reversal', p, 90)).toBeCloseTo(-450, 6)
+  })
+})

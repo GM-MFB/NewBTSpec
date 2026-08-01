@@ -7,7 +7,7 @@ import StrategyArticle from '../components/strategy/StrategyArticle'
 import Header from '../components/Header'
 
 // Preserves the order strategies are declared in, within each group.
-const GROUP_ORDER = ['Income', 'Directional', 'Neutral', 'Volatility', 'Protection']
+const GROUP_ORDER = ['Income', 'Directional', 'Neutral', 'Volatility', 'Protection', 'Hedge Fund']
 const GROUPS = GROUP_ORDER
   .map((group) => [group, STRATEGY_CONTENT.filter((s) => s.group === group)])
   .filter(([, strategies]) => strategies.length > 0)

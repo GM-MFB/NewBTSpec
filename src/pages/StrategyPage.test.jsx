@@ -52,8 +52,16 @@ describe('StrategyPage', () => {
     renderPage()
     for (const strategy of STRATEGY_CONTENT) {
       await userEvent.click(screen.getByRole('button', { name: strategy.name }))
-      for (const section of ['strategy-legs', 'strategy-key-facts', 'strategy-entry', 'strategy-management', 'strategy-mistakes', 'strategy-calculator']) {
+      for (const section of ['strategy-legs', 'strategy-key-facts', 'strategy-entry', 'strategy-management', 'strategy-mistakes']) {
         expect(screen.getByTestId(section), `${strategy.name} is missing ${section}`).toBeInTheDocument()
+      }
+      // A calculator only where the strategy has one. Volatility Risk Premium
+      // is an approach rather than a structure, and giving it a calculator
+      // would mean inventing a pricing model.
+      if (strategy.calculator) {
+        expect(screen.getByTestId('strategy-calculator'), `${strategy.name} is missing its calculator`).toBeInTheDocument()
+      } else {
+        expect(screen.queryByTestId('strategy-calculator')).not.toBeInTheDocument()
       }
     }
   })
@@ -190,6 +198,57 @@ describe('StrategyPage', () => {
     await userEvent.click(screen.getByRole('button', { name: /poor man/i }))
 
     expect(screen.getByText(/assumes both legs run to the long expiry/i)).toBeInTheDocument()
+  })
+
+  it('has a Hedge Fund group', () => {
+    const { container } = renderPage()
+    expect(within(container.querySelector('.strategy-tabs')).getByText('Hedge Fund')).toBeInTheDocument()
+  })
+
+  it('says a jade lizard has no upside risk when the credit covers the call width', async () => {
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: 'Jade Lizard' }))
+
+    const calculator = screen.getByTestId('strategy-calculator')
+    expect(within(calculator).getByText('None')).toBeInTheDocument()
+    expect(within(calculator).getByText(/no price above the calls can hurt you/i)).toBeInTheDocument()
+  })
+
+  it('warns that a covered strangle doubles the position on assignment', async () => {
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: 'Covered Strangle' }))
+
+    const calculator = screen.getByTestId('strategy-calculator')
+    expect(within(calculator).getByText('200')).toBeInTheDocument()
+    expect(within(calculator).getByText(/doubles the position/i)).toBeInTheDocument()
+  })
+
+  it('shows the tail hedge paying nothing until the drawdown passes the strike', async () => {
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: 'Tail Risk Hedging' }))
+
+    const calculator = screen.getByTestId('strategy-calculator')
+    // A 20% OTM put pays nothing on a 10% fall.
+    const row = within(calculator).getByText('−10%').closest('tr')
+    expect(row).toHaveTextContent('$0.00')
+  })
+
+  it('shows a buffer absorbing a fall inside it and capping the upside', async () => {
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: /defined outcome/i }))
+
+    const calculator = screen.getByTestId('strategy-calculator')
+    // 15% buffer: a 10% fall becomes 0%. 12% cap: a 30% rise becomes 12%.
+    expect(within(calculator).getByText('-10%').closest('tr')).toHaveTextContent('0.0%')
+    expect(within(calculator).getByText('+30%').closest('tr')).toHaveTextContent('+12.0%')
+  })
+
+  it('gives Volatility Risk Premium no calculator, since it is an approach not a structure', async () => {
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: /volatility risk premium/i }))
+
+    expect(screen.queryByTestId('strategy-calculator')).not.toBeInTheDocument()
+    expect(screen.getByTestId('strategy-key-facts')).toBeInTheDocument()
   })
 
   it('computes the condor from its four strikes', async () => {

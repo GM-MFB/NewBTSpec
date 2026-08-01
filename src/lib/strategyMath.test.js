@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   cashSecuredPut, coveredCall, creditSpread, debitSpread, calendarSpread, ironCondor,
   longOption, poorMansCoveredCall, protectivePut, collar, strangle, ironButterfly,
+  jadeLizard, coveredStrangle, brokenWingButterfly, tailHedge, bufferStructure, riskReversal,
 } from './strategyMath'
 
 describe('cashSecuredPut', () => {
@@ -240,5 +241,127 @@ describe('ironButterfly', () => {
 
   it('returns nulls when the credit exceeds the wing width', () => {
     expect(ironButterfly({ centerStrike: 100, wingWidth: 10, credit: 12, contracts: 1 }).maxLoss).toBeNull()
+  })
+})
+
+describe('jadeLizard', () => {
+  it('has no upside risk when the credit covers the call spread width', () => {
+    const r = jadeLizard({ putStrike: 95, shortCall: 105, longCall: 110, credit: 5, contracts: 1 })
+    expect(r.upsideCovered).toBe(true)
+    expect(r.upsideRisk).toBe(0)
+    expect(r.maxProfit).toBe(500)
+  })
+
+  it('leaves upside risk when the credit falls short of the width', () => {
+    const r = jadeLizard({ putStrike: 95, shortCall: 105, longCall: 110, credit: 3, contracts: 1 })
+    expect(r.upsideCovered).toBe(false)
+    expect(r.upsideRisk).toBe(200)
+  })
+
+  it('breaks even on the downside like a cash secured put', () => {
+    const r = jadeLizard({ putStrike: 95, shortCall: 105, longCall: 110, credit: 5, contracts: 1 })
+    expect(r.downsideBreakeven).toBe(90)
+    expect(r.maxDownsideLoss).toBe(9000)
+  })
+
+  it('refuses a call spread with no width', () => {
+    expect(jadeLizard({ putStrike: 95, shortCall: 105, longCall: 105, credit: 5, contracts: 1 }).maxProfit).toBeNull()
+  })
+})
+
+describe('coveredStrangle', () => {
+  it('profits by the call gain plus both premiums when called away', () => {
+    const r = coveredStrangle({ costBasis: 100, putStrike: 95, callStrike: 110, credit: 4, contracts: 1 })
+    expect(r.maxProfit).toBe(1400)
+    expect(r.breakeven).toBe(96)
+  })
+
+  it('doubles the share count and blends the basis if the put is assigned', () => {
+    const r = coveredStrangle({ costBasis: 100, putStrike: 95, callStrike: 110, credit: 4, contracts: 1 })
+    expect(r.sharesIfAssigned).toBe(200)
+    // (100 + 95 - 4) / 2
+    expect(r.blendedBasis).toBeCloseTo(95.5, 6)
+  })
+
+  it('reports the cash needed to honour the short put', () => {
+    expect(coveredStrangle({ costBasis: 100, putStrike: 95, callStrike: 110, credit: 4, contracts: 2 }).capitalRequired).toBe(19000)
+  })
+})
+
+describe('brokenWingButterfly', () => {
+  it('peaks at the short strike and risks only the wing difference', () => {
+    const r = brokenWingButterfly({ shortStrike: 100, narrowWing: 5, wideWing: 10, credit: 1, contracts: 1 })
+    expect(r.maxProfit).toBe(600)
+    // (10 - 5 - 1) x 100
+    expect(r.maxLoss).toBe(400)
+    expect(r.peakStrike).toBe(100)
+  })
+
+  it('marks the narrow side risk free when taken for a credit', () => {
+    expect(brokenWingButterfly({ shortStrike: 100, narrowWing: 5, wideWing: 10, credit: 1, contracts: 1 }).riskFreeSide).toBe(true)
+  })
+
+  it('refuses wings that are not actually broken', () => {
+    expect(brokenWingButterfly({ shortStrike: 100, narrowWing: 5, wideWing: 5, credit: 1, contracts: 1 }).maxProfit).toBeNull()
+  })
+})
+
+describe('tailHedge', () => {
+  const base = { portfolioValue: 100000, spotPrice: 500, strikePct: 20, premium: 1.5, contracts: 2, rollsPerYear: 4 }
+
+  it('computes the strike and the annual cost of running the programme', () => {
+    const r = tailHedge(base)
+    expect(r.strike).toBe(400)
+    // 1.50 x 100 x 2 contracts x 4 rolls
+    expect(r.annualCost).toBe(1200)
+    expect(r.costAsPct).toBeCloseTo(0.012, 10)
+  })
+
+  it('pays nothing until the drawdown passes the strike', () => {
+    const r = tailHedge(base)
+    expect(r.payoffs.find((p) => p.drop === 10).hedgePayoff).toBe(0)
+  })
+
+  it('pays convexly once past it', () => {
+    const r = tailHedge(base)
+    // 40% drop puts spot at 300, so the 400 put is 100 in the money
+    expect(r.payoffs.find((p) => p.drop === 40).hedgePayoff).toBe(20000)
+    expect(r.payoffs.find((p) => p.drop === 40).netLoss).toBe(20000)
+  })
+
+  it('returns nulls for a nonsensical strike percentage', () => {
+    expect(tailHedge({ ...base, strikePct: 120 }).annualCost).toBeNull()
+  })
+})
+
+describe('bufferStructure', () => {
+  it('absorbs losses inside the buffer', () => {
+    const r = bufferStructure({ portfolioValue: 100000, bufferPct: 15, capPct: 12 })
+    expect(r.outcomes.find((o) => o.move === -10).result).toBe(0)
+  })
+
+  it('resumes losing beyond the buffer', () => {
+    const r = bufferStructure({ portfolioValue: 100000, bufferPct: 15, capPct: 12 })
+    expect(r.outcomes.find((o) => o.move === -30).result).toBe(-15)
+  })
+
+  it('caps the upside', () => {
+    const r = bufferStructure({ portfolioValue: 100000, bufferPct: 15, capPct: 12 })
+    expect(r.outcomes.find((o) => o.move === 30).result).toBe(12)
+    expect(r.outcomes.find((o) => o.move === 10).result).toBe(10)
+  })
+})
+
+describe('riskReversal', () => {
+  it('loses like a short put and gains without bound', () => {
+    const r = riskReversal({ putStrike: 95, callStrike: 110, netCredit: 0.5, contracts: 1 })
+    expect(r.maxProfit).toBeNull()
+    expect(r.maxLoss).toBeCloseTo(9450, 6)
+    expect(r.lowerBreakeven).toBeCloseTo(94.5, 6)
+    expect(r.creditKept).toBeCloseTo(50, 6)
+  })
+
+  it('refuses a call strike at or below the put strike', () => {
+    expect(riskReversal({ putStrike: 110, callStrike: 95, netCredit: 1, contracts: 1 }).maxLoss).toBeNull()
   })
 })

@@ -3,6 +3,7 @@ import { formatCurrency } from '../../lib/format'
 import {
   cashSecuredPut, coveredCall, creditSpread, debitSpread, calendarSpread, ironCondor,
   longOption, poorMansCoveredCall, protectivePut, collar, strangle, ironButterfly,
+  jadeLizard, coveredStrangle, brokenWingButterfly, tailHedge, bufferStructure, riskReversal,
 } from '../../lib/strategyMath'
 import PayoffChart from './PayoffChart'
 
@@ -374,6 +375,196 @@ function ButterflyCalculator() {
   )
 }
 
+function JadeLizardCalculator() {
+  const [f, setF] = useState({ putStrike: '95', shortCall: '105', longCall: '110', credit: '5', contracts: '1' })
+  const r = jadeLizard(f)
+
+  return (
+    <div className="calc-block">
+      <div className="calc-fields">
+        <Field id="jlPut" label="Short put" value={f.putStrike} onChange={(v) => setF({ ...f, putStrike: v })} />
+        <Field id="jlShortCall" label="Short call" value={f.shortCall} onChange={(v) => setF({ ...f, shortCall: v })} />
+        <Field id="jlLongCall" label="Long call" value={f.longCall} onChange={(v) => setF({ ...f, longCall: v })} />
+        <Field id="jlCredit" label="Total credit" value={f.credit} onChange={(v) => setF({ ...f, credit: v })} />
+        <Field id="jlContracts" label="Contracts" value={f.contracts} onChange={(v) => setF({ ...f, contracts: v })} step="1" />
+      </div>
+      <div className="calc-results">
+        <Result label="Max profit" value={money(r.maxProfit)} tone="price-favorable" />
+        <Result
+          label="Upside risk"
+          value={r.upsideCovered ? 'None' : money(r.upsideRisk)}
+          tone={r.upsideCovered ? 'price-favorable' : 'price-unfavorable'}
+          note={r.upsideCovered
+            ? 'Credit covers the call spread width — no price above the calls can hurt you'
+            : 'Credit is below the call spread width, so the upside is exposed'}
+        />
+        <Result label="Downside breakeven" value={money(r.downsideBreakeven)} />
+        <Result label="Max downside loss" value={money(r.maxDownsideLoss)} tone="price-unfavorable" note="Stock to zero, as with any short put" />
+      </div>
+      <PayoffChart kind="jade-lizard" params={f} gradientId="jl" />
+    </div>
+  )
+}
+
+function CoveredStrangleCalculator() {
+  const [f, setF] = useState({ costBasis: '100', putStrike: '95', callStrike: '110', credit: '4', contracts: '1' })
+  const r = coveredStrangle(f)
+
+  return (
+    <div className="calc-block">
+      <div className="calc-fields">
+        <Field id="cgBasis" label="Cost basis" value={f.costBasis} onChange={(v) => setF({ ...f, costBasis: v })} />
+        <Field id="cgPut" label="Short put" value={f.putStrike} onChange={(v) => setF({ ...f, putStrike: v })} />
+        <Field id="cgCall" label="Short call" value={f.callStrike} onChange={(v) => setF({ ...f, callStrike: v })} />
+        <Field id="cgCredit" label="Total credit" value={f.credit} onChange={(v) => setF({ ...f, credit: v })} />
+        <Field id="cgContracts" label="Contracts" value={f.contracts} onChange={(v) => setF({ ...f, contracts: v })} step="1" />
+      </div>
+      <div className="calc-results">
+        <Result label="Max profit" value={money(r.maxProfit)} tone="price-favorable" note="Called away, both premiums kept" />
+        <Result label="Breakeven" value={money(r.breakeven)} />
+        <Result label="Shares if assigned" value={r.sharesIfAssigned ?? '—'} tone="price-unfavorable" note="The put doubles the position" />
+        <Result label="Blended basis" value={money(r.blendedBasis)} note="Sell calls above this, not the original basis" />
+        <Result label="Put collateral" value={money(r.capitalRequired)} />
+      </div>
+      <PayoffChart kind="covered-strangle" params={f} gradientId="cg" />
+    </div>
+  )
+}
+
+function BrokenWingCalculator() {
+  const [f, setF] = useState({ shortStrike: '100', narrowWing: '5', wideWing: '10', credit: '1', contracts: '1' })
+  const r = brokenWingButterfly(f)
+
+  return (
+    <div className="calc-block">
+      <div className="calc-fields">
+        <Field id="bwShort" label="Body strike" value={f.shortStrike} onChange={(v) => setF({ ...f, shortStrike: v })} />
+        <Field id="bwNarrow" label="Narrow wing" value={f.narrowWing} onChange={(v) => setF({ ...f, narrowWing: v })} />
+        <Field id="bwWide" label="Wide wing" value={f.wideWing} onChange={(v) => setF({ ...f, wideWing: v })} />
+        <Field id="bwCredit" label="Credit" value={f.credit} onChange={(v) => setF({ ...f, credit: v })} />
+        <Field id="bwContracts" label="Contracts" value={f.contracts} onChange={(v) => setF({ ...f, contracts: v })} step="1" />
+      </div>
+      <div className="calc-results">
+        <Result label="Max profit" value={money(r.maxProfit)} tone="price-favorable" note="At the body strike only" />
+        <Result label="Max loss" value={money(r.maxLoss)} tone="price-unfavorable" note="Wide side only" />
+        <Result
+          label="Narrow side"
+          value={r.riskFreeSide ? 'Risk free' : 'At risk'}
+          tone={r.riskFreeSide ? 'price-favorable' : 'price-unfavorable'}
+          note={r.riskFreeSide ? 'Opened for a credit, so this side cannot lose' : 'Opened for a debit — the credit advantage is gone'}
+        />
+        <Result label="Breakeven" value={money(r.breakeven)} />
+      </div>
+      <PayoffChart kind="broken-wing" params={f} gradientId="bw" />
+    </div>
+  )
+}
+
+function TailHedgeCalculator() {
+  const [f, setF] = useState({ portfolioValue: '100000', spotPrice: '500', strikePct: '20', premium: '1.50', contracts: '2', rollsPerYear: '4' })
+  const r = tailHedge(f)
+
+  return (
+    <div className="calc-block">
+      <div className="calc-fields">
+        <Field id="thPv" label="Portfolio value" value={f.portfolioValue} onChange={(v) => setF({ ...f, portfolioValue: v })} step="1000" />
+        <Field id="thSpot" label="Index price" value={f.spotPrice} onChange={(v) => setF({ ...f, spotPrice: v })} />
+        <Field id="thPct" label="% out of the money" value={f.strikePct} onChange={(v) => setF({ ...f, strikePct: v })} step="1" />
+        <Field id="thPremium" label="Put premium" value={f.premium} onChange={(v) => setF({ ...f, premium: v })} />
+        <Field id="thContracts" label="Contracts" value={f.contracts} onChange={(v) => setF({ ...f, contracts: v })} step="1" />
+        <Field id="thRolls" label="Rolls per year" value={f.rollsPerYear} onChange={(v) => setF({ ...f, rollsPerYear: v })} step="1" />
+      </div>
+      <div className="calc-results">
+        <Result label="Put strike" value={money(r.strike)} />
+        <Result label="Annual cost" value={money(r.annualCost)} tone="price-unfavorable" note="The bleed — paid whether or not it is needed" />
+        <Result label="Cost of portfolio" value={percent(r.costAsPct)} />
+      </div>
+      {r.payoffs && (
+        <div className="tail-table-wrap">
+          <table className="tail-table">
+            <thead>
+              <tr><th>Drawdown</th><th>Portfolio loses</th><th>Hedge pays</th><th>Net loss</th><th>Covered</th></tr>
+            </thead>
+            <tbody>
+              {r.payoffs.map((row) => (
+                <tr key={row.drop}>
+                  <th scope="row">−{row.drop}%</th>
+                  <td className="mono price-unfavorable">{money(row.portfolioLoss)}</td>
+                  <td className="mono price-favorable">{money(row.hedgePayoff)}</td>
+                  <td className="mono">{money(row.netLoss)}</td>
+                  <td className="mono">{percent(row.coverage)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function RiskReversalCalculator() {
+  const [f, setF] = useState({ putStrike: '95', callStrike: '110', netCredit: '0.50', contracts: '1' })
+  const r = riskReversal(f)
+
+  return (
+    <div className="calc-block">
+      <div className="calc-fields">
+        <Field id="rrPut" label="Short put" value={f.putStrike} onChange={(v) => setF({ ...f, putStrike: v })} />
+        <Field id="rrCall" label="Long call" value={f.callStrike} onChange={(v) => setF({ ...f, callStrike: v })} />
+        <Field id="rrCredit" label="Net credit" value={f.netCredit} onChange={(v) => setF({ ...f, netCredit: v })} />
+        <Field id="rrContracts" label="Contracts" value={f.contracts} onChange={(v) => setF({ ...f, contracts: v })} step="1" />
+      </div>
+      <div className="calc-results">
+        <Result label="Max profit" value="Unbounded" tone="price-favorable" note="Above the call strike it tracks the shares" />
+        <Result label="Max loss" value={money(r.maxLoss)} tone="price-unfavorable" note="Stock to zero, as with any short put" />
+        <Result label="Lower breakeven" value={money(r.lowerBreakeven)} />
+        <Result label="Credit kept" value={money(r.creditKept)} note="Whenever price finishes between the strikes" />
+      </div>
+      <PayoffChart kind="risk-reversal" params={f} gradientId="rr" />
+    </div>
+  )
+}
+
+function BufferCalculator() {
+  const [f, setF] = useState({ portfolioValue: '100000', bufferPct: '15', capPct: '12' })
+  const r = bufferStructure(f)
+
+  return (
+    <div className="calc-block">
+      <div className="calc-fields">
+        <Field id="bfPv" label="Position value" value={f.portfolioValue} onChange={(v) => setF({ ...f, portfolioValue: v })} step="1000" />
+        <Field id="bfBuffer" label="Buffer %" value={f.bufferPct} onChange={(v) => setF({ ...f, bufferPct: v })} step="1" />
+        <Field id="bfCap" label="Cap %" value={f.capPct} onChange={(v) => setF({ ...f, capPct: v })} step="1" />
+      </div>
+      {r.outcomes && (
+        <div className="tail-table-wrap">
+          <table className="tail-table">
+            <thead>
+              <tr><th>Underlying</th><th>You get</th><th>Value at end</th></tr>
+            </thead>
+            <tbody>
+              {r.outcomes.map((row) => (
+                <tr key={row.move}>
+                  <th scope="row">{row.move > 0 ? '+' : ''}{row.move}%</th>
+                  <td className={`mono ${row.result > 0 ? 'price-favorable' : row.result < 0 ? 'price-unfavorable' : ''}`}>
+                    {row.result > 0 ? '+' : ''}{row.result.toFixed(1)}%
+                  </td>
+                  <td className="mono">{money(row.value)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <p className="calc-caveat">
+        The buffer and the cap only apply at the end of the outcome period. Mid-period
+        the legs price independently and the value will not track this table.
+      </p>
+    </div>
+  )
+}
+
 const CALCULATORS = {
   wheel: WheelCalculator,
   'credit-spread': CreditSpreadCalculator,
@@ -385,6 +576,12 @@ const CALCULATORS = {
   'protective-put': ProtectiveCalculator,
   strangle: StrangleCalculator,
   'iron-butterfly': ButterflyCalculator,
+  'jade-lizard': JadeLizardCalculator,
+  'covered-strangle': CoveredStrangleCalculator,
+  'broken-wing': BrokenWingCalculator,
+  'tail-hedge': TailHedgeCalculator,
+  'risk-reversal': RiskReversalCalculator,
+  buffer: BufferCalculator,
 }
 
 export default function StrategyCalculator({ kind }) {
