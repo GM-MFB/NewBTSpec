@@ -32,11 +32,19 @@ export default function PayoffChart({ kind, params, gradientId, spot }) {
   if (!curve) return null
 
   const values = curve.points.map((p) => p.pnl)
-  const max = Math.max(...values, 0)
-  const min = Math.min(...values, 0)
-  // Where zero sits in the y-range, so the fill and stroke change colour
-  // exactly at the profit/loss boundary rather than at an approximation.
-  const zeroOffset = max === min ? 0.5 : max / (max - min)
+  const dataMax = Math.max(...values, 0)
+  const dataMin = Math.min(...values, 0)
+  // Headroom so the curve does not run along the top and bottom edges, and so
+  // the breakeven labels have somewhere to sit.
+  const pad = (dataMax - dataMin) * 0.14 || 1
+  const top = dataMax + pad
+  const bottom = dataMin - pad
+
+  // Where zero sits in the padded domain, so the fill and stroke change colour
+  // exactly at the profit/loss boundary. This has to use the padded bounds —
+  // computing it from the raw data range would put the split at the wrong
+  // height once the domain is padded.
+  const zeroOffset = top === bottom ? 0.5 : top / (top - bottom)
 
   return (
     <figure className="payoff-figure">
@@ -56,8 +64,8 @@ export default function PayoffChart({ kind, params, gradientId, spot }) {
         </p>
       )}
 
-      <ResponsiveContainer width="100%" height={280}>
-        <ComposedChart data={curve.points} margin={{ top: 10, right: 12, left: 0, bottom: 4 }}>
+      <ResponsiveContainer width="100%" height={300}>
+        <ComposedChart data={curve.points} margin={{ top: 34, right: 26, left: 0, bottom: 8 }}>
           <defs>
             <linearGradient id={`${gradientId}-stroke`} x1="0" y1="0" x2="0" y2="1">
               <stop offset={zeroOffset} stopColor={GREEN} />
@@ -84,6 +92,8 @@ export default function PayoffChart({ kind, params, gradientId, spot }) {
             minTickGap={28}
           />
           <YAxis
+            type="number"
+            domain={[bottom, top]}
             tick={{ fill: AXIS_TEXT, fontSize: 11 }}
             axisLine={{ stroke: GRID }}
             tickLine={false}
@@ -103,17 +113,25 @@ export default function PayoffChart({ kind, params, gradientId, spot }) {
               x={curve.spot}
               stroke={SPOT_LINE}
               strokeWidth={1.5}
-              label={{ value: 'Now', position: 'insideTopRight', fill: SPOT_LINE, fontSize: 10 }}
+              label={{ value: 'Now', position: 'insideBottomRight', fill: SPOT_LINE, fontSize: 10 }}
             />
           )}
 
-          {curve.breakevens.map((be) => (
+          {curve.breakevens.map((be, i) => (
             <ReferenceLine
               key={be}
               x={be}
               stroke={AXIS_TEXT}
               strokeDasharray="4 4"
-              label={{ value: `BE ${formatAxisCurrency(be)}`, position: 'top', fill: AXIS_TEXT, fontSize: 10 }}
+              label={{
+                value: `BE ${formatAxisCurrency(be)}`,
+                position: 'top',
+                fill: AXIS_TEXT,
+                fontSize: 10,
+                // Two breakevens sit either side of the body; nudging them
+                // outward keeps them off each other and off the spot marker.
+                dx: curve.breakevens.length > 1 ? (i === 0 ? -14 : 14) : 0,
+              }}
             />
           ))}
 
