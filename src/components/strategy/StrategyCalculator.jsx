@@ -3,7 +3,7 @@ import { formatCurrency } from '../../lib/format'
 import {
   cashSecuredPut, coveredCall, creditSpread, debitSpread, calendarSpread, ironCondor,
   longOption, poorMansCoveredCall, protectivePut, collar, strangle, ironButterfly,
-  jadeLizard, coveredStrangle, brokenWingButterfly, tailHedge, bufferStructure, riskReversal,
+  jadeLizard, coveredStrangle, brokenWingButterfly, tailHedge, bufferStructure, riskReversal, ratioSpread,
 } from '../../lib/strategyMath'
 import PayoffChart from './PayoffChart'
 
@@ -565,6 +565,68 @@ function BufferCalculator() {
   )
 }
 
+function RatioSpreadCalculator() {
+  const [f, setF] = useState({ nearStrike: '100', farStrike: '110', credit: '1', contracts: '1', type: 'call', structure: 'front' })
+  const r = ratioSpread(f)
+  const isFront = f.structure === 'front'
+
+  return (
+    <div className="calc-block">
+      <div className="calc-fields">
+        <label className="calc-field" htmlFor="rsStructure">
+          <span>Structure</span>
+          <select id="rsStructure" value={f.structure} onChange={(e) => setF({ ...f, structure: e.target.value })}>
+            <option value="front">Front ratio (long 1, short 2)</option>
+            <option value="back">Backspread (short 1, long 2)</option>
+          </select>
+        </label>
+        <label className="calc-field" htmlFor="rsType">
+          <span>Type</span>
+          <select
+            id="rsType"
+            value={f.type}
+            onChange={(e) => {
+              const type = e.target.value
+              // Calls ratio up, puts ratio down — mirror the far strike so the
+              // structure stays valid when the type is switched.
+              const near = Number(f.nearStrike) || 0
+              const width = Math.abs((Number(f.farStrike) || 0) - near)
+              const farStrike = String(type === 'put' ? near - width : near + width)
+              setF({ ...f, type, farStrike })
+            }}
+          >
+            <option value="call">Calls</option>
+            <option value="put">Puts</option>
+          </select>
+        </label>
+        <Field id="rsNear" label="Near strike (1x)" value={f.nearStrike} onChange={(v) => setF({ ...f, nearStrike: v })} />
+        <Field id="rsFar" label="Far strike (2x)" value={f.farStrike} onChange={(v) => setF({ ...f, farStrike: v })} />
+        <Field id="rsCredit" label="Net credit" value={f.credit} onChange={(v) => setF({ ...f, credit: v })} />
+        <Field id="rsContracts" label="Sets" value={f.contracts} onChange={(v) => setF({ ...f, contracts: v })} step="1" />
+      </div>
+      <div className="calc-results">
+        <Result
+          label="Max profit"
+          value={isFront ? money(r.maxProfit) : 'Unbounded'}
+          tone="price-favorable"
+          note={isFront ? 'At the far strike exactly' : 'Past the far strike it runs with the underlying'}
+        />
+        <Result
+          label="Max loss"
+          value={isFront ? 'Unbounded' : money(r.maxLoss)}
+          tone="price-unfavorable"
+          note={isFront
+            ? 'One leg is naked. Past the far strike the loss does not stop.'
+            : 'At the far strike, which is also where price often pins'}
+        />
+        <Result label="Peak / trough at" value={money(r.peakStrike)} />
+        <Result label="Tail breakeven" value={money(r.tailBreakeven)} />
+      </div>
+      <PayoffChart kind="ratio-spread" params={f} gradientId="rs" />
+    </div>
+  )
+}
+
 const CALCULATORS = {
   wheel: WheelCalculator,
   'credit-spread': CreditSpreadCalculator,
@@ -582,6 +644,7 @@ const CALCULATORS = {
   'tail-hedge': TailHedgeCalculator,
   'risk-reversal': RiskReversalCalculator,
   buffer: BufferCalculator,
+  'ratio-spread': RatioSpreadCalculator,
 }
 
 export default function StrategyCalculator({ kind }) {

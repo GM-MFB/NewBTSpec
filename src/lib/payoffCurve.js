@@ -105,6 +105,15 @@ const PAYOFFS = {
     return (value + num(credit)) * SHARES_PER_CONTRACT * num(contracts)
   },
 
+  // One near leg against two far ones. Front is long 1 / short 2; a backspread
+  // reverses the signs.
+  'ratio-spread': ({ nearStrike, farStrike, credit, contracts, type, structure }, price) => {
+    const intrinsic = type === 'put' ? intrinsicPut : intrinsicCall
+    const sign = structure === 'back' ? -1 : 1
+    const value = sign * (intrinsic(price, num(nearStrike)) - 2 * intrinsic(price, num(farStrike)))
+    return (value + num(credit)) * SHARES_PER_CONTRACT * num(contracts)
+  },
+
   'risk-reversal': ({ putStrike, callStrike, netCredit, contracts }, price) =>
     (num(netCredit) - intrinsicPut(price, num(putStrike)) + intrinsicCall(price, num(callStrike)))
     * SHARES_PER_CONTRACT * num(contracts),
@@ -137,6 +146,7 @@ function strikesFor(kind, params) {
     case 'protective-put': return [num(params.putStrike), num(params.costBasis)]
     case 'collar': return [num(params.putStrike), num(params.callStrike), num(params.costBasis)]
     case 'strangle': return [num(params.putStrike), num(params.callStrike)]
+    case 'ratio-spread': return [num(params.nearStrike), num(params.farStrike)]
     case 'risk-reversal': return [num(params.putStrike), num(params.callStrike)]
     case 'jade-lizard': return [num(params.putStrike), num(params.shortCall), num(params.longCall)]
     case 'covered-strangle': return [num(params.putStrike), num(params.callStrike), num(params.costBasis)]
@@ -173,6 +183,11 @@ function isValid(kind, params, strikes) {
   if (kind === 'iron-butterfly' && num(params.wingWidth) <= 0) return false
   if (kind === 'jade-lizard' && num(params.longCall) <= num(params.shortCall)) return false
   if (kind === 'risk-reversal' && num(params.callStrike) <= num(params.putStrike)) return false
+  if (kind === 'ratio-spread') {
+    const near = num(params.nearStrike)
+    const far = num(params.farStrike)
+    if (params.type === 'put' ? far >= near : far <= near) return false
+  }
   if (kind === 'broken-wing' && num(params.wideWing) <= num(params.narrowWing)) return false
   return true
 }

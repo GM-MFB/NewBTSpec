@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   cashSecuredPut, coveredCall, creditSpread, debitSpread, calendarSpread, ironCondor,
   longOption, poorMansCoveredCall, protectivePut, collar, strangle, ironButterfly,
-  jadeLizard, coveredStrangle, brokenWingButterfly, tailHedge, bufferStructure, riskReversal,
+  jadeLizard, coveredStrangle, brokenWingButterfly, tailHedge, bufferStructure, riskReversal, ratioSpread,
 } from './strategyMath'
 
 describe('cashSecuredPut', () => {
@@ -363,5 +363,43 @@ describe('riskReversal', () => {
 
   it('refuses a call strike at or below the put strike', () => {
     expect(riskReversal({ putStrike: 110, callStrike: 95, netCredit: 1, contracts: 1 }).maxLoss).toBeNull()
+  })
+})
+
+describe('ratioSpread', () => {
+  const front = { nearStrike: 100, farStrike: 110, credit: 1, contracts: 1, type: 'call', structure: 'front' }
+
+  it('peaks at the far strike for a front ratio', () => {
+    const r = ratioSpread(front)
+    expect(r.width).toBe(10)
+    expect(r.peakStrike).toBe(110)
+    // (10 + 1) x 100
+    expect(r.maxProfit).toBe(1100)
+  })
+
+  it('reports no max loss for a front ratio, because the tail is unbounded', () => {
+    expect(ratioSpread(front).maxLoss).toBeNull()
+  })
+
+  it('breaks even on the tail past the far strike', () => {
+    // 110 + 10 + 1
+    expect(ratioSpread(front).tailBreakeven).toBeCloseTo(121, 6)
+  })
+
+  it('reports no max profit for a backspread, because the tail is unbounded', () => {
+    const back = { ...front, structure: 'back' }
+    const r = ratioSpread(back)
+    expect(r.maxProfit).toBeNull()
+    // Trough at the far strike: width 10 against a 1 credit
+    expect(r.maxLoss).toBeCloseTo(900, 6)
+  })
+
+  it('refuses call strikes that do not ratio upward', () => {
+    expect(ratioSpread({ ...front, farStrike: 90 }).width).toBeNull()
+  })
+
+  it('refuses put strikes that do not ratio downward', () => {
+    expect(ratioSpread({ ...front, type: 'put', farStrike: 110 }).width).toBeNull()
+    expect(ratioSpread({ ...front, type: 'put', farStrike: 90 }).width).toBe(10)
   })
 })

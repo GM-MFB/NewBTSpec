@@ -237,3 +237,24 @@ describe('payoffAt — risk reversal', () => {
     expect(at('risk-reversal', p, 90)).toBeCloseTo(-450, 6)
   })
 })
+
+describe('payoffAt — ratio spreads', () => {
+  const front = { nearStrike: 100, farStrike: 110, credit: 1, contracts: 1, type: 'call', structure: 'front' }
+
+  it('front ratio keeps the credit below the near strike and peaks at the far one', () => {
+    expect(at('ratio-spread', front, 95)).toBeCloseTo(100, 6)
+    expect(at('ratio-spread', front, 110)).toBeCloseTo(1100, 6)
+  })
+
+  it('front ratio runs away against you past the far strike', () => {
+    expect(at('ratio-spread', front, 121)).toBeCloseTo(0, 6)
+    expect(at('ratio-spread', front, 140)).toBeCloseTo(-1900, 6)
+  })
+
+  it('backspread troughs at the far strike and gains without limit beyond it', () => {
+    const back = { ...front, structure: 'back' }
+    expect(at('ratio-spread', back, 110)).toBeCloseTo(-900, 6)
+    expect(at('ratio-spread', back, 140)).toBeCloseTo(2100, 6)
+    expect(at('ratio-spread', back, 95)).toBeCloseTo(100, 6)
+  })
+})

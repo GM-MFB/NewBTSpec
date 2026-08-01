@@ -863,6 +863,132 @@ export const STRATEGY_CONTENT = [
     ],
     calculator: 'buffer',
   },
+
+  {
+    id: 'ratio-spread',
+    group: 'Directional',
+    name: 'Ratio Spreads & Backspreads',
+    outlook: 'Directional, with a tail',
+    capital: 'Margin for the extra naked leg',
+    glance: {
+      risk: 'Undefined one side',
+      riskTone: 'bad',
+      direction: 'Directional',
+      volatility: 'Front: sell high IV',
+      capital: 'Moderate',
+      legs: '3 contracts, 2 strikes',
+    },
+    summary:
+      'One leg against two. A front ratio buys one option and sells two further out, usually for a credit — it pays best if the underlying drifts to the short strike and stops there, and it loses without limit if it keeps going. A backspread reverses it: sell one, buy two, often still for a credit, so you are paid to hold a position that explodes in your favour on a large move. Same two strikes, opposite personalities.',
+    legs: [
+      { action: 'buy', text: '1 option nearer the money — the anchor leg' },
+      { action: 'sell', text: '2 options further out — the ratio, and the exposure' },
+      { action: 'hold', text: 'Reverse both for a backspread: sell 1 near, buy 2 far' },
+    ],
+    keyFacts: [
+      ['Front ratio max profit', 'Strike width + credit, at the far strike exactly', 'good'],
+      ['Front ratio max loss', 'Unbounded past the far strike — one leg is naked', 'bad'],
+      ['Backspread max profit', 'Unbounded past the far strike', 'good'],
+      ['Backspread max loss', 'Strike width − credit, at the far strike', 'bad'],
+    ],
+    entry: [
+      { lead: 'Know which one you are placing', detail: 'Front ratio and backspread use identical strikes and have opposite risk. Confusing them is the fastest way to be short the tail you meant to be long.' },
+      { lead: 'Take a credit if you can', detail: 'A front ratio for a credit cannot lose on the near side. A backspread for a credit pays you to wait for the move.' },
+      { lead: 'Front ratios need a target', detail: 'They pay most if the underlying finishes at the far strike. Place that strike where you expect it to stall, not where you hope it goes.' },
+      { lead: 'Backspreads want cheap options', detail: 'You are net long a contract. Low IV makes the two long legs affordable relative to the one you sell.' },
+      { lead: 'Check the margin before entering', detail: 'The uncovered leg is margined as naked. Brokers can require far more than the credit suggests.' },
+    ],
+    management: [
+      { when: 'Entry', detail: 'Credit received either way, but the risk sits at opposite ends of the chart.' },
+      { when: 'Front: drifting toward the far strike', detail: 'This is the good case, and it is also when to start thinking about closing. The peak is a point, not a plateau.' },
+      { when: 'Front: through the far strike', detail: 'The naked leg takes over and losses run one for one. Close or add the missing wing — do not wait.' },
+      { when: 'Back: sitting at the far strike', detail: 'The worst place to be at expiry. If the move has not happened, close before gamma turns the trough into the realised outcome.' },
+      { when: '21 DTE', detail: 'Both structures have a sharp point at the far strike, so gamma near expiry matters more here than in a plain spread.' },
+    ],
+    mistakes: [
+      { lead: 'Not counting the naked leg', detail: 'A 1x2 has one uncovered contract. That is a naked short with everything that implies, whatever the net credit looks like.' },
+      { lead: 'Treating a front ratio as a spread', detail: 'It looks like a debit spread with extra credit until the underlying goes through the far strike. It is not — the loss does not stop.' },
+      { lead: 'Holding a backspread to expiry', detail: 'The maximum loss sits exactly at the far strike, and that is where price often pins. Close before it settles there.' },
+      { lead: 'Adding ratios on top of short premium', detail: 'They stack the same directional exposure. A portfolio of front ratios is one large naked position wearing several names.' },
+    ],
+    calculator: 'ratio-spread',
+  },
+
+  {
+    id: 'gamma',
+    group: 'Concepts',
+    name: 'Gamma',
+    outlook: 'Why short premium goes wrong quickly',
+    capital: 'Not a position',
+    glance: {
+      risk: 'The accelerator',
+      direction: 'Either',
+      volatility: 'Rises near expiry',
+      capital: 'n/a',
+      legs: 'A concept',
+    },
+    summary:
+      'Delta tells you how much an option moves when the underlying moves. Gamma tells you how fast that delta itself changes. It is the reason a short position that looked comfortable on Monday is a disaster by Thursday, and it is the single mechanism behind almost every management rule on this page — close at 50%, manage at 21 DTE, do not hold through expiry week. Those are not superstitions. They are all gamma avoidance.',
+    legs: [
+      { action: 'buy', text: 'Long options are long gamma — the position helps itself as it moves' },
+      { action: 'sell', text: 'Short options are short gamma — the position hurts itself as it moves' },
+    ],
+    keyFacts: [
+      ['What it is', 'The rate at which delta changes as the underlying moves', null],
+      ['Long gamma', 'Delta grows in your favour. You get longer into rallies, shorter into falls', 'good'],
+      ['Short gamma', 'Delta grows against you. You get shorter into falls, longer into rallies', 'bad'],
+      ['Where it peaks', 'At the money, and increasingly as expiry approaches', null],
+    ],
+    entry: [
+      { lead: 'Every premium sale is short gamma', detail: 'The wheel, credit spreads, condors, strangles. Collecting theta means carrying gamma. They are the same trade seen from two sides.' },
+      { lead: 'Gamma is why 30 – 45 DTE', detail: 'Far enough out that gamma is mild, near enough that decay is meaningful. The whole window is a compromise between the two.' },
+      { lead: 'At-the-money is where it lives', detail: 'A far out-of-the-money short has little gamma. The same strike becomes dangerous as price approaches it, not just because it might be assigned.' },
+      { lead: 'Size for the gamma, not the delta', detail: 'A position sized comfortably at 45 DTE can be several times as sensitive at 7 DTE without you doing anything.' },
+    ],
+    management: [
+      { when: '45 DTE', detail: 'Gamma is low. The position barely reacts to a normal day and there is little to manage.' },
+      { when: '21 DTE', detail: 'Gamma starts climbing sharply. This is the origin of the manage-at-21 rule — not the calendar, the curvature.' },
+      { when: 'Expiry week', detail: 'Gamma is at its most violent. A short strike a dollar away can go from safe to full loss inside a session.' },
+      { when: 'Expiry day (0DTE)', detail: 'Almost pure gamma. Theta collected is tiny, the gamma is enormous, and the position is effectively a coin flip with leverage.' },
+      { when: 'At the strike, at expiry', detail: 'Pin risk. You may not know until after the close whether you were assigned, and you carry the weekend gap either way.' },
+    ],
+    mistakes: [
+      { lead: 'Reading the win rate instead of the gamma', detail: 'A short strike that has been safe for six weeks is at its most dangerous in the last one. The record so far says nothing about the days that remain.' },
+      { lead: 'Holding to expiry for the last of the credit', detail: 'You collect the smallest part of the premium during the period of greatest risk. That trade is backwards.' },
+      { lead: 'Selling 0DTE for the theta', detail: 'There is barely any theta left to collect. What you are actually being paid for is the gamma, and the payment is small.' },
+      { lead: 'Assuming a hedge holds', detail: 'Under high gamma a delta hedge goes stale in minutes. A position hedged this morning is not hedged this afternoon.' },
+    ],
+    extraSections: [
+      {
+        title: 'Long gamma vs short gamma',
+        body: [
+          'Long gamma means the position gets more right the more it moves. Buy a call, the stock rallies, and your delta grows — you are longer at exactly the moment you want to be. Fall instead, and the delta shrinks, so you lose less than a share position would.',
+          'Short gamma is the mirror, and it is unpleasant. Sell a put, the stock falls, and your delta grows long — you become more exposed the further it goes against you. Rally instead, and the delta fades, so you participate less than you would like.',
+          'That asymmetry is what you are paid for. Theta is the rent collected for standing on the wrong side of curvature.',
+          'It also explains why losses cluster. Every short-premium position in the account is short gamma at once, so they all deteriorate together in a fast move. The diversification you thought you had across names does not exist across gamma.',
+        ],
+      },
+      {
+        title: 'Why gamma explodes near expiry',
+        body: [
+          'Far from expiry, an option has time value that changes smoothly. A dollar in the underlying barely alters the probability of finishing in the money, so delta moves slowly and gamma is small.',
+          'On the final day, that probability is nearly a step function. A strike a cent out of the money is worthless; a cent in the money is worth its full intrinsic. Delta must swing from near zero to near one over a tiny price range, and gamma is that swing.',
+          'This is why a short strike sitting comfortably out of the money at 30 days can be a full loss at 2 days on the same size of move. Nothing about your position changed. The curvature did.',
+          'It is also why the two most common rules exist. Closing at 50% of max profit takes the money while gamma is still mild; managing at 21 DTE exits before the curve steepens. Both trade a little profit for a lot less risk.',
+        ],
+      },
+      {
+        title: 'Gamma scalping, and why funds do it',
+        body: [
+          'If short gamma is a cost, long gamma is an asset — one you can actively harvest. Buy options, then continuously trade the underlying against your changing delta: sell shares as the position gets longer, buy them back as it gets shorter.',
+          'Every one of those trades locks in a small profit, bought and sold at prices your own convexity handed you. Do it enough and you have monetised movement itself.',
+          'The trade wins when realised volatility exceeds the implied volatility you paid, and loses when it does not — the position bleeds theta the whole time. It is the volatility risk premium run in reverse, deliberately.',
+          'Retail can do this in principle. In practice it needs near-continuous hedging, and commissions and spreads on all that share trading usually eat the edge before you see it. Worth understanding as the other side of what you do, rather than as something to run.',
+        ],
+      },
+    ],
+    calculator: null,
+  },
 ]
 
 export function strategyById(id) {

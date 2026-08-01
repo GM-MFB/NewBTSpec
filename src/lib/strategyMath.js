@@ -418,3 +418,38 @@ export function riskReversal({ putStrike, callStrike, netCredit, contracts } = {
     creditKept: c * SHARES_PER_CONTRACT * n,
   }
 }
+
+// One leg against two. A front ratio is long 1 near / short 2 far — a credit
+// with an unbounded tail past the far strike. A backspread reverses it: short 1
+// near / long 2 far, often for a credit, paying without limit on a big move.
+//
+// `near` is the single leg, `far` the doubled one. For calls far sits above
+// near; for puts, below.
+export function ratioSpread({ nearStrike, farStrike, credit, contracts, type = 'call', structure = 'front' } = {}) {
+  const keys = ['width', 'peak', 'maxProfit', 'maxLoss', 'tailBreakeven', 'peakStrike']
+  const near = num(nearStrike)
+  const far = num(farStrike)
+  const c = num(credit)
+  const n = num(contracts)
+  const width = Math.abs(far - near)
+  if (near <= 0 || far <= 0 || n <= 0 || width <= 0) return nulls(keys)
+  // Calls ratio upward, puts downward. Anything else is not the structure.
+  if (type === 'call' && far <= near) return nulls(keys)
+  if (type === 'put' && far >= near) return nulls(keys)
+
+  const front = structure === 'front'
+  const peak = (width + c) * SHARES_PER_CONTRACT * n
+  const trough = (c - width) * SHARES_PER_CONTRACT * n
+  // Past the far strike the extra short (front) or extra long (back) leg runs
+  // one for one with the underlying, in one direction, without limit.
+  const tail = type === 'call' ? far + width + c : far - width - c
+
+  return {
+    width,
+    peakStrike: far,
+    peak: front ? peak : trough,
+    maxProfit: front ? peak : null,
+    maxLoss: front ? null : Math.max(0, -trough) * 1,
+    tailBreakeven: front ? tail : (type === 'call' ? far + width - c : far - width + c),
+  }
+}

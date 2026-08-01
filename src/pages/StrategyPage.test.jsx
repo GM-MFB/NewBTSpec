@@ -251,6 +251,32 @@ describe('StrategyPage', () => {
     expect(screen.getByTestId('strategy-key-facts')).toBeInTheDocument()
   })
 
+  it('warns that a front ratio has an unbounded tail and a backspread does not', async () => {
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: /ratio spreads/i }))
+
+    const calculator = screen.getByTestId('strategy-calculator')
+    // Front ratio by default: the naked leg means the loss does not stop.
+    expect(within(calculator).getByText('Unbounded')).toBeInTheDocument()
+    expect(within(calculator).getByText(/one leg is naked/i)).toBeInTheDocument()
+
+    await userEvent.selectOptions(screen.getByLabelText('Structure'), 'back')
+    // Reversed: now the profit is the unbounded side.
+    expect(within(screen.getByTestId('strategy-calculator')).getByText(/runs with the underlying/i)).toBeInTheDocument()
+  })
+
+  it('has a Gamma page explaining why the management rules exist', async () => {
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: 'Gamma' }))
+
+    const article = screen.getByTestId('strategy-article-gamma')
+    expect(within(article).getByRole('heading', { name: /long gamma vs short gamma/i })).toBeInTheDocument()
+    expect(within(article).getByRole('heading', { name: /why gamma explodes near expiry/i })).toBeInTheDocument()
+    expect(within(article).getByRole('heading', { name: /gamma scalping/i })).toBeInTheDocument()
+    // A concept, not a structure — no calculator.
+    expect(screen.queryByTestId('strategy-calculator')).not.toBeInTheDocument()
+  })
+
   it('computes the condor from its four strikes', async () => {
     renderPage()
     await userEvent.click(screen.getByRole('button', { name: 'Iron Condors' }))
