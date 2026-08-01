@@ -76,7 +76,7 @@ describe('StrategyPage', () => {
     renderPage()
     for (const strategy of STRATEGY_CONTENT) {
       await pick(strategy)
-      for (const section of ['strategy-legs', 'strategy-key-facts', 'strategy-entry', 'strategy-management', 'strategy-mistakes']) {
+      for (const section of ['strategy-legs', 'strategy-key-facts', 'strategy-entry', 'strategy-management', 'strategy-example', 'strategy-mistakes']) {
         expect(screen.getByTestId(section), `${strategy.name} is missing ${section}`).toBeInTheDocument()
       }
       // A calculator only where the strategy has one. Volatility Risk Premium
@@ -357,6 +357,17 @@ describe('StrategyPage', () => {
     const row = within(screen.getByTestId('strategy-calculator')).getByText('-20%').closest('tr')
     // Portfolio -24,000, hedge +12,000, net -12,000
     expect(row).toHaveTextContent('-$12,000.00')
+  })
+
+  it('shows a worked example with a losing branch on the hedging page', async () => {
+    renderPage()
+    await pick('Hedging')
+
+    const example = screen.getByTestId('strategy-example')
+    expect(example).toHaveTextContent(/beta of 1.2/i)
+    // The full-hedge upside case is the one people forget.
+    expect(example).toHaveTextContent(/net zero/i)
+    expect(example.querySelectorAll('.example-outcome--bad').length).toBeGreaterThan(0)
   })
 
   it('computes the condor from its four strikes', async () => {

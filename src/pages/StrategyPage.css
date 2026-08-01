@@ -730,3 +730,61 @@
   border-left: 3px solid var(--accent);
   border-radius: 6px;
 }
+
+/* Worked example */
+
+.example-setup {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text);
+  margin: 0 0 14px;
+  max-width: 68ch;
+}
+
+.example-outcomes {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.example-outcome {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: 8px;
+  padding: 11px 14px;
+}
+
+.example-outcome--good { border-left-color: var(--green); }
+.example-outcome--bad { border-left-color: var(--red); }
+.example-outcome--neutral { border-left-color: var(--text-dim); }
+
+.example-outcome-label {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.example-outcome-detail {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-dim);
+}
+
+.example-lesson {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-width: 68ch;
+}

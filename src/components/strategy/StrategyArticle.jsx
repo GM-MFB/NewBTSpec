@@ -1,4 +1,5 @@
 import WheelCycle from './WheelCycle'
+import { exampleFor } from '../../lib/strategyExamples'
 
 const ACTION_LABEL = { sell: 'Sell', buy: 'Buy', hold: 'Hold' }
 
@@ -109,7 +110,29 @@ function Mistakes({ items }) {
   )
 }
 
+// A concrete trade with its branches. Prose describes what a strategy is;
+// this shows what actually happens, including the outcomes nobody advertises.
+function WorkedExample({ example }) {
+  return (
+    <section className="strategy-section" data-testid="strategy-example">
+      <h3 className="strategy-section-title">Worked Example</h3>
+      <p className="example-setup">{example.setup}</p>
+      <ul className="example-outcomes">
+        {example.outcomes.map((outcome) => (
+          <li className={`example-outcome example-outcome--${outcome.tone ?? 'neutral'}`} key={outcome.label}>
+            <span className="example-outcome-label">{outcome.label}</span>
+            <span className="example-outcome-detail">{outcome.detail}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="example-lesson">{example.lesson}</p>
+    </section>
+  )
+}
+
 export default function StrategyArticle({ strategy }) {
+  const example = exampleFor(strategy.id)
+
   return (
     <article className="strategy-article" data-testid={`strategy-article-${strategy.id}`}>
       <header className="strategy-header">
@@ -122,6 +145,7 @@ export default function StrategyArticle({ strategy }) {
       <KeyFacts facts={strategy.keyFacts} />
       <Checklist items={strategy.entry} />
       <Timeline items={strategy.management} />
+      {example && <WorkedExample example={example} />}
       <Mistakes items={strategy.mistakes} />
 
       {(strategy.extraSections ?? []).map((section) => (
