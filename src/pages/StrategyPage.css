@@ -1,56 +1,113 @@
-.strategy-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 20px;
+/* Two-level navigation: purpose, then tool. Both rows scroll sideways on a
+   phone rather than wrapping into a wall. */
+.strategy-nav {
   padding: 16px var(--page-pad-x) 0;
-}
-
-.strategy-tab-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
-.strategy-tab-group-label {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-dim);
-}
-
-.strategy-tab-row {
+.strategy-nav-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }
 
-.strategy-tabs button {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
+.strategy-nav-row::-webkit-scrollbar {
+  height: 6px;
+}
+
+.strategy-nav-row::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.strategy-nav-row button {
+  flex-shrink: 0;
+  white-space: nowrap;
+  background: transparent;
+  border: 1px solid transparent;
   color: var(--text-dim);
-  padding: 8px 16px;
-  border-radius: 999px;
-  font-size: 13px;
   font-weight: 600;
 }
 
-.strategy-tabs button:hover {
+.strategy-group-btn {
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.strategy-group-btn:hover {
   color: var(--text);
 }
 
-.strategy-tabs button[aria-pressed="true"] {
-  border-color: var(--green);
+.strategy-group-btn[aria-pressed="true"] {
+  background: var(--bg-elevated);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.strategy-nav-row--strategies {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+.strategy-btn {
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  background: var(--bg-elevated) !important;
+  border-color: var(--border) !important;
+}
+
+.strategy-btn:hover {
+  color: var(--text);
+}
+
+.strategy-btn[aria-pressed="true"] {
+  border-color: var(--green) !important;
   color: var(--green);
-  background: var(--bg);
+  background: var(--bg) !important;
 }
 
 .strategy-page {
   padding: 20px var(--page-pad-x) 60px;
 }
 
+.strategy-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+
+/* Wide enough for two real columns: the reading matter on the left, the
+   calculator and its payoff diagram alongside instead of far below. */
+@media (min-width: 1180px) {
+  .strategy-layout {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: 40px;
+  }
+}
+
 .strategy-article {
-  max-width: 820px;
+  min-width: 0;
+}
+
+.strategy-aside {
+  min-width: 0;
+}
+
+/* Prose keeps a readable measure even when its column is wide; the card grids
+   below are free to use the whole width. */
+.strategy-summary,
+.strategy-paragraph {
+  max-width: 68ch;
 }
 
 .strategy-name {
@@ -246,9 +303,14 @@
     margin-top: 24px;
   }
 
-  .strategy-tabs button {
+  .strategy-btn {
     padding: 7px 12px;
     font-size: 12px;
+  }
+
+  .strategy-group-btn {
+    padding: 6px 10px;
+    font-size: 11px;
   }
 }
 

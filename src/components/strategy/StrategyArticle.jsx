@@ -1,4 +1,3 @@
-import StrategyCalculator from './StrategyCalculator'
 import WheelCycle from './WheelCycle'
 
 const ACTION_LABEL = { sell: 'Sell', buy: 'Buy', hold: 'Hold' }
@@ -134,8 +133,6 @@ export default function StrategyArticle({ strategy }) {
           ))}
         </section>
       ))}
-
-      <StrategyCalculator kind={strategy.calculator} />
     </article>
   )
 }

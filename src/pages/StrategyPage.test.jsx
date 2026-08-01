@@ -14,6 +14,15 @@ function renderPage() {
   return render(<MemoryRouter><StrategyPage /></MemoryRouter>)
 }
 
+// Navigation is two levels now: choose the group, then the strategy inside it.
+async function pick(nameOrStrategy) {
+  const strategy = typeof nameOrStrategy === 'string'
+    ? STRATEGY_CONTENT.find((s) => new RegExp(nameOrStrategy, 'i').test(s.name))
+    : nameOrStrategy
+  await userEvent.click(screen.getByRole('button', { name: strategy.group }))
+  await userEvent.click(screen.getByRole('button', { name: strategy.name }))
+}
+
 describe('StrategyPage', () => {
   beforeEach(() => {
     useAuth.mockReturnValue({ user: { id: 'u1' }, signOut: vi.fn() })
@@ -33,16 +42,28 @@ describe('StrategyPage', () => {
     expect(screen.getByTestId('strategy-article-wheel')).toBeInTheDocument()
   })
 
-  it('offers a tab for every strategy', () => {
+  it('offers a group tab for every group, and reaches every strategy through one', async () => {
     renderPage()
     for (const strategy of STRATEGY_CONTENT) {
-      expect(screen.getByRole('button', { name: strategy.name })).toBeInTheDocument()
+      await pick(strategy)
+      expect(screen.getByTestId(`strategy-article-${strategy.id}`), `cannot reach ${strategy.name}`).toBeInTheDocument()
     }
+  })
+
+  it('shows only the strategies in the active group in the second row', async () => {
+    renderPage()
+    const tabs = screen.getByTestId('strategy-tabs')
+    // Income is active on load, so a Neutral strategy is not listed yet.
+    expect(within(tabs).getByRole('button', { name: 'The Wheel' })).toBeInTheDocument()
+    expect(within(tabs).queryByRole('button', { name: 'Iron Condors' })).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Neutral' }))
+    expect(within(screen.getByTestId('strategy-tabs')).getByRole('button', { name: 'Iron Condors' })).toBeInTheDocument()
   })
 
   it('swaps the article when another strategy is selected', async () => {
     renderPage()
-    await userEvent.click(screen.getByRole('button', { name: 'Iron Condors' }))
+    await pick('Iron Condors')
 
     expect(screen.getByTestId('strategy-article-iron-condor')).toBeInTheDocument()
     expect(screen.queryByTestId('strategy-article-wheel')).not.toBeInTheDocument()
@@ -51,7 +72,7 @@ describe('StrategyPage', () => {
   it('renders every required section for each strategy', async () => {
     renderPage()
     for (const strategy of STRATEGY_CONTENT) {
-      await userEvent.click(screen.getByRole('button', { name: strategy.name }))
+      await pick(strategy)
       for (const section of ['strategy-legs', 'strategy-key-facts', 'strategy-entry', 'strategy-management', 'strategy-mistakes']) {
         expect(screen.getByTestId(section), `${strategy.name} is missing ${section}`).toBeInTheDocument()
       }
@@ -103,7 +124,7 @@ describe('StrategyPage', () => {
   it('shows an at-a-glance strip so strategies can be compared without reading', async () => {
     renderPage()
     for (const strategy of STRATEGY_CONTENT) {
-      await userEvent.click(screen.getByRole('button', { name: strategy.name }))
+      await pick(strategy)
       const glance = screen.getByTestId('strategy-glance')
       for (const label of ['Risk', 'Direction', 'Volatility', 'Capital', 'Legs']) {
         expect(within(glance).getByText(label), `${strategy.name} glance is missing ${label}`).toBeInTheDocument()
@@ -115,13 +136,13 @@ describe('StrategyPage', () => {
     renderPage()
     expect(within(screen.getByTestId('strategy-glance')).getByText('Undefined')).toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Credit Spreads' }))
+    await pick('Credit Spreads')
     expect(within(screen.getByTestId('strategy-glance')).getByText('Defined')).toBeInTheDocument()
   })
 
   it('labels each leg as bought or sold so the structure reads at a glance', async () => {
     renderPage()
-    await userEvent.click(screen.getByRole('button', { name: 'Iron Condors' }))
+    await pick('Iron Condors')
 
     const legs = screen.getByTestId('strategy-legs')
     // A condor is two sold and two bought.
@@ -137,20 +158,20 @@ describe('StrategyPage', () => {
   it('renders a payoff chart for every strategy that has an expiration payoff', async () => {
     renderPage()
     for (const name of ['The Wheel', 'Credit Spreads', 'Debit Spreads', 'Iron Condors']) {
-      await userEvent.click(screen.getByRole('button', { name }))
+      await pick(name)
       expect(screen.getAllByText(/profit and loss at expiration/i).length, `${name} has no payoff chart`).toBeGreaterThan(0)
     }
   })
 
   it('draws no payoff chart for a calendar spread, which has no expiration payoff', async () => {
     renderPage()
-    await userEvent.click(screen.getByRole('button', { name: 'Calendar Spreads' }))
+    await pick('Calendar Spreads')
     expect(screen.queryByText(/profit and loss at expiration/i)).not.toBeInTheDocument()
   })
 
   it('states that a calendar spread has no calculable max profit', async () => {
     renderPage()
-    await userEvent.click(screen.getByRole('button', { name: 'Calendar Spreads' }))
+    await pick('Calendar Spreads')
 
     const calculator = screen.getByTestId('strategy-calculator')
     expect(within(calculator).getByText('Not calculable')).toBeInTheDocument()
@@ -158,17 +179,16 @@ describe('StrategyPage', () => {
   })
 
   it('groups the tabs by purpose', () => {
-    const { container } = renderPage()
-    // Scoped to the tab bar: 'Volatility' is also a label in the glance strip.
-    const tabs = container.querySelector('.strategy-tabs')
-    for (const group of ['Income', 'Directional', 'Neutral', 'Volatility', 'Protection']) {
-      expect(within(tabs).getByText(group), `no ${group} tab group`).toBeInTheDocument()
+    renderPage()
+    const groups = screen.getByTestId('strategy-groups')
+    for (const group of ['Income', 'Directional', 'Neutral', 'Volatility', 'Protection', 'Hedge Fund', 'Concepts']) {
+      expect(within(groups).getByRole('button', { name: group }), `no ${group} tab group`).toBeInTheDocument()
     }
   })
 
   it('says a short strangle loss is unbounded rather than printing a number', async () => {
     renderPage()
-    await userEvent.click(screen.getByRole('button', { name: 'Strangles & Straddles' }))
+    await pick('Strangles & Straddles')
 
     const calculator = screen.getByTestId('strategy-calculator')
     expect(within(calculator).getByText('Unbounded')).toBeInTheDocument()
@@ -177,7 +197,7 @@ describe('StrategyPage', () => {
 
   it('says a long call profit is unbounded', async () => {
     renderPage()
-    await userEvent.click(screen.getByRole('button', { name: 'Long Calls & Puts' }))
+    await pick('Long Calls & Puts')
 
     const calculator = screen.getByTestId('strategy-calculator')
     expect(within(calculator).getByText('Unbounded')).toBeInTheDocument()
@@ -185,7 +205,7 @@ describe('StrategyPage', () => {
 
   it('caps a protective put loss at the floor while leaving upside open', async () => {
     renderPage()
-    await userEvent.click(screen.getByRole('button', { name: 'Protective Puts & Collars' }))
+    await pick('Protective Puts & Collars')
 
     const calculator = screen.getByTestId('strategy-calculator')
     // basis 100, put 95, premium 2 -> floor of $700
@@ -195,19 +215,19 @@ describe('StrategyPage', () => {
 
   it('flags the pmcc ceiling as resting on both legs running to the long expiry', async () => {
     renderPage()
-    await userEvent.click(screen.getByRole('button', { name: /poor man/i }))
+    await pick('poor man')
 
     expect(screen.getByText(/assumes both legs run to the long expiry/i)).toBeInTheDocument()
   })
 
   it('has a Hedge Fund group', () => {
-    const { container } = renderPage()
-    expect(within(container.querySelector('.strategy-tabs')).getByText('Hedge Fund')).toBeInTheDocument()
+    renderPage()
+    expect(within(screen.getByTestId('strategy-groups')).getByRole('button', { name: 'Hedge Fund' })).toBeInTheDocument()
   })
 
   it('says a jade lizard has no upside risk when the credit covers the call width', async () => {
     renderPage()
-    await userEvent.click(screen.getByRole('button', { name: 'Jade Lizard' }))
+    await pick('Jade Lizard')
 
     const calculator = screen.getByTestId('strategy-calculator')
     expect(within(calculator).getByText('None')).toBeInTheDocument()
@@ -216,7 +236,7 @@ describe('StrategyPage', () => {
 
   it('warns that a covered strangle doubles the position on assignment', async () => {
     renderPage()
-    await userEvent.click(screen.getByRole('button', { name: 'Covered Strangle' }))
+    await pick('Covered Strangle')
 
     const calculator = screen.getByTestId('strategy-calculator')
     expect(within(calculator).getByText('200')).toBeInTheDocument()
@@ -225,7 +245,7 @@ describe('StrategyPage', () => {
 
   it('shows the tail hedge paying nothing until the drawdown passes the strike', async () => {
     renderPage()
-    await userEvent.click(screen.getByRole('button', { name: 'Tail Risk Hedging' }))
+    await pick('Tail Risk Hedging')
 
     const calculator = screen.getByTestId('strategy-calculator')
     // A 20% OTM put pays nothing on a 10% fall.
@@ -235,7 +255,7 @@ describe('StrategyPage', () => {
 
   it('shows a buffer absorbing a fall inside it and capping the upside', async () => {
     renderPage()
-    await userEvent.click(screen.getByRole('button', { name: /defined outcome/i }))
+    await pick('defined outcome')
 
     const calculator = screen.getByTestId('strategy-calculator')
     // 15% buffer: a 10% fall becomes 0%. 12% cap: a 30% rise becomes 12%.
@@ -245,7 +265,7 @@ describe('StrategyPage', () => {
 
   it('gives Volatility Risk Premium no calculator, since it is an approach not a structure', async () => {
     renderPage()
-    await userEvent.click(screen.getByRole('button', { name: /volatility risk premium/i }))
+    await pick('volatility risk premium')
 
     expect(screen.queryByTestId('strategy-calculator')).not.toBeInTheDocument()
     expect(screen.getByTestId('strategy-key-facts')).toBeInTheDocument()
@@ -253,7 +273,7 @@ describe('StrategyPage', () => {
 
   it('warns that a front ratio has an unbounded tail and a backspread does not', async () => {
     renderPage()
-    await userEvent.click(screen.getByRole('button', { name: /ratio spreads/i }))
+    await pick('ratio spreads')
 
     const calculator = screen.getByTestId('strategy-calculator')
     // Front ratio by default: the naked leg means the loss does not stop.
@@ -267,7 +287,7 @@ describe('StrategyPage', () => {
 
   it('has a Gamma page explaining why the management rules exist', async () => {
     renderPage()
-    await userEvent.click(screen.getByRole('button', { name: 'Gamma' }))
+    await pick('Gamma')
 
     const article = screen.getByTestId('strategy-article-gamma')
     expect(within(article).getByRole('heading', { name: /long gamma vs short gamma/i })).toBeInTheDocument()
@@ -279,7 +299,7 @@ describe('StrategyPage', () => {
 
   it('computes the condor from its four strikes', async () => {
     renderPage()
-    await userEvent.click(screen.getByRole('button', { name: 'Iron Condors' }))
+    await pick('Iron Condors')
 
     const calculator = screen.getByTestId('strategy-calculator')
     expect(within(calculator).getByText('$120.00')).toBeInTheDocument()
