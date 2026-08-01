@@ -149,6 +149,49 @@ describe('StrategyPage', () => {
     expect(within(calculator).getByText(/implied volatility at the near expiry/i)).toBeInTheDocument()
   })
 
+  it('groups the tabs by purpose', () => {
+    const { container } = renderPage()
+    // Scoped to the tab bar: 'Volatility' is also a label in the glance strip.
+    const tabs = container.querySelector('.strategy-tabs')
+    for (const group of ['Income', 'Directional', 'Neutral', 'Volatility', 'Protection']) {
+      expect(within(tabs).getByText(group), `no ${group} tab group`).toBeInTheDocument()
+    }
+  })
+
+  it('says a short strangle loss is unbounded rather than printing a number', async () => {
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: 'Strangles & Straddles' }))
+
+    const calculator = screen.getByTestId('strategy-calculator')
+    expect(within(calculator).getByText('Unbounded')).toBeInTheDocument()
+    expect(within(calculator).getByText(/no ceiling.*that is the point/i)).toBeInTheDocument()
+  })
+
+  it('says a long call profit is unbounded', async () => {
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: 'Long Calls & Puts' }))
+
+    const calculator = screen.getByTestId('strategy-calculator')
+    expect(within(calculator).getByText('Unbounded')).toBeInTheDocument()
+  })
+
+  it('caps a protective put loss at the floor while leaving upside open', async () => {
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: 'Protective Puts & Collars' }))
+
+    const calculator = screen.getByTestId('strategy-calculator')
+    // basis 100, put 95, premium 2 -> floor of $700
+    expect(within(calculator).getByText('$700.00')).toBeInTheDocument()
+    expect(within(calculator).getByText('Unbounded')).toBeInTheDocument()
+  })
+
+  it('flags the pmcc ceiling as resting on both legs running to the long expiry', async () => {
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: /poor man/i }))
+
+    expect(screen.getByText(/assumes both legs run to the long expiry/i)).toBeInTheDocument()
+  })
+
   it('computes the condor from its four strikes', async () => {
     renderPage()
     await userEvent.click(screen.getByRole('button', { name: 'Iron Condors' }))

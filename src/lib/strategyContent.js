@@ -12,6 +12,7 @@
 export const STRATEGY_CONTENT = [
   {
     id: 'wheel',
+    group: 'Income',
     name: 'The Wheel',
     outlook: 'Neutral to bullish',
     capital: 'High — full strike collateral per contract',
@@ -85,8 +86,9 @@ export const STRATEGY_CONTENT = [
         body: [
           'The wheel is a strategy for stocks that trade sideways or grind up. A name in genuine decline turns it into a slow-motion bag hold with a small income stream attached.',
           'Warning sign: the premium you can collect above your cost basis has become negligible. The wheel has stopped turning and you are simply long a falling stock.',
-          'The options then are the same as for any losing position — hold with conviction, average down deliberately, or take the loss. Selling covered calls below basis is not a fourth option, it is choosing the loss without admitting it.',
-          'The defence is entirely at entry: only wheel names you would hold through a drawdown.',
+          'The options then are the same as for any losing position — hold with conviction, average down deliberately, take the loss, or hedge. A protective put puts a floor under the shares, and a collar pays for that floor by capping the upside; see Protective Puts & Collars.',
+          'Selling covered calls below basis is not one of those options. It is choosing the loss without admitting it.',
+          'The defence is still mostly at entry: only wheel names you would hold through a drawdown. But once you are holding one, a floor is a real choice and worth pricing before deciding.',
         ],
       },
     ],
@@ -95,6 +97,7 @@ export const STRATEGY_CONTENT = [
 
   {
     id: 'credit-spread',
+    group: 'Directional',
     name: 'Credit Spreads',
     outlook: 'Directional or neutral, with defined risk',
     capital: 'Low — the spread width less the credit',
@@ -143,6 +146,7 @@ export const STRATEGY_CONTENT = [
 
   {
     id: 'debit-spread',
+    group: 'Directional',
     name: 'Debit Spreads',
     outlook: 'Directional, with defined risk and capped upside',
     capital: 'The debit paid',
@@ -188,6 +192,7 @@ export const STRATEGY_CONTENT = [
 
   {
     id: 'calendar-spread',
+    group: 'Neutral',
     name: 'Calendar Spreads',
     outlook: 'Neutral near-term, and long volatility',
     capital: 'The net debit paid',
@@ -245,6 +250,7 @@ export const STRATEGY_CONTENT = [
 
   {
     id: 'iron-condor',
+    group: 'Neutral',
     name: 'Iron Condors',
     outlook: 'Neutral — a bet on a range',
     capital: 'The wider wing width, less the credit',
@@ -290,6 +296,244 @@ export const STRATEGY_CONTENT = [
       { lead: 'Holding through expiration week', detail: 'Squeezing the last of the credit is the highest-risk, lowest-reward part of the trade.' },
     ],
     calculator: 'iron-condor',
+  },
+
+  {
+    id: 'pmcc',
+    group: 'Income',
+    name: "Poor Man's Covered Call",
+    outlook: 'Bullish, income-oriented',
+    capital: 'The net debit — a fraction of owning shares',
+    glance: {
+      risk: 'Defined',
+      riskTone: 'good',
+      direction: 'Bullish',
+      volatility: 'Buy low IV',
+      capital: 'Moderate',
+      legs: '2',
+    },
+    summary:
+      'Buy a deep in-the-money long-dated call and sell near-dated calls against it. The long call stands in for 100 shares at a fraction of the cost, so you run covered-call income without the capital. It is a diagonal spread wearing a different name, and it behaves like a covered call until the underlying moves far enough to expose the difference.',
+    legs: [
+      { action: 'buy', text: '1 deep ITM call, 6–12 months out — the share substitute' },
+      { action: 'sell', text: '1 OTM call, 30–45 days out — the income leg, sold repeatedly' },
+    ],
+    keyFacts: [
+      ['Max profit', 'Short strike − long strike − net debit, if both run to the long expiry', 'good'],
+      ['Max loss', 'The net debit paid', 'bad'],
+      ['Breakeven', 'Long strike + net debit, at the long expiry', null],
+      ['Capital required', 'The net debit — typically 20–30% of buying the shares', null],
+    ],
+    entry: [
+      { lead: 'Long call at 0.80 delta or deeper', detail: 'It has to behave like stock. A cheaper, lower-delta call moves too little against the short leg and the structure stops working.' },
+      { lead: '6 – 12 months on the long leg', detail: 'Long enough that its time decay is slow while you sell several short cycles against it.' },
+      { lead: 'Short strike above your total cost', detail: 'Long strike plus net debit. Selling below that caps the position at a loss, exactly as with a covered call below basis.' },
+      { lead: 'Buy the long leg in low IV', detail: 'You are net long premium on the expensive leg. Overpaying for it is the most common way this ends up underwater.' },
+    ],
+    management: [
+      { when: 'Entry', detail: 'Net debit paid. That is the whole risk, and it is far less than 100 shares would cost.' },
+      { when: 'Short call cycle', detail: 'Close the short at ~50% and sell the next one. Each cycle reduces your net cost in the position.' },
+      { when: 'Rally past the short', detail: 'Roll the short up and out for a credit. Assignment is awkward here — you would need to exercise the long or buy shares.' },
+      { when: 'Sharp fall', detail: 'The long call loses value faster in percentage terms than shares would. There is no assignment fallback and no dividend to wait on.' },
+      { when: 'Long leg ages', detail: 'Roll it out before decay accelerates, usually with 3+ months left. That costs a debit, so count it in the running cost.' },
+    ],
+    mistakes: [
+      { lead: 'Long call not deep enough', detail: 'A 0.60 delta call is not a share substitute. It moves too little on rallies and too much on drops.' },
+      { lead: 'Selling the short below total cost', detail: 'The same trap as a covered call under cost basis, and just as easy to walk into after the underlying has fallen.' },
+      { lead: 'Forgetting the long leg decays too', detail: 'It is slower, not free. A flat underlying for six months still bleeds the position.' },
+      { lead: 'Treating it as identical to a covered call', detail: 'No shares, no dividends, no assignment to fall back on, and a hard expiry on the whole position.' },
+    ],
+    calculator: 'pmcc',
+  },
+
+  {
+    id: 'long-option',
+    group: 'Directional',
+    name: 'Long Calls & Puts',
+    outlook: 'Strongly directional',
+    capital: 'The premium paid',
+    glance: {
+      risk: 'Defined',
+      riskTone: 'good',
+      direction: 'Directional',
+      volatility: 'Buy low IV',
+      capital: 'Low',
+      legs: '1',
+    },
+    summary:
+      'Buy a call to profit from a rise, or a put to profit from a fall. The premium is the entire risk, and the upside on a call is unbounded. Every other strategy on this page is built from these two contracts, which makes them the place to start — and the hardest to make money with, because you pay for time decay every day you hold.',
+    legs: [
+      { action: 'buy', text: '1 call to be long the move up, or 1 put to be long the move down' },
+    ],
+    keyFacts: [
+      ['Max profit', 'Call: unbounded. Put: strike − premium, if it goes to zero', 'good'],
+      ['Max loss', 'The premium paid, in full', 'bad'],
+      ['Breakeven', 'Call: strike + premium. Put: strike − premium', null],
+      ['Capital required', 'The premium', null],
+    ],
+    entry: [
+      { lead: 'You must be right on three things', detail: 'Direction, size of the move, and timing. A stock that rises after your expiry pays nothing, which is what makes these deceptively hard.' },
+      { lead: 'Buy low IV', detail: 'An option bought when volatility is elevated can lose money on a correct call as IV contracts. Check IV rank before paying.' },
+      { lead: 'Buy more time than feels necessary', detail: 'Decay accelerates in the last 30 days. Cheap weeklies are cheap because they usually expire worthless.' },
+      { lead: 'Consider a spread instead', detail: 'With a price target, a debit spread costs less and breaks even sooner. Unbounded upside only matters if you truly expect a large move.' },
+    ],
+    management: [
+      { when: 'Entry', detail: 'Premium paid. Maximum loss is fixed from here, which is this strategy’s one great virtue.' },
+      { when: 'Every day held', detail: 'Time decay works against you and accelerates near expiry — the opposite of every premium-selling strategy here.' },
+      { when: 'Thesis plays out', detail: 'Take profit. Holding a winning long option for more is how gains evaporate on one reversal.' },
+      { when: '30 DTE', detail: 'Decay steepens sharply. Roll out or close rather than riding the steepest part of the curve.' },
+    ],
+    mistakes: [
+      { lead: 'Buying weeklies for the leverage', detail: 'The cheapest options are cheapest because they almost always expire worthless. Leverage is not edge.' },
+      { lead: 'Buying into an earnings IV spike', detail: 'You can be right on direction and still lose when volatility collapses after the announcement.' },
+      { lead: 'Ignoring the breakeven', detail: 'A $100 call bought for $3 needs $103 to break even, not $100. The stock rising is not enough.' },
+      { lead: 'Holding to expiry hoping', detail: 'An out-of-the-money option in its final days is a lottery ticket, not a position.' },
+    ],
+    calculator: 'long-option',
+  },
+
+  {
+    id: 'iron-butterfly',
+    group: 'Neutral',
+    name: 'Iron Butterflies',
+    outlook: 'Neutral — a bet on a pin',
+    capital: 'Wing width less the credit',
+    glance: {
+      risk: 'Defined',
+      riskTone: 'good',
+      direction: 'Neutral',
+      volatility: 'Sell high IV',
+      capital: 'Low',
+      legs: '4',
+    },
+    summary:
+      'A condor with both short strikes at the same price. Sell a straddle at the money, then buy wings either side to cap the risk. It collects far more credit than a condor because the short strikes sit right where the stock is — and it needs the stock to finish much closer to that strike to keep it.',
+    legs: [
+      { action: 'buy', text: '1 put one wing width below — lower wing' },
+      { action: 'sell', text: '1 put at the centre strike' },
+      { action: 'sell', text: '1 call at the same centre strike' },
+      { action: 'buy', text: '1 call one wing width above — upper wing' },
+    ],
+    keyFacts: [
+      ['Max profit', 'The full credit, only if price pins the centre strike exactly', 'good'],
+      ['Max loss', 'Wing width − credit', 'bad'],
+      ['Breakevens', 'Centre − credit, and centre + credit', null],
+      ['Capital required', 'The max loss', null],
+    ],
+    entry: [
+      { lead: 'Centre where you expect it to land', detail: 'Usually at the money. The whole trade is a bet that the stock finishes near this one price.' },
+      { lead: 'High IV, expected to fall', detail: 'You are selling a straddle at the core, so the position is heavily short volatility.' },
+      { lead: 'Wings wide enough to be worth it', detail: 'Narrow wings cut the credit sharply; wide wings raise the max loss. That width is the whole risk/reward decision.' },
+      { lead: 'Prefer a condor if unsure', detail: 'A condor gives a profit range instead of a profit point. A butterfly pays more for needing you to be more right.' },
+    ],
+    management: [
+      { when: 'Entry', detail: 'Credit received, larger than a comparable condor because the shorts sit at the money.' },
+      { when: '25 – 50% profit', detail: 'Take it earlier than a condor. The peak exists at one price only, and the stock rarely stays there.' },
+      { when: 'Price drifts off centre', detail: 'The position deteriorates quickly. Roll the untested side in, or close, rather than waiting for a return.' },
+      { when: '21 DTE', detail: 'Gamma risk is severe — the payoff is a peak, not a plateau, so small moves matter enormously near expiry.' },
+    ],
+    mistakes: [
+      { lead: 'Expecting to collect max profit', detail: 'That needs the stock to close exactly at the centre strike. It essentially never happens.' },
+      { lead: 'Treating it like a condor', detail: 'A condor has a profit plateau between two strikes. A butterfly has a single peak, and everything either side of it is worse.' },
+      { lead: 'Wings too narrow', detail: 'It looks like less risk, but it guts the credit and leaves a trade that cannot pay for its own losses.' },
+      { lead: 'Holding through expiry week', detail: 'The peak is sharpest and the gamma worst exactly when the temptation to hold is greatest.' },
+    ],
+    calculator: 'iron-butterfly',
+  },
+
+  {
+    id: 'strangle',
+    group: 'Volatility',
+    name: 'Strangles & Straddles',
+    outlook: 'A view on movement, not direction',
+    capital: 'Short: heavy margin. Long: the premium',
+    glance: {
+      risk: 'Short: undefined',
+      riskTone: 'bad',
+      direction: 'Non-directional',
+      volatility: 'Short: sell high IV',
+      capital: 'Short: high',
+      legs: '2',
+    },
+    summary:
+      'Sell — or buy — both a put and a call on the same underlying. Same strike makes it a straddle; different strikes a strangle. Short versions collect double premium and profit when the stock goes nowhere, with genuinely unbounded risk on the call side. Long versions pay double premium betting the stock moves sharply, and are the standard way to trade an earnings event.',
+    legs: [
+      { action: 'sell', text: '1 put below the price — buy it instead for the long version' },
+      { action: 'sell', text: '1 call above the price — buy it instead for the long version' },
+    ],
+    keyFacts: [
+      ['Max profit', 'Short: the total premium. Long: unbounded on the call side', 'good'],
+      ['Max loss', 'Short: unbounded. Long: the premium paid', 'bad'],
+      ['Breakevens', 'Put strike − premium, and call strike + premium', null],
+      ['Capital required', 'Short: substantial naked margin. Long: the premium', null],
+    ],
+    entry: [
+      { lead: 'Short strangles need real capital', detail: 'This is naked on both sides. Brokers demand heavy margin, and they are right to — the call side has no ceiling.' },
+      { lead: 'Sell into high IV, buy into low', detail: 'The short version wants volatility to fall after entry; the long version wants it to rise, or the stock to move hard.' },
+      { lead: 'Long straddles for events', detail: 'Earnings, rulings, data. But IV is already elevated going in, so the move has to beat what is priced, not merely happen.' },
+      { lead: 'Consider a condor instead', detail: 'A short strangle with wings bought is an iron condor. You give up credit and cap the risk — usually the better trade.' },
+    ],
+    management: [
+      { when: 'Entry', detail: 'Short: both premiums received, margin held. Long: both premiums paid, and that is the whole risk.' },
+      { when: '50% profit (short)', detail: 'Close. Undefined risk is not something to hold for the last of the credit.' },
+      { when: 'One side tested (short)', detail: 'Roll the tested side out, or close the position. Do not add to it hoping for reversion.' },
+      { when: 'After the event (long)', detail: 'Close quickly. Volatility crush after earnings can wipe out a long straddle even when the stock moved your way.' },
+    ],
+    mistakes: [
+      { lead: 'Selling naked without the capital behind it', detail: 'A short call has unbounded loss. A gap up on takeover news is the scenario that ends accounts, and no stop protects you overnight.' },
+      { lead: 'Buying straddles into earnings without checking IV', detail: 'The move is already priced. A large move that merely matches expectations still loses to the volatility crush.' },
+      { lead: 'Treating a short strangle as a condor', detail: 'They look alike in the middle of a payoff diagram and are nothing alike in the tails, which is where it matters.' },
+      { lead: 'Holding short premium through binary events', detail: 'Earnings, FDA decisions, court rulings — exactly when an unbounded-risk position is most exposed.' },
+    ],
+    calculator: 'strangle',
+  },
+
+  {
+    id: 'protective-put',
+    group: 'Protection',
+    name: 'Protective Puts & Collars',
+    outlook: 'Long shares, wanting a floor',
+    capital: 'The put premium, or near zero for a collar',
+    glance: {
+      risk: 'Defined',
+      riskTone: 'good',
+      direction: 'Long shares',
+      volatility: 'Buy low IV',
+      capital: 'Low',
+      legs: '1 – 2 vs shares',
+    },
+    summary:
+      'Own the shares and buy a put beneath them and you have a floor: the stock can fall no further than the strike, whatever happens. That insurance costs premium. Sell a call above the shares to pay for it and you have a collar — a floor and a ceiling, often for close to nothing. This is the answer to a wheel position that has gone wrong, and the reason to hold rather than panic.',
+    legs: [
+      { action: 'hold', text: '100 shares per contract — assigned, or bought outright' },
+      { action: 'buy', text: '1 put below the price — the floor' },
+      { action: 'sell', text: '1 call above the price — pays for the floor, adds a ceiling (collar only)' },
+    ],
+    keyFacts: [
+      ['Max profit', 'Protective put: unbounded. Collar: capped at the call strike', 'good'],
+      ['Max loss', 'Basis − put strike + net cost. Fixed, whatever the stock does', 'bad'],
+      ['Breakeven', 'Cost basis + net cost of the hedge', null],
+      ['Capital required', 'The put premium, less any call credit', null],
+    ],
+    entry: [
+      { lead: 'Choose the floor you can live with', detail: 'A closer put costs more and protects sooner. A further put is cheap insurance against catastrophe only.' },
+      { lead: 'Buy protection before you need it', detail: 'Put premium spikes exactly when the market falls. Hedging after a drop means paying the panic price.' },
+      { lead: 'Collar when protection feels expensive', detail: 'Selling a call above pays for the put. A zero-cost collar is often achievable, and what it costs is upside.' },
+      { lead: 'Set the call above your basis', detail: 'Same rule as a covered call. A collar with the call under your basis locks in a loss at both ends.' },
+    ],
+    management: [
+      { when: 'Entry', detail: 'Shares held, put bought. Downside is bounded from here no matter what happens.' },
+      { when: 'Stock falls', detail: 'The put gains as the shares lose. This is the hedge working, not a separate position to manage.' },
+      { when: 'Stock rallies (collar)', detail: 'The short call caps you. Buying it back to reclaim the upside is the cost of having been protected.' },
+      { when: 'Put nears expiry', detail: 'Roll it out if the reason for the hedge still stands. Insurance lapses.' },
+    ],
+    mistakes: [
+      { lead: 'Hedging after the fall', detail: 'Put premium is most expensive precisely when fear is highest. Protection bought in a panic rarely pays.' },
+      { lead: 'Collaring below cost basis', detail: 'A call under your basis means being called away at a loss, with the floor guaranteeing you eat it.' },
+      { lead: 'Paying for protection you never use', detail: 'Continuously buying puts on a position you would hold anyway is a slow, permanent drag on returns.' },
+      { lead: 'Forgetting the ceiling exists', detail: 'A collar caps the upside. On a name that runs, the capped gain can hurt more than the drawdown you insured against.' },
+    ],
+    calculator: 'protective-put',
   },
 ]
 

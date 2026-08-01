@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   cashSecuredPut, coveredCall, creditSpread, debitSpread, calendarSpread, ironCondor,
+  longOption, poorMansCoveredCall, protectivePut, collar, strangle, ironButterfly,
 } from './strategyMath'
 
 describe('cashSecuredPut', () => {
@@ -138,5 +139,106 @@ describe('ironCondor', () => {
 
   it('returns nulls when the credit exceeds the wider width', () => {
     expect(ironCondor({ shortPut: 95, longPut: 90, shortCall: 105, longCall: 110, credit: 5, contracts: 1 }).maxLoss).toBeNull()
+  })
+})
+
+describe('longOption', () => {
+  it('reports no ceiling for a long call, since upside is unbounded', () => {
+    const r = longOption({ strike: 100, premium: 3, contracts: 1, type: 'call' })
+    expect(r.maxLoss).toBe(300)
+    expect(r.maxProfit).toBeNull()
+    expect(r.breakeven).toBe(103)
+  })
+
+  it('bounds a long put at the underlying reaching zero', () => {
+    const r = longOption({ strike: 100, premium: 3, contracts: 1, type: 'put' })
+    expect(r.maxLoss).toBe(300)
+    expect(r.maxProfit).toBe(9700)
+    expect(r.breakeven).toBe(97)
+  })
+})
+
+describe('poorMansCoveredCall', () => {
+  it('computes net debit and the ceiling for a 80/110 diagonal', () => {
+    const r = poorMansCoveredCall({ longStrike: 80, longDebit: 25, shortStrike: 110, shortCredit: 2, contracts: 1 })
+    expect(r.netDebit).toBe(2300)
+    expect(r.maxLoss).toBe(2300)
+    // (110 - 80 - 23) x 100
+    expect(r.profitCeiling).toBe(700)
+    expect(r.breakeven).toBe(103)
+  })
+
+  it('refuses a short strike at or below the long strike', () => {
+    expect(poorMansCoveredCall({ longStrike: 80, longDebit: 25, shortStrike: 80, shortCredit: 2, contracts: 1 }).maxLoss).toBeNull()
+  })
+})
+
+describe('protectivePut', () => {
+  it('floors the loss at the put strike plus what the put cost', () => {
+    const r = protectivePut({ costBasis: 100, putStrike: 95, putPremium: 2, contracts: 1 })
+    expect(r.maxLoss).toBe(700)
+    expect(r.breakeven).toBe(102)
+    expect(r.insuranceCost).toBe(200)
+  })
+
+  it('leaves the upside uncapped', () => {
+    expect(protectivePut({ costBasis: 100, putStrike: 95, putPremium: 2, contracts: 1 }).maxProfit).toBeNull()
+  })
+})
+
+describe('collar', () => {
+  it('caps both ends and nets the two premiums', () => {
+    const r = collar({ costBasis: 100, putStrike: 95, putPremium: 2, callStrike: 110, callCredit: 1.5, contracts: 1 })
+    expect(r.netCost).toBeCloseTo(50, 6)
+    expect(r.maxLoss).toBeCloseTo(550, 6)
+    expect(r.maxProfit).toBeCloseTo(950, 6)
+    expect(r.breakeven).toBeCloseTo(100.5, 6)
+  })
+
+  it('handles a credit collar, where the call pays for more than the put', () => {
+    const r = collar({ costBasis: 100, putStrike: 95, putPremium: 1, callStrike: 110, callCredit: 2, contracts: 1 })
+    expect(r.netCost).toBeCloseTo(-100, 6)
+    expect(r.breakeven).toBeCloseTo(99, 6)
+  })
+
+  it('refuses a call strike at or below the put strike', () => {
+    expect(collar({ costBasis: 100, putStrike: 110, putPremium: 2, callStrike: 95, callCredit: 1, contracts: 1 }).maxLoss).toBeNull()
+  })
+})
+
+describe('strangle', () => {
+  it('reports no max loss for a short strangle, because it is unbounded', () => {
+    const r = strangle({ putStrike: 95, callStrike: 105, premium: 3, contracts: 1, direction: 'short' })
+    expect(r.maxProfit).toBe(300)
+    expect(r.maxLoss).toBeNull()
+    expect(r.lowerBreakeven).toBe(92)
+    expect(r.upperBreakeven).toBe(108)
+  })
+
+  it('caps a long strangle loss at the premium paid', () => {
+    const r = strangle({ putStrike: 95, callStrike: 105, premium: 3, contracts: 1, direction: 'long' })
+    expect(r.maxLoss).toBe(300)
+    expect(r.maxProfit).toBeNull()
+  })
+
+  it('treats equal strikes as a straddle', () => {
+    const r = strangle({ putStrike: 100, callStrike: 100, premium: 6, contracts: 1, direction: 'short' })
+    expect(r.lowerBreakeven).toBe(94)
+    expect(r.upperBreakeven).toBe(106)
+  })
+})
+
+describe('ironButterfly', () => {
+  it('computes a 100 centre with 10 wide wings for $4.00', () => {
+    const r = ironButterfly({ centerStrike: 100, wingWidth: 10, credit: 4, contracts: 1 })
+    expect(r.maxProfit).toBe(400)
+    expect(r.maxLoss).toBe(600)
+    expect(r.lowerBreakeven).toBe(96)
+    expect(r.upperBreakeven).toBe(104)
+    expect(r.returnOnRisk).toBeCloseTo(400 / 600, 10)
+  })
+
+  it('returns nulls when the credit exceeds the wing width', () => {
+    expect(ironButterfly({ centerStrike: 100, wingWidth: 10, credit: 12, contracts: 1 }).maxLoss).toBeNull()
   })
 })

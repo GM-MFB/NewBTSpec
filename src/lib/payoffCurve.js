@@ -48,6 +48,44 @@ const PAYOFFS = {
     const callSide = intrinsicCall(price, num(shortCall)) - intrinsicCall(price, num(longCall))
     return (num(credit) - putSide - callSide) * SHARES_PER_CONTRACT * num(contracts)
   },
+
+  'long-option': ({ strike, premium, contracts, type }, price) => {
+    const intrinsic = type === 'put' ? intrinsicPut(price, num(strike)) : intrinsicCall(price, num(strike))
+    return (intrinsic - num(premium)) * SHARES_PER_CONTRACT * num(contracts)
+  },
+
+  // At the long leg's expiry the diagonal has collapsed into a call spread, so
+  // this is the payoff if both legs are carried that far — not the near-term
+  // outcome, which still contains the long call's remaining time value.
+  'pmcc': ({ longStrike, longDebit, shortStrike, shortCredit, contracts }, price) => {
+    const gained = intrinsicCall(price, num(longStrike)) - intrinsicCall(price, num(shortStrike))
+    return (gained - (num(longDebit) - num(shortCredit))) * SHARES_PER_CONTRACT * num(contracts)
+  },
+
+  'protective-put': ({ costBasis, putStrike, putPremium, contracts }, price) =>
+    ((price - num(costBasis)) + intrinsicPut(price, num(putStrike)) - num(putPremium))
+    * SHARES_PER_CONTRACT * num(contracts),
+
+  'collar': ({ costBasis, putStrike, putPremium, callStrike, callCredit, contracts }, price) =>
+    ((price - num(costBasis))
+      + intrinsicPut(price, num(putStrike))
+      - intrinsicCall(price, num(callStrike))
+      - (num(putPremium) - num(callCredit)))
+    * SHARES_PER_CONTRACT * num(contracts),
+
+  'strangle': ({ putStrike, callStrike, premium, contracts, direction }, price) => {
+    const intrinsic = intrinsicPut(price, num(putStrike)) + intrinsicCall(price, num(callStrike))
+    const sign = direction === 'long' ? 1 : -1
+    return (sign * (intrinsic - num(premium))) * SHARES_PER_CONTRACT * num(contracts)
+  },
+
+  'iron-butterfly': ({ centerStrike, wingWidth, credit, contracts }, price) => {
+    const center = num(centerStrike)
+    const wing = num(wingWidth)
+    const putSide = intrinsicPut(price, center) - intrinsicPut(price, center - wing)
+    const callSide = intrinsicCall(price, center) - intrinsicCall(price, center + wing)
+    return (num(credit) - putSide - callSide) * SHARES_PER_CONTRACT * num(contracts)
+  },
 }
 
 export function payoffAt(kind, params, price) {
@@ -64,6 +102,16 @@ function strikesFor(kind, params) {
     case 'credit-spread': return [num(params.shortStrike), num(params.longStrike)]
     case 'debit-spread': return [num(params.longStrike), num(params.shortStrike)]
     case 'iron-condor': return [num(params.shortPut), num(params.longPut), num(params.shortCall), num(params.longCall)]
+    case 'long-option': return [num(params.strike)]
+    case 'pmcc': return [num(params.longStrike), num(params.shortStrike)]
+    case 'protective-put': return [num(params.putStrike), num(params.costBasis)]
+    case 'collar': return [num(params.putStrike), num(params.callStrike), num(params.costBasis)]
+    case 'strangle': return [num(params.putStrike), num(params.callStrike)]
+    case 'iron-butterfly': return [
+      num(params.centerStrike) - num(params.wingWidth),
+      num(params.centerStrike),
+      num(params.centerStrike) + num(params.wingWidth),
+    ]
     default: return []
   }
 }
@@ -81,6 +129,10 @@ function isValid(kind, params, strikes) {
     const [sp, lp, sc, lc] = strikes
     if (Math.abs(sp - lp) <= 0 || Math.abs(sc - lc) <= 0) return false
   }
+  if (kind === 'pmcc' && num(params.shortStrike) <= num(params.longStrike)) return false
+  if (kind === 'collar' && num(params.callStrike) <= num(params.putStrike)) return false
+  if (kind === 'strangle' && num(params.callStrike) < num(params.putStrike)) return false
+  if (kind === 'iron-butterfly' && num(params.wingWidth) <= 0) return false
   return true
 }
 

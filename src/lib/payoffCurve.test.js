@@ -144,3 +144,54 @@ describe('payoffCurve', () => {
     expect(payoffCurve('credit-spread', { shortStrike: 36, longStrike: 36, credit: 0.4, contracts: 1, type: 'put' })).toBeNull()
   })
 })
+
+describe('payoffAt — added strategies', () => {
+  it('long call loses the premium below the strike and rises above breakeven', () => {
+    const p = { strike: 100, premium: 3, contracts: 1, type: 'call' }
+    expect(at('long-option', p, 90)).toBeCloseTo(-300, 6)
+    expect(at('long-option', p, 103)).toBeCloseTo(0, 6)
+    expect(at('long-option', p, 120)).toBeCloseTo(1700, 6)
+  })
+
+  it('long put mirrors it', () => {
+    const p = { strike: 100, premium: 3, contracts: 1, type: 'put' }
+    expect(at('long-option', p, 110)).toBeCloseTo(-300, 6)
+    expect(at('long-option', p, 97)).toBeCloseTo(0, 6)
+  })
+
+  it('protective put floors the loss at the put strike', () => {
+    const p = { costBasis: 100, putStrike: 95, putPremium: 2, contracts: 1 }
+    expect(at('protective-put', p, 95)).toBeCloseTo(-700, 6)
+    expect(at('protective-put', p, 60)).toBeCloseTo(-700, 6)
+    expect(at('protective-put', p, 120)).toBeCloseTo(1800, 6)
+  })
+
+  it('collar caps both ends', () => {
+    const p = { costBasis: 100, putStrike: 95, putPremium: 2, callStrike: 110, callCredit: 1.5, contracts: 1 }
+    expect(at('collar', p, 80)).toBeCloseTo(-550, 6)
+    expect(at('collar', p, 130)).toBeCloseTo(950, 6)
+  })
+
+  it('short strangle keeps the credit between the strikes and loses beyond them', () => {
+    const p = { putStrike: 95, callStrike: 105, premium: 3, contracts: 1, direction: 'short' }
+    expect(at('strangle', p, 100)).toBeCloseTo(300, 6)
+    expect(at('strangle', p, 92)).toBeCloseTo(0, 6)
+    expect(at('strangle', p, 85)).toBeCloseTo(-700, 6)
+  })
+
+  it('iron butterfly peaks exactly at the centre strike', () => {
+    const p = { centerStrike: 100, wingWidth: 10, credit: 4, contracts: 1 }
+    expect(at('iron-butterfly', p, 100)).toBeCloseTo(400, 6)
+    expect(at('iron-butterfly', p, 96)).toBeCloseTo(0, 6)
+    expect(at('iron-butterfly', p, 90)).toBeCloseTo(-600, 6)
+    expect(at('iron-butterfly', p, 110)).toBeCloseTo(-600, 6)
+  })
+
+  it('pmcc behaves as a call spread at the long expiry', () => {
+    const p = { longStrike: 80, longDebit: 25, shortStrike: 110, shortCredit: 2, contracts: 1 }
+    expect(at('pmcc', p, 80)).toBeCloseTo(-2300, 6)
+    expect(at('pmcc', p, 103)).toBeCloseTo(0, 6)
+    expect(at('pmcc', p, 110)).toBeCloseTo(700, 6)
+    expect(at('pmcc', p, 140)).toBeCloseTo(700, 6)
+  })
+})

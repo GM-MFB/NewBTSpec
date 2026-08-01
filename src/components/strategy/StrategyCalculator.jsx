@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { formatCurrency } from '../../lib/format'
 import {
   cashSecuredPut, coveredCall, creditSpread, debitSpread, calendarSpread, ironCondor,
+  longOption, poorMansCoveredCall, protectivePut, collar, strangle, ironButterfly,
 } from '../../lib/strategyMath'
 import PayoffChart from './PayoffChart'
 
@@ -199,12 +200,191 @@ function CondorCalculator() {
   )
 }
 
+function LongOptionCalculator() {
+  const [f, setF] = useState({ strike: '100', premium: '3', contracts: '1', type: 'call' })
+  const r = longOption(f)
+
+  return (
+    <div className="calc-block">
+      <div className="calc-fields">
+        <label className="calc-field" htmlFor="loType">
+          <span>Type</span>
+          <select id="loType" value={f.type} onChange={(e) => setF({ ...f, type: e.target.value })}>
+            <option value="call">Long call</option>
+            <option value="put">Long put</option>
+          </select>
+        </label>
+        <Field id="loStrike" label="Strike" value={f.strike} onChange={(v) => setF({ ...f, strike: v })} />
+        <Field id="loPremium" label="Premium" value={f.premium} onChange={(v) => setF({ ...f, premium: v })} />
+        <Field id="loContracts" label="Contracts" value={f.contracts} onChange={(v) => setF({ ...f, contracts: v })} step="1" />
+      </div>
+      <div className="calc-results">
+        <Result
+          label="Max profit"
+          value={f.type === 'call' ? 'Unbounded' : money(r.maxProfit)}
+          tone="price-favorable"
+          note={f.type === 'call' ? 'A call has no ceiling — there is no number to give' : 'If the underlying goes to zero'}
+        />
+        <Result label="Max loss" value={money(r.maxLoss)} tone="price-unfavorable" />
+        <Result label="Breakeven" value={money(r.breakeven)} />
+      </div>
+      <PayoffChart kind="long-option" params={f} gradientId="lo" />
+    </div>
+  )
+}
+
+function PmccCalculator() {
+  const [f, setF] = useState({ longStrike: '80', longDebit: '25', shortStrike: '110', shortCredit: '2', contracts: '1' })
+  const r = poorMansCoveredCall(f)
+
+  return (
+    <div className="calc-block">
+      <div className="calc-fields">
+        <Field id="pmLongStrike" label="Long strike" value={f.longStrike} onChange={(v) => setF({ ...f, longStrike: v })} />
+        <Field id="pmLongDebit" label="Long cost" value={f.longDebit} onChange={(v) => setF({ ...f, longDebit: v })} />
+        <Field id="pmShortStrike" label="Short strike" value={f.shortStrike} onChange={(v) => setF({ ...f, shortStrike: v })} />
+        <Field id="pmShortCredit" label="Short credit" value={f.shortCredit} onChange={(v) => setF({ ...f, shortCredit: v })} />
+        <Field id="pmContracts" label="Contracts" value={f.contracts} onChange={(v) => setF({ ...f, contracts: v })} step="1" />
+      </div>
+      <div className="calc-results">
+        <Result label="Net debit" value={money(r.netDebit)} />
+        <Result label="Max loss" value={money(r.maxLoss)} tone="price-unfavorable" />
+        <Result
+          label="Profit ceiling"
+          value={money(r.profitCeiling)}
+          tone="price-favorable"
+          note="Assumes both legs run to the long expiry. Before then the long call still holds time value."
+        />
+        <Result label="Breakeven" value={money(r.breakeven)} />
+      </div>
+      <PayoffChart kind="pmcc" params={f} gradientId="pm" />
+    </div>
+  )
+}
+
+function ProtectiveCalculator() {
+  const [f, setF] = useState({ costBasis: '100', putStrike: '95', putPremium: '2', callStrike: '110', callCredit: '1.5', contracts: '1' })
+  const p = protectivePut(f)
+  const c = collar(f)
+
+  return (
+    <>
+      <div className="calc-block">
+        <h4 className="calc-block-title">Protective Put</h4>
+        <div className="calc-fields">
+          <Field id="ppBasis" label="Cost basis" value={f.costBasis} onChange={(v) => setF({ ...f, costBasis: v })} />
+          <Field id="ppStrike" label="Put strike" value={f.putStrike} onChange={(v) => setF({ ...f, putStrike: v })} />
+          <Field id="ppPremium" label="Put premium" value={f.putPremium} onChange={(v) => setF({ ...f, putPremium: v })} />
+          <Field id="ppContracts" label="Contracts" value={f.contracts} onChange={(v) => setF({ ...f, contracts: v })} step="1" />
+        </div>
+        <div className="calc-results">
+          <Result label="Max loss" value={money(p.maxLoss)} tone="price-unfavorable" note="The floor, whatever the stock does" />
+          <Result label="Insurance cost" value={money(p.insuranceCost)} />
+          <Result label="Breakeven" value={money(p.breakeven)} />
+          <Result label="Max profit" value="Unbounded" tone="price-favorable" note="The put does not cap the upside" />
+        </div>
+        <PayoffChart kind="protective-put" params={f} gradientId="pp" />
+      </div>
+
+      <div className="calc-block">
+        <h4 className="calc-block-title">Collar — the same put, paid for by a call</h4>
+        <div className="calc-fields">
+          <Field id="coCallStrike" label="Call strike" value={f.callStrike} onChange={(v) => setF({ ...f, callStrike: v })} />
+          <Field id="coCallCredit" label="Call credit" value={f.callCredit} onChange={(v) => setF({ ...f, callCredit: v })} />
+        </div>
+        <div className="calc-results">
+          <Result
+            label="Net cost"
+            value={money(c.netCost)}
+            tone={c.netCost !== null && c.netCost <= 0 ? 'price-favorable' : ''}
+            note={c.netCost !== null && c.netCost <= 0 ? 'A credit collar — the call more than pays for the put' : null}
+          />
+          <Result label="Max loss" value={money(c.maxLoss)} tone="price-unfavorable" />
+          <Result label="Max profit" value={money(c.maxProfit)} tone="price-favorable" note="Capped at the call strike" />
+          <Result label="Breakeven" value={money(c.breakeven)} />
+        </div>
+        <PayoffChart kind="collar" params={f} gradientId="co" />
+      </div>
+    </>
+  )
+}
+
+function StrangleCalculator() {
+  const [f, setF] = useState({ putStrike: '95', callStrike: '105', premium: '3', contracts: '1', direction: 'short' })
+  const r = strangle(f)
+  const isShort = f.direction === 'short'
+
+  return (
+    <div className="calc-block">
+      <div className="calc-fields">
+        <label className="calc-field" htmlFor="stDirection">
+          <span>Direction</span>
+          <select id="stDirection" value={f.direction} onChange={(e) => setF({ ...f, direction: e.target.value })}>
+            <option value="short">Short (sell both)</option>
+            <option value="long">Long (buy both)</option>
+          </select>
+        </label>
+        <Field id="stPut" label="Put strike" value={f.putStrike} onChange={(v) => setF({ ...f, putStrike: v })} />
+        <Field id="stCall" label="Call strike" value={f.callStrike} onChange={(v) => setF({ ...f, callStrike: v })} />
+        <Field id="stPremium" label="Total premium" value={f.premium} onChange={(v) => setF({ ...f, premium: v })} />
+        <Field id="stContracts" label="Contracts" value={f.contracts} onChange={(v) => setF({ ...f, contracts: v })} step="1" />
+      </div>
+      <div className="calc-results">
+        <Result
+          label="Max profit"
+          value={isShort ? money(r.maxProfit) : 'Unbounded'}
+          tone="price-favorable"
+          note={isShort ? 'Only between the two strikes' : 'The call side has no ceiling'}
+        />
+        <Result
+          label="Max loss"
+          value={isShort ? 'Unbounded' : money(r.maxLoss)}
+          tone="price-unfavorable"
+          note={isShort ? 'A short call has no ceiling. There is no number to give, and that is the point.' : null}
+        />
+        <Result label="Lower breakeven" value={money(r.lowerBreakeven)} />
+        <Result label="Upper breakeven" value={money(r.upperBreakeven)} />
+      </div>
+      <PayoffChart kind="strangle" params={f} gradientId="st" />
+    </div>
+  )
+}
+
+function ButterflyCalculator() {
+  const [f, setF] = useState({ centerStrike: '100', wingWidth: '10', credit: '4', contracts: '1' })
+  const r = ironButterfly(f)
+
+  return (
+    <div className="calc-block">
+      <div className="calc-fields">
+        <Field id="ibCenter" label="Centre strike" value={f.centerStrike} onChange={(v) => setF({ ...f, centerStrike: v })} />
+        <Field id="ibWing" label="Wing width" value={f.wingWidth} onChange={(v) => setF({ ...f, wingWidth: v })} />
+        <Field id="ibCredit" label="Credit" value={f.credit} onChange={(v) => setF({ ...f, credit: v })} />
+        <Field id="ibContracts" label="Contracts" value={f.contracts} onChange={(v) => setF({ ...f, contracts: v })} step="1" />
+      </div>
+      <div className="calc-results">
+        <Result label="Max profit" value={money(r.maxProfit)} tone="price-favorable" note="Only at the centre strike exactly" />
+        <Result label="Max loss" value={money(r.maxLoss)} tone="price-unfavorable" />
+        <Result label="Lower breakeven" value={money(r.lowerBreakeven)} />
+        <Result label="Upper breakeven" value={money(r.upperBreakeven)} />
+        <Result label="Return on risk" value={percent(r.returnOnRisk)} />
+      </div>
+      <PayoffChart kind="iron-butterfly" params={f} gradientId="ib" />
+    </div>
+  )
+}
+
 const CALCULATORS = {
   wheel: WheelCalculator,
   'credit-spread': CreditSpreadCalculator,
   'debit-spread': DebitSpreadCalculator,
   'calendar-spread': CalendarCalculator,
   'iron-condor': CondorCalculator,
+  'long-option': LongOptionCalculator,
+  pmcc: PmccCalculator,
+  'protective-put': ProtectiveCalculator,
+  strangle: StrangleCalculator,
+  'iron-butterfly': ButterflyCalculator,
 }
 
 export default function StrategyCalculator({ kind }) {

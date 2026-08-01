@@ -1,8 +1,28 @@
 .strategy-tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 8px 20px;
   padding: 16px var(--page-pad-x) 0;
+}
+
+.strategy-tab-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.strategy-tab-group-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+}
+
+.strategy-tab-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .strategy-tabs button {
