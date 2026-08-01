@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   cashSecuredPut, coveredCall, creditSpread, debitSpread, calendarSpread, ironCondor,
   longOption, poorMansCoveredCall, protectivePut, collar, strangle, ironButterfly,
-  jadeLizard, coveredStrangle, brokenWingButterfly, tailHedge, bufferStructure, riskReversal, ratioSpread,
+  jadeLizard, coveredStrangle, brokenWingButterfly, tailHedge, bufferStructure, riskReversal, ratioSpread, betaHedge,
 } from './strategyMath'
 
 describe('cashSecuredPut', () => {
@@ -401,5 +401,43 @@ describe('ratioSpread', () => {
   it('refuses put strikes that do not ratio downward', () => {
     expect(ratioSpread({ ...front, type: 'put', farStrike: 110 }).width).toBeNull()
     expect(ratioSpread({ ...front, type: 'put', farStrike: 90 }).width).toBe(10)
+  })
+})
+
+describe('betaHedge', () => {
+  const base = { portfolioValue: 100000, portfolioBeta: 1.2, indexPrice: 600, hedgeRatio: 100 }
+
+  it('scales the hedged notional by beta, not just portfolio value', () => {
+    const r = betaHedge(base)
+    // 100,000 x 1.2
+    expect(r.hedgedNotional).toBeCloseTo(120000, 6)
+    expect(r.contracts).toBeCloseTo(2, 6)
+  })
+
+  it('fully neutralises the market move at a 100% hedge ratio', () => {
+    const r = betaHedge(base)
+    for (const outcome of r.outcomes) {
+      expect(outcome.net).toBeCloseTo(0, 6)
+    }
+  })
+
+  it('leaves residual exposure at a partial hedge ratio', () => {
+    const r = betaHedge({ ...base, hedgeRatio: 50 })
+    const down = r.outcomes.find((o) => o.move === -20)
+    // Portfolio loses 24,000, hedge returns 12,000
+    expect(down.portfolioChange).toBeCloseTo(-24000, 6)
+    expect(down.hedgeChange).toBeCloseTo(12000, 6)
+    expect(down.net).toBeCloseTo(-12000, 6)
+  })
+
+  it('gives back the upside in proportion to the hedge', () => {
+    const up = betaHedge(base).outcomes.find((o) => o.move === 20)
+    expect(up.portfolioChange).toBeCloseTo(24000, 6)
+    expect(up.net).toBeCloseTo(0, 6)
+  })
+
+  it('returns nulls without a beta or an index price', () => {
+    expect(betaHedge({ ...base, portfolioBeta: 0 }).contracts).toBeNull()
+    expect(betaHedge({ ...base, indexPrice: 0 }).contracts).toBeNull()
   })
 })

@@ -3,7 +3,7 @@ import { formatCurrency } from '../../lib/format'
 import {
   cashSecuredPut, coveredCall, creditSpread, debitSpread, calendarSpread, ironCondor,
   longOption, poorMansCoveredCall, protectivePut, collar, strangle, ironButterfly,
-  jadeLizard, coveredStrangle, brokenWingButterfly, tailHedge, bufferStructure, riskReversal, ratioSpread,
+  jadeLizard, coveredStrangle, brokenWingButterfly, tailHedge, bufferStructure, riskReversal, ratioSpread, betaHedge,
 } from '../../lib/strategyMath'
 import PayoffChart from './PayoffChart'
 
@@ -627,6 +627,58 @@ function RatioSpreadCalculator({ spot }) {
   )
 }
 
+function BetaHedgeCalculator() {
+  const [f, setF] = useState({ portfolioValue: '100000', portfolioBeta: '1.2', indexPrice: '600', hedgeRatio: '100' })
+  const r = betaHedge(f)
+
+  return (
+    <div className="calc-block">
+      <div className="calc-fields">
+        <Field id="bhPv" label="Portfolio value" value={f.portfolioValue} onChange={(v) => setF({ ...f, portfolioValue: v })} step="1000" />
+        <Field id="bhBeta" label="Portfolio beta" value={f.portfolioBeta} onChange={(v) => setF({ ...f, portfolioBeta: v })} />
+        <Field id="bhIndex" label="Index price" value={f.indexPrice} onChange={(v) => setF({ ...f, indexPrice: v })} />
+        <Field id="bhRatio" label="% to hedge" value={f.hedgeRatio} onChange={(v) => setF({ ...f, hedgeRatio: v })} step="5" />
+      </div>
+      <div className="calc-results">
+        <Result label="Notional to hedge" value={money(r.hedgedNotional)} note="Portfolio value x beta x hedge ratio" />
+        <Result
+          label="Contracts"
+          value={r.contracts === null ? '—' : r.contracts.toFixed(2)}
+          note="A fraction means the smallest contract over-hedges. That is the granularity problem for a small account."
+        />
+      </div>
+      {r.outcomes && (
+        <div className="tail-table-wrap">
+          <table className="tail-table">
+            <thead>
+              <tr><th>Market</th><th>Portfolio</th><th>Hedge</th><th>Net</th></tr>
+            </thead>
+            <tbody>
+              {r.outcomes.map((row) => (
+                <tr key={row.move}>
+                  <th scope="row">{row.move > 0 ? '+' : ''}{row.move}%</th>
+                  <td className={`mono ${row.portfolioChange < 0 ? 'price-unfavorable' : row.portfolioChange > 0 ? 'price-favorable' : ''}`}>
+                    {money(row.portfolioChange)}
+                  </td>
+                  <td className={`mono ${row.hedgeChange < 0 ? 'price-unfavorable' : row.hedgeChange > 0 ? 'price-favorable' : ''}`}>
+                    {money(row.hedgeChange)}
+                  </td>
+                  <td className="mono">{money(row.net)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <p className="calc-caveat">
+        This sizes a linear hedge — short index futures or shares. It removes the
+        downside and the upside equally, which the table makes plain. Puts cost
+        more but keep the upside; size those from the Tail Risk Hedging page.
+      </p>
+    </div>
+  )
+}
+
 const CALCULATORS = {
   wheel: WheelCalculator,
   'credit-spread': CreditSpreadCalculator,
@@ -645,6 +697,7 @@ const CALCULATORS = {
   'risk-reversal': RiskReversalCalculator,
   buffer: BufferCalculator,
   'ratio-spread': RatioSpreadCalculator,
+  'beta-hedge': BetaHedgeCalculator,
 }
 
 export default function StrategyCalculator({ kind }) {

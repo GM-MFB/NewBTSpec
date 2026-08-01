@@ -989,6 +989,94 @@ export const STRATEGY_CONTENT = [
     ],
     calculator: null,
   },
+
+  {
+    id: 'hedging',
+    group: 'Hedge Fund',
+    name: 'Hedging',
+    outlook: 'Reducing what a bad market does to you',
+    capital: 'A cost, not a position',
+    glance: {
+      risk: 'Reduces',
+      riskTone: 'good',
+      direction: 'Defensive',
+      volatility: 'Buy low IV',
+      capital: 'Ongoing cost',
+      legs: 'Many forms',
+    },
+    summary:
+      'Hedging is paying something now so a bad market costs you less later. Funds do it because they must stay invested and their clients redeem after drawdowns. You have neither constraint, which changes the answer more than most writing on the subject admits. This page covers what the instruments are, what each actually costs, where each fails — and the honest case that a small account is usually better off sizing smaller than hedging at all.',
+    legs: [
+      { action: 'buy', text: 'Index puts — the direct hedge, priced accordingly' },
+      { action: 'sell', text: 'Index futures or shares — linear, cheap, gives up the upside too' },
+      { action: 'hold', text: 'Cash — the only hedge with no cost, no basis risk and no expiry' },
+    ],
+    keyFacts: [
+      ['Typical cost', 'Continuous put buying runs 1 – 2% of portfolio value per year', 'bad'],
+      ['Linear vs convex', 'Shorts offset one for one. Puts cost more but pay accelerating in a crash', null],
+      ['Basis risk', 'Your book is not the index. A perfect index hedge still leaves single-name risk', 'bad'],
+      ['The free alternative', 'Holding less. Same effect on drawdown, no cost, no basis risk', 'good'],
+    ],
+    entry: [
+      { lead: 'Decide what you are hedging against', detail: 'A crash, a grinding decline, and one position going wrong need completely different instruments. Most failed hedges are the right tool for the wrong risk.' },
+      { lead: 'Hedge the beta, not the dollars', detail: 'A book that moves 1.2x the index needs 1.2x its value hedged to be neutral. Hedging the dollar value leaves a fifth of the exposure standing.' },
+      { lead: 'Buy protection when it is cheap', detail: 'Put premium spikes with fear. Every hedge is most affordable when you least feel you need it, and unaffordable the week you do.' },
+      { lead: 'Set a budget, then buy what it affords', detail: 'Decide the annual percentage you will spend, and size from that. Sizing from what you hope to make back is how hedging becomes its own losing strategy.' },
+      { lead: 'Check the contract actually fits', detail: 'One SPY put is roughly $60,000 of notional. On a $30,000 account that is not a hedge, it is a short position with extra steps.' },
+    ],
+    management: [
+      { when: 'Calm markets', detail: 'Hedges cost money and do nothing. This is the normal state and the reason most people abandon them.' },
+      { when: 'Volatility rises', detail: 'Long puts gain on volatility alone, before the index reaches them. Convexity starts working before the crash arrives.' },
+      { when: 'A real drawdown', detail: 'Consider monetising rather than holding for more. Peaks are brief and the rebound is fast; an unrealised hedge gain can evaporate in days.' },
+      { when: 'After monetising', detail: 'Decide deliberately whether to re-establish. Crashes cluster, and the second leg catches people who took the hedge off.' },
+      { when: 'Reviewing', detail: 'Judge the programme over years. A hedge assessed on monthly P&L will always look like a mistake right up until it is not.' },
+    ],
+    mistakes: [
+      { lead: 'Hedging after the fall', detail: 'The single most common error. Protection is priced by fear, so buying once you are frightened means paying several times what it cost a month earlier.' },
+      { lead: 'Over-hedging a small account', detail: 'One index put against a modest book is not insurance, it is a large short. Contract granularity means small accounts cannot hedge precisely.' },
+      { lead: 'Assuming diversification is a hedge', detail: 'Correlations converge toward one in a crash. Twenty positions across twenty names behave like one position in exactly the week that matters.' },
+      { lead: 'Trusting bonds automatically', detail: '2022 saw stocks and bonds fall together. The negative correlation people rely on is a regime, not a law.' },
+      { lead: 'Hedging instead of sizing', detail: 'If the position is too big, the answer is a smaller position. A hedge bolted onto oversized risk costs money and leaves the judgement error in place.' },
+    ],
+    extraSections: [
+      {
+        title: 'Every way people actually hedge',
+        body: [
+          'Index puts — buy puts on SPY or SPX against the whole book. Direct, convex, and priced accordingly. The standard institutional hedge and the one most retail traders reach for.',
+          'Short index futures, or short shares — offsets one for one and costs almost nothing to hold, but it removes the upside as surely as the downside. This is beta hedging, and it is what the calculator below sizes.',
+          'Collars on individual positions — long put, short call, financed against each other. Cheap or free, and covered in its own section under Protection.',
+          'Tail hedging — far out-of-the-money puts rolled continuously. Small persistent cost, enormous convex payoff. Its own page in this group.',
+          'VIX calls and futures — long volatility rather than short market. Powerful in a fast crash, but the term structure bleeds badly in calm markets and the retail products decay hard.',
+          'Inverse ETFs — simple to buy and rebalanced daily, which means they decay in choppy markets and do not track over any meaningful horizon. Serviceable for days, poor for months.',
+          'Bonds and gold — the traditional diversifiers. Both work sometimes, and both failed to protect in 2022. Treat as regime-dependent, not reliable.',
+          'Covered calls — a partial hedge. The premium cushions a small decline and nothing more; it is income with a modest buffer, not protection.',
+          'Raising cash — sell some. No cost, no basis risk, no expiry, no counterparty. The most underrated hedge on this list by a wide margin.',
+        ],
+      },
+      {
+        title: 'Should a small account hedge?',
+        body: [
+          'Usually not, and the reasoning is worth understanding because it is not about being unsophisticated.',
+          'Funds hedge because they are mandated to stay invested. They cannot go to cash — clients pay them to hold assets, and clients redeem after a bad quarter, so a drawdown costs the manager the business rather than just the money. Hedging is how they stay invested through something they would otherwise have to sell into.',
+          'You have neither constraint. You can go to cash on any morning you like, instantly, at no cost, with nobody to explain it to. That option is worth more than any hedge you can buy, and it is free.',
+          'The arithmetic is also against you. Continuous protection costs one to two percent a year, compounding against you over decades. And contract sizes do not scale down: one SPY put is around $60,000 of notional, so on a $30,000 account the smallest available hedge is a doubling-down short, not insurance. Micro contracts help, but not enough to hedge precisely.',
+          'There is a further advantage funds lack — most small accounts are still being contributed to. New capital arriving during a drawdown does what a hedge does, and buys at the lower prices as well.',
+          'So for most accounts, the honest answer is that position sizing is the hedge. Halving the position achieves what the hedge achieves, costs nothing, carries no basis risk, and cannot expire worthless at the wrong moment.',
+        ],
+      },
+      {
+        title: 'When a small account should hedge anyway',
+        body: [
+          'Three cases where the reasoning above flips.',
+          'The account has a job soon. If it is a house deposit in eighteen months rather than a thirty-year compounding pot, then sequence matters more than expected return, and paying to cap the downside is rational.',
+          'The exposure is concentrated or undefined. A handful of cash-secured puts on correlated names is one position wearing several tickers. Where the risk is genuinely undefined — naked calls, short strangles — hedging stops being optimisation and becomes survival.',
+          'You know you would abandon the strategy. If a 30% drawdown would make you stop running something that works, then insurance that keeps you in the seat has value the expected-return arithmetic does not capture. Paying to keep yourself invested is a real reason, provided you are honest that it is the reason.',
+          'Outside those, the money is better spent on smaller positions and more cash. That is not a compromise version of hedging — for an account your size it is usually the superior trade.',
+        ],
+      },
+    ],
+    calculator: 'beta-hedge',
+  },
 ]
 
 export function strategyById(id) {

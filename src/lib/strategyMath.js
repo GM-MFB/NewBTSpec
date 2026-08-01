@@ -453,3 +453,33 @@ export function ratioSpread({ nearStrike, farStrike, credit, contracts, type = '
     tailBreakeven: front ? tail : (type === 'call' ? far + width - c : far - width + c),
   }
 }
+
+// How much index exposure offsets a portfolio's market risk. Beta scales the
+// notional: a book that moves 1.2x the index needs 1.2x its own value hedged to
+// be neutral, not 1.0x.
+export function betaHedge({ portfolioValue, portfolioBeta, indexPrice, hedgeRatio } = {}) {
+  const keys = ['hedgedNotional', 'contracts', 'outcomes']
+  const pv = num(portfolioValue)
+  const beta = num(portfolioBeta)
+  const index = num(indexPrice)
+  const ratio = num(hedgeRatio)
+  if (pv <= 0 || beta <= 0 || index <= 0 || ratio <= 0) return nulls(keys)
+
+  const hedgedNotional = pv * beta * (ratio / 100)
+  const contracts = hedgedNotional / (index * SHARES_PER_CONTRACT)
+
+  const outcomes = [-30, -20, -10, 0, 10, 20].map((move) => {
+    const fraction = move / 100
+    const portfolioChange = pv * beta * fraction
+    // Short exposure: gains when the market falls, gives back when it rises.
+    const hedgeChange = -hedgedNotional * fraction
+    return {
+      move,
+      portfolioChange,
+      hedgeChange,
+      net: portfolioChange + hedgeChange,
+    }
+  })
+
+  return { hedgedNotional, contracts, outcomes }
+}

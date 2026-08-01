@@ -16,8 +16,11 @@ function renderPage() {
 
 // Navigation is two levels now: choose the group, then the strategy inside it.
 async function pick(nameOrStrategy) {
+  // Exact name wins before the loose match, or 'Hedging' would resolve to
+  // 'Tail Risk Hedging' and silently test the wrong page.
   const strategy = typeof nameOrStrategy === 'string'
-    ? STRATEGY_CONTENT.find((s) => new RegExp(nameOrStrategy, 'i').test(s.name))
+    ? (STRATEGY_CONTENT.find((s) => s.name.toLowerCase() === nameOrStrategy.toLowerCase())
+      ?? STRATEGY_CONTENT.find((s) => new RegExp(nameOrStrategy, 'i').test(s.name)))
     : nameOrStrategy
   await userEvent.click(screen.getByRole('button', { name: strategy.group }))
   await userEvent.click(screen.getByRole('button', { name: strategy.name }))
@@ -318,6 +321,42 @@ describe('StrategyPage', () => {
 
     // The wheel draws a put chart and a covered call chart.
     expect(screen.getAllByText(/this position is/i)).toHaveLength(2)
+  })
+
+  it('has a Hedging page that answers whether small accounts should hedge', async () => {
+    renderPage()
+    await pick('Hedging')
+
+    const article = screen.getByTestId('strategy-article-hedging')
+    expect(within(article).getByRole('heading', { name: /every way people actually hedge/i })).toBeInTheDocument()
+    expect(within(article).getByRole('heading', { name: /should a small account hedge/i })).toBeInTheDocument()
+    expect(within(article).getByRole('heading', { name: /when a small account should hedge anyway/i })).toBeInTheDocument()
+  })
+
+  it('sizes a beta hedge off portfolio value times beta, and nets to zero at full hedge', async () => {
+    renderPage()
+    await pick('Hedging')
+
+    const calculator = screen.getByTestId('strategy-calculator')
+    // 100,000 x 1.2 beta
+    expect(within(calculator).getByText('$120,000.00')).toBeInTheDocument()
+    // At a 100% ratio every net cell is flat.
+    const row = within(calculator).getByText('-20%').closest('tr')
+    expect(row).toHaveTextContent('-$24,000.00')
+    expect(row).toHaveTextContent('$24,000.00')
+  })
+
+  it('leaves residual exposure when the hedge ratio is partial', async () => {
+    renderPage()
+    await pick('Hedging')
+
+    const ratio = screen.getByLabelText(/% to hedge/i)
+    await userEvent.clear(ratio)
+    await userEvent.type(ratio, '50')
+
+    const row = within(screen.getByTestId('strategy-calculator')).getByText('-20%').closest('tr')
+    // Portfolio -24,000, hedge +12,000, net -12,000
+    expect(row).toHaveTextContent('-$12,000.00')
   })
 
   it('computes the condor from its four strikes', async () => {
