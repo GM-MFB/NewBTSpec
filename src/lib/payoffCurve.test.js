@@ -258,3 +258,33 @@ describe('payoffAt — ratio spreads', () => {
     expect(at('ratio-spread', back, 95)).toBeCloseTo(100, 6)
   })
 })
+
+describe('payoffCurve with a spot price', () => {
+  const csp = { strike: 380, premium: 2, contracts: 1 }
+
+  it('samples the spot exactly and reports the P&L there', () => {
+    const curve = payoffCurve('wheel-put', csp, 375)
+    expect(curve.spot).toBe(375)
+    expect(curve.points.map((p) => p.price)).toContain(375)
+    // 375 is 5 below the strike, so the 2.00 premium leaves -300.
+    expect(curve.pnlAtSpot).toBeCloseTo(-300, 6)
+  })
+
+  it('widens the range so a spot far outside the strikes still plots', () => {
+    const curve = payoffCurve('wheel-put', csp, 250)
+    expect(curve.from).toBeLessThanOrEqual(250)
+    expect(curve.points.map((p) => p.price)).toContain(250)
+  })
+
+  it('reports no spot when none is given', () => {
+    const curve = payoffCurve('wheel-put', csp)
+    expect(curve.spot).toBeNull()
+    expect(curve.pnlAtSpot).toBeNull()
+  })
+
+  it('ignores a blank or nonsensical spot', () => {
+    expect(payoffCurve('wheel-put', csp, '').spot).toBeNull()
+    expect(payoffCurve('wheel-put', csp, 0).spot).toBeNull()
+    expect(payoffCurve('wheel-put', csp, 'abc').spot).toBeNull()
+  })
+})

@@ -9,6 +9,8 @@ const RED = '#ef4444'
 const GRID = '#262626'
 const AXIS_TEXT = '#888'
 const ZERO_LINE = '#8a8a8a'
+// Deliberately not green or red — it marks a position, not an outcome.
+const SPOT_LINE = '#3b82f6'
 
 function PayoffTooltip({ active, payload }) {
   if (!active || !payload?.length) return null
@@ -25,8 +27,8 @@ function PayoffTooltip({ active, payload }) {
   )
 }
 
-export default function PayoffChart({ kind, params, gradientId }) {
-  const curve = payoffCurve(kind, params)
+export default function PayoffChart({ kind, params, gradientId, spot }) {
+  const curve = payoffCurve(kind, params, spot)
   if (!curve) return null
 
   const values = curve.points.map((p) => p.pnl)
@@ -42,6 +44,17 @@ export default function PayoffChart({ kind, params, gradientId }) {
         Profit and loss at expiration, by where the underlying finishes.
         Above the zero line is profit, below it is loss.
       </figcaption>
+
+      {curve.spot !== null && (
+        <p className="payoff-spot-readout">
+          At <strong className="mono">{formatCurrency(curve.spot)}</strong> this position is
+          {' '}
+          <strong className={`mono ${curve.pnlAtSpot >= 0 ? 'price-favorable' : 'price-unfavorable'}`}>
+            {formatCurrency(curve.pnlAtSpot)}
+          </strong>
+          {' at expiration.'}
+        </p>
+      )}
 
       <ResponsiveContainer width="100%" height={280}>
         <ComposedChart data={curve.points} margin={{ top: 10, right: 12, left: 0, bottom: 4 }}>
@@ -84,6 +97,15 @@ export default function PayoffChart({ kind, params, gradientId }) {
               profit from loss — green and red are only 7.4 ΔE apart under
               deuteranopia, so colour alone cannot carry it. */}
           <ReferenceLine y={0} stroke={ZERO_LINE} strokeWidth={1.5} />
+
+          {curve.spot !== null && (
+            <ReferenceLine
+              x={curve.spot}
+              stroke={SPOT_LINE}
+              strokeWidth={1.5}
+              label={{ value: 'Now', position: 'insideTopRight', fill: SPOT_LINE, fontSize: 10 }}
+            />
+          )}
 
           {curve.breakevens.map((be) => (
             <ReferenceLine

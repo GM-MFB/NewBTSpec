@@ -39,7 +39,7 @@ function toneFor(value) {
   return value >= 0 ? 'price-favorable' : 'price-unfavorable'
 }
 
-function WheelCalculator() {
+function WheelCalculator({ spot }) {
   const [put, setPut] = useState({ strike: '380', premium: '2', contracts: '1', days: '30' })
   const [call, setCall] = useState({ strike: '390', premium: '1.5', costBasis: '378', contracts: '1' })
 
@@ -67,7 +67,7 @@ function WheelCalculator() {
           <Result label="Return on capital" value={percent(p.returnOnCapital)} />
           <Result label="Annualized" value={percent(p.annualized)} tone={toneFor(p.annualized)} />
         </div>
-        <PayoffChart kind="wheel-put" params={put} gradientId="csp" />
+        <PayoffChart kind="wheel-put" params={put} gradientId="csp" spot={spot} />
       </div>
 
       <div className="calc-block">
@@ -88,13 +88,13 @@ function WheelCalculator() {
           <Result label="Breakeven" value={money(c.breakeven)} />
           <Result label="Return if called" value={percent(c.returnIfCalled)} tone={toneFor(c.returnIfCalled)} />
         </div>
-        <PayoffChart kind="wheel-call" params={call} gradientId="cc" />
+        <PayoffChart kind="wheel-call" params={call} gradientId="cc" spot={spot} />
       </div>
     </>
   )
 }
 
-function CreditSpreadCalculator() {
+function CreditSpreadCalculator({ spot }) {
   const [f, setF] = useState({ shortStrike: '36', longStrike: '35', credit: '0.40', contracts: '1', type: 'put' })
   const r = creditSpread(f)
 
@@ -119,12 +119,12 @@ function CreditSpreadCalculator() {
         <Result label="Breakeven" value={money(r.breakeven)} />
         <Result label="Return on risk" value={percent(r.returnOnRisk)} />
       </div>
-      <PayoffChart kind="credit-spread" params={f} gradientId="cs" />
+      <PayoffChart kind="credit-spread" params={f} gradientId="cs" spot={spot} />
     </div>
   )
 }
 
-function DebitSpreadCalculator() {
+function DebitSpreadCalculator({ spot }) {
   const [f, setF] = useState({ longStrike: '100', shortStrike: '105', debit: '2', contracts: '1', type: 'call' })
   const r = debitSpread(f)
 
@@ -148,12 +148,12 @@ function DebitSpreadCalculator() {
         <Result label="Max loss" value={money(r.maxLoss)} tone="price-unfavorable" />
         <Result label="Breakeven" value={money(r.breakeven)} />
       </div>
-      <PayoffChart kind="debit-spread" params={f} gradientId="ds" />
+      <PayoffChart kind="debit-spread" params={f} gradientId="ds" spot={spot} />
     </div>
   )
 }
 
-function CalendarCalculator() {
+function CalendarCalculator({ spot }) {
   const [f, setF] = useState({ debit: '1.50', contracts: '1' })
   const r = calendarSpread(f)
 
@@ -175,7 +175,7 @@ function CalendarCalculator() {
   )
 }
 
-function CondorCalculator() {
+function CondorCalculator({ spot }) {
   const [f, setF] = useState({ shortPut: '95', longPut: '90', shortCall: '105', longCall: '110', credit: '1.20', contracts: '1' })
   const r = ironCondor(f)
 
@@ -196,12 +196,12 @@ function CondorCalculator() {
         <Result label="Upper breakeven" value={money(r.upperBreakeven)} />
         <Result label="Return on risk" value={percent(r.returnOnRisk)} />
       </div>
-      <PayoffChart kind="iron-condor" params={f} gradientId="ic" />
+      <PayoffChart kind="iron-condor" params={f} gradientId="ic" spot={spot} />
     </div>
   )
 }
 
-function LongOptionCalculator() {
+function LongOptionCalculator({ spot }) {
   const [f, setF] = useState({ strike: '100', premium: '3', contracts: '1', type: 'call' })
   const r = longOption(f)
 
@@ -229,12 +229,12 @@ function LongOptionCalculator() {
         <Result label="Max loss" value={money(r.maxLoss)} tone="price-unfavorable" />
         <Result label="Breakeven" value={money(r.breakeven)} />
       </div>
-      <PayoffChart kind="long-option" params={f} gradientId="lo" />
+      <PayoffChart kind="long-option" params={f} gradientId="lo" spot={spot} />
     </div>
   )
 }
 
-function PmccCalculator() {
+function PmccCalculator({ spot }) {
   const [f, setF] = useState({ longStrike: '80', longDebit: '25', shortStrike: '110', shortCredit: '2', contracts: '1' })
   const r = poorMansCoveredCall(f)
 
@@ -258,12 +258,12 @@ function PmccCalculator() {
         />
         <Result label="Breakeven" value={money(r.breakeven)} />
       </div>
-      <PayoffChart kind="pmcc" params={f} gradientId="pm" />
+      <PayoffChart kind="pmcc" params={f} gradientId="pm" spot={spot} />
     </div>
   )
 }
 
-function ProtectiveCalculator() {
+function ProtectiveCalculator({ spot }) {
   const [f, setF] = useState({ costBasis: '100', putStrike: '95', putPremium: '2', callStrike: '110', callCredit: '1.5', contracts: '1' })
   const p = protectivePut(f)
   const c = collar(f)
@@ -284,7 +284,7 @@ function ProtectiveCalculator() {
           <Result label="Breakeven" value={money(p.breakeven)} />
           <Result label="Max profit" value="Unbounded" tone="price-favorable" note="The put does not cap the upside" />
         </div>
-        <PayoffChart kind="protective-put" params={f} gradientId="pp" />
+        <PayoffChart kind="protective-put" params={f} gradientId="pp" spot={spot} />
       </div>
 
       <div className="calc-block">
@@ -304,13 +304,13 @@ function ProtectiveCalculator() {
           <Result label="Max profit" value={money(c.maxProfit)} tone="price-favorable" note="Capped at the call strike" />
           <Result label="Breakeven" value={money(c.breakeven)} />
         </div>
-        <PayoffChart kind="collar" params={f} gradientId="co" />
+        <PayoffChart kind="collar" params={f} gradientId="co" spot={spot} />
       </div>
     </>
   )
 }
 
-function StrangleCalculator() {
+function StrangleCalculator({ spot }) {
   const [f, setF] = useState({ putStrike: '95', callStrike: '105', premium: '3', contracts: '1', direction: 'short' })
   const r = strangle(f)
   const isShort = f.direction === 'short'
@@ -346,12 +346,12 @@ function StrangleCalculator() {
         <Result label="Lower breakeven" value={money(r.lowerBreakeven)} />
         <Result label="Upper breakeven" value={money(r.upperBreakeven)} />
       </div>
-      <PayoffChart kind="strangle" params={f} gradientId="st" />
+      <PayoffChart kind="strangle" params={f} gradientId="st" spot={spot} />
     </div>
   )
 }
 
-function ButterflyCalculator() {
+function ButterflyCalculator({ spot }) {
   const [f, setF] = useState({ centerStrike: '100', wingWidth: '10', credit: '4', contracts: '1' })
   const r = ironButterfly(f)
 
@@ -370,12 +370,12 @@ function ButterflyCalculator() {
         <Result label="Upper breakeven" value={money(r.upperBreakeven)} />
         <Result label="Return on risk" value={percent(r.returnOnRisk)} />
       </div>
-      <PayoffChart kind="iron-butterfly" params={f} gradientId="ib" />
+      <PayoffChart kind="iron-butterfly" params={f} gradientId="ib" spot={spot} />
     </div>
   )
 }
 
-function JadeLizardCalculator() {
+function JadeLizardCalculator({ spot }) {
   const [f, setF] = useState({ putStrike: '95', shortCall: '105', longCall: '110', credit: '5', contracts: '1' })
   const r = jadeLizard(f)
 
@@ -401,12 +401,12 @@ function JadeLizardCalculator() {
         <Result label="Downside breakeven" value={money(r.downsideBreakeven)} />
         <Result label="Max downside loss" value={money(r.maxDownsideLoss)} tone="price-unfavorable" note="Stock to zero, as with any short put" />
       </div>
-      <PayoffChart kind="jade-lizard" params={f} gradientId="jl" />
+      <PayoffChart kind="jade-lizard" params={f} gradientId="jl" spot={spot} />
     </div>
   )
 }
 
-function CoveredStrangleCalculator() {
+function CoveredStrangleCalculator({ spot }) {
   const [f, setF] = useState({ costBasis: '100', putStrike: '95', callStrike: '110', credit: '4', contracts: '1' })
   const r = coveredStrangle(f)
 
@@ -426,12 +426,12 @@ function CoveredStrangleCalculator() {
         <Result label="Blended basis" value={money(r.blendedBasis)} note="Sell calls above this, not the original basis" />
         <Result label="Put collateral" value={money(r.capitalRequired)} />
       </div>
-      <PayoffChart kind="covered-strangle" params={f} gradientId="cg" />
+      <PayoffChart kind="covered-strangle" params={f} gradientId="cg" spot={spot} />
     </div>
   )
 }
 
-function BrokenWingCalculator() {
+function BrokenWingCalculator({ spot }) {
   const [f, setF] = useState({ shortStrike: '100', narrowWing: '5', wideWing: '10', credit: '1', contracts: '1' })
   const r = brokenWingButterfly(f)
 
@@ -455,12 +455,12 @@ function BrokenWingCalculator() {
         />
         <Result label="Breakeven" value={money(r.breakeven)} />
       </div>
-      <PayoffChart kind="broken-wing" params={f} gradientId="bw" />
+      <PayoffChart kind="broken-wing" params={f} gradientId="bw" spot={spot} />
     </div>
   )
 }
 
-function TailHedgeCalculator() {
+function TailHedgeCalculator({ spot }) {
   const [f, setF] = useState({ portfolioValue: '100000', spotPrice: '500', strikePct: '20', premium: '1.50', contracts: '2', rollsPerYear: '4' })
   const r = tailHedge(f)
 
@@ -503,7 +503,7 @@ function TailHedgeCalculator() {
   )
 }
 
-function RiskReversalCalculator() {
+function RiskReversalCalculator({ spot }) {
   const [f, setF] = useState({ putStrike: '95', callStrike: '110', netCredit: '0.50', contracts: '1' })
   const r = riskReversal(f)
 
@@ -521,12 +521,12 @@ function RiskReversalCalculator() {
         <Result label="Lower breakeven" value={money(r.lowerBreakeven)} />
         <Result label="Credit kept" value={money(r.creditKept)} note="Whenever price finishes between the strikes" />
       </div>
-      <PayoffChart kind="risk-reversal" params={f} gradientId="rr" />
+      <PayoffChart kind="risk-reversal" params={f} gradientId="rr" spot={spot} />
     </div>
   )
 }
 
-function BufferCalculator() {
+function BufferCalculator({ spot }) {
   const [f, setF] = useState({ portfolioValue: '100000', bufferPct: '15', capPct: '12' })
   const r = bufferStructure(f)
 
@@ -565,7 +565,7 @@ function BufferCalculator() {
   )
 }
 
-function RatioSpreadCalculator() {
+function RatioSpreadCalculator({ spot }) {
   const [f, setF] = useState({ nearStrike: '100', farStrike: '110', credit: '1', contracts: '1', type: 'call', structure: 'front' })
   const r = ratioSpread(f)
   const isFront = f.structure === 'front'
@@ -622,7 +622,7 @@ function RatioSpreadCalculator() {
         <Result label="Peak / trough at" value={money(r.peakStrike)} />
         <Result label="Tail breakeven" value={money(r.tailBreakeven)} />
       </div>
-      <PayoffChart kind="ratio-spread" params={f} gradientId="rs" />
+      <PayoffChart kind="ratio-spread" params={f} gradientId="rs" spot={spot} />
     </div>
   )
 }
@@ -648,6 +648,9 @@ const CALCULATORS = {
 }
 
 export default function StrategyCalculator({ kind }) {
+  // One spot price for the whole strategy — the Wheel and the collar page each
+  // draw two charts, and they are two views of the same underlying.
+  const [spot, setSpot] = useState('')
   const Calculator = CALCULATORS[kind]
   if (!Calculator) return null
 
@@ -657,7 +660,22 @@ export default function StrategyCalculator({ kind }) {
       <p className="calc-caveat">
         At-expiration math. This describes the shape of the trade, not what it is worth right now.
       </p>
-      <Calculator />
+
+      <label className="calc-spot" htmlFor="calcSpot">
+        <span>Underlying price (optional)</span>
+        <input
+          id="calcSpot"
+          type="number"
+          step="0.01"
+          min="0"
+          placeholder="e.g. 103.50"
+          value={spot}
+          onChange={(e) => setSpot(e.target.value)}
+        />
+        <span className="calc-spot-hint">Marks where the stock is on each diagram below</span>
+      </label>
+
+      <Calculator spot={spot} />
     </section>
   )
 }

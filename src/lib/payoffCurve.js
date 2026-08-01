@@ -209,12 +209,19 @@ function findBreakevens(points) {
   return crossings.map((c) => Math.round(c * 1e6) / 1e6)
 }
 
-export function payoffCurve(kind, params = {}) {
+// `spot` is optional. When given it widens the plotted range and is sampled
+// exactly, so a marker for where the underlying actually is can never fall off
+// the end of the curve.
+export function payoffCurve(kind, params = {}, spot = null) {
   const strikes = strikesFor(kind, params)
   if (!isValid(kind, params, strikes)) return null
 
-  const low = Math.min(...strikes)
-  const high = Math.max(...strikes)
+  const spotPrice = Number(spot)
+  const hasSpot = Number.isFinite(spotPrice) && spotPrice > 0
+  const anchors = hasSpot ? [...strikes, spotPrice] : strikes
+
+  const low = Math.min(...anchors)
+  const high = Math.max(...anchors)
   // Pad outward so the flat regions beyond the outermost strikes are visible;
   // a spread whose strikes are close together still needs a readable window.
   const pad = Math.max((high - low) * 1.5, high * 0.12)
@@ -227,10 +234,18 @@ export function payoffCurve(kind, params = {}) {
     prices.add(Math.round((from + i * step) * 1e6) / 1e6)
   }
   for (const strike of strikes) prices.add(strike)
+  if (hasSpot) prices.add(spotPrice)
 
   const points = [...prices]
     .sort((a, b) => a - b)
     .map((price) => ({ price, pnl: payoffAt(kind, params, price) }))
 
-  return { points, breakevens: findBreakevens(points), from, to }
+  return {
+    points,
+    breakevens: findBreakevens(points),
+    from,
+    to,
+    spot: hasSpot ? spotPrice : null,
+    pnlAtSpot: hasSpot ? payoffAt(kind, params, spotPrice) : null,
+  }
 }

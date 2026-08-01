@@ -297,6 +297,29 @@ describe('StrategyPage', () => {
     expect(screen.queryByTestId('strategy-calculator')).not.toBeInTheDocument()
   })
 
+  it('marks where the stock is on the diagram once a price is entered', async () => {
+    renderPage()
+
+    // No marker until a price is given.
+    expect(screen.queryByText(/this position is/i)).not.toBeInTheDocument()
+
+    const spot = screen.getByLabelText(/underlying price/i)
+    await userEvent.type(spot, '375')
+
+    // Default CSP is a 380 strike for 2.00, so at 375 it is 300 down.
+    const readout = screen.getAllByText(/this position is/i)[0]
+    expect(readout).toHaveTextContent('$375.00')
+    expect(readout).toHaveTextContent('-$300.00')
+  })
+
+  it('applies one entered price to both of the wheel diagrams', async () => {
+    renderPage()
+    await userEvent.type(screen.getByLabelText(/underlying price/i), '375')
+
+    // The wheel draws a put chart and a covered call chart.
+    expect(screen.getAllByText(/this position is/i)).toHaveLength(2)
+  })
+
   it('computes the condor from its four strikes', async () => {
     renderPage()
     await pick('Iron Condors')
